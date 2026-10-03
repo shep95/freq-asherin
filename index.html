@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-8I/G9EIwoiMRGlhhQhIcrbmW0SOfNvG1/F9vU3eW6+s='; style-src 'sha256-w2h0U6gRTbnLbl3IKsZ4SkE4k8OVeZRqS1qPgyWCHJk='; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types default">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-SazbWWO+lz2QA+DBKLqbbI2M+8ZR9hbL2sH51iDsQaQ='; style-src 'sha256-W/fXzurheeHV2Sk2JPeBFmx00CFwRfOXZu/ZhC6Ivwo='; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types default">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>shepherd.freq</title>
@@ -420,11 +420,11 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
 
 /* ── COLUMN TABS ───────────────────────────────────────────── */
 .ctabs{display:flex;gap:2px;padding:3px;border-radius:var(--r-pill);background:oklch(0 0 0 / .28);box-shadow:inset 0 0 0 1px var(--line-1)}
-.ctab{height:28px;padding:0 var(--s4);border-radius:var(--r-pill);font-size:var(--fs-xs);letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:var(--tx-3);transition:color var(--t-fast),background var(--t-std) var(--ease-out)}
+.ctab{height:28px;padding:0 var(--s3);border-radius:var(--r-pill);font-size:var(--fs-xs);letter-spacing:.08em;white-space:nowrap;text-transform:uppercase;font-weight:500;color:var(--tx-3);transition:color var(--t-fast),background var(--t-std) var(--ease-out)}
 .ctab:hover{color:var(--tx-1)}
 .ctab.on{background:oklch(1 0 0 / .12);color:var(--tx-1);box-shadow:inset 0 1px 0 oklch(1 0 0 / .08)}
 .sub{display:none;flex:1;min-height:0;flex-direction:column}
-.column[data-sub=lib] .sub-lib,.column[data-sub=int] .sub-int,
+.column[data-sub=lib] .sub-lib,.column[data-sub=int] .sub-int,.column[data-sub=mute] .sub-mute,
 .column[data-sub=ins] .sub-ins,.column[data-sub=spk] .sub-spk{display:flex}
 .lede{color:var(--tx-2);line-height:1.65;margin:var(--s1) 0 var(--s5)}
 
@@ -439,6 +439,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
 .ev-claim{color:oklch(0.82 0.07 40); background:oklch(0.82 0.07 40 / .12)}
 .ev-em   {color:oklch(0.84 0.06 250);background:oklch(0.84 0.06 250 / .12)}
 .ev-haz  {color:var(--rose);background:var(--rose-a)}
+.ev-concept{color:oklch(0.80 0.08 300);background:oklch(0.80 0.08 300 / .13)}
 .ev-ref  {color:var(--tx-2);background:oklch(1 0 0 / .07)}
 
 /* ── INTERVALS ─────────────────────────────────────────────── */
@@ -510,6 +511,7 @@ details.more .gchips{margin-top:var(--s2)}
 
 /* tone card additions */
 .tc-cat .gico{color:var(--tx-3)}
+.tc-hz.sw{font-size:var(--fs-lg)}
 .tc-pulse{display:inline-flex;align-items:center;gap:4px;color:var(--light)}
 
 /* ── FIRST-LISTEN NOTICE ───────────────────────────────────── */
@@ -524,6 +526,34 @@ details.more .gchips{margin-top:var(--s2)}
 .ack-list b{color:var(--tx-1);font-weight:500}
 .modal-actions{display:grid;grid-template-columns:auto 1fr;gap:var(--s2)}
 
+/* ── MUTE CHARGE ───────────────────────────────────────────── */
+.charge{padding:var(--s4);border-radius:20px;margin-bottom:var(--s3);background:oklch(0 0 0 / .24);box-shadow:inset 0 0 0 1px var(--line-1)}
+.charge.sk{box-shadow:inset 0 0 0 1px oklch(0.68 0.16 22 / .28)}
+.ch-hd{display:grid;grid-template-columns:32px 1fr auto;gap:var(--s3);align-items:center}
+.ch-hd .gi{color:var(--tx-1)}
+.charge.sk .ch-hd .gi{color:oklch(0.74 0.15 22);background:oklch(0.68 0.16 22 / .14)}
+.ch-t{display:flex;flex-direction:column;min-width:0}
+.ch-t b{font-weight:500;color:var(--tx-1);line-height:1.3}
+.ch-t small{font-size:var(--fs-xs);color:var(--tx-3);letter-spacing:.06em}
+.ch-hz{font-size:var(--fs-xl);font-weight:300;letter-spacing:-.02em;line-height:1;white-space:nowrap}
+.ch-hz small{font-size:var(--fs-xs);letter-spacing:.1em;color:var(--tx-3);margin-left:3px}
+.ch-tags{display:flex;flex-wrap:wrap;gap:4px;margin:var(--s3) 0 var(--s2)}
+.ch-p{color:var(--tx-3);font-size:var(--fs-xs);line-height:1.65}
+.ch-p b{color:var(--tx-2);font-weight:500}
+.ch-act{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2);margin-top:var(--s3)}
+.ch-act .btn{height:36px}
+.room-dims{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s2);margin-top:var(--s3)}
+.room-dims label{display:flex;flex-direction:column;gap:4px}
+.room-dims .caps{padding-left:var(--s1)}
+.room-dims .field{width:100%;padding:0 26px 0 var(--s3)}
+.room-dims .unit-field em{right:10px}
+.modes{display:flex;flex-wrap:wrap;gap:4px;margin:var(--s3) 0 var(--s2)}
+.mode{display:inline-flex;align-items:baseline;gap:4px;height:28px;padding:0 10px;border-radius:var(--r-pill);font-variant-numeric:tabular-nums;font-size:12px;color:var(--tx-3);background:oklch(1 0 0 / .04);box-shadow:inset 0 0 0 1px var(--line-1);transition:background var(--t-fast),color var(--t-fast)}
+.mode small{font-size:9px;letter-spacing:.08em;color:var(--tx-4)}
+.mode.band{color:var(--tx-1);background:oklch(0.80 0.08 300 / .10);box-shadow:inset 0 0 0 1px oklch(0.80 0.08 300 / .3)}
+.mode.on{background:var(--light);color:var(--void)} .mode.on small{color:oklch(0.3 0.02 230)}
+.mode:hover{color:var(--tx-1)}
+.arm-all{margin-top:var(--s2)}
 /* colour filters */
 .evf{display:flex;flex-wrap:wrap;gap:6px;margin:0 var(--s4) var(--s3)}
 .evc{--c:var(--tx-3);display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 9px;border-radius:var(--r-pill);
@@ -537,7 +567,7 @@ details.more .gchips{margin-top:var(--s2)}
 .evc.on{color:var(--tx-1);background:color-mix(in oklch, var(--c) 20%, transparent);box-shadow:inset 0 0 0 1px color-mix(in oklch, var(--c) 60%, transparent)}
 .evc.on b{color:var(--c)}
 .evc[data-k=claim]{--c:oklch(0.82 0.07 40)} .evc[data-k=mix]{--c:oklch(0.86 0.07 90)} .evc[data-k=doc]{--c:oklch(0.84 0.07 160)}
-.evc[data-k=em]{--c:oklch(0.84 0.06 250)} .evc[data-k=haz]{--c:var(--rose)} .evc[data-k=ref]{--c:oklch(0.78 0.01 230)}
+.evc[data-k=concept]{--c:oklch(0.80 0.08 300)} .evc[data-k=em]{--c:oklch(0.84 0.06 250)} .evc[data-k=haz]{--c:var(--rose)} .evc[data-k=ref]{--c:oklch(0.78 0.01 230)}
 .evc.sk{--c:oklch(0.68 0.16 22)} .evc.sk svg{color:var(--c)}
 .evc.clr{color:var(--tx-3)}
 /* skull marks */
@@ -594,9 +624,12 @@ details.more .gchips{margin-top:var(--s2)}
     display:none;
   }
   .column::before{display:none}
-  body[data-tab=lib] #panel-lib,body[data-tab=int] #panel-lib,body[data-tab=ins] #panel-spk,body[data-tab=spk] #panel-spk{display:flex}
+  body[data-tab=lib] #panel-lib,body[data-tab=int] #panel-lib,body[data-tab=mute] #panel-lib,body[data-tab=ins] #panel-spk,body[data-tab=spk] #panel-spk{display:flex}
   body[data-tab=main] #panel-main{display:flex}
   .col-hd{display:none}
+  /* phones: intervals ↔ mute charge share the "intervals" tab */
+  #panel-lib[data-sub=int] .col-hd,#panel-lib[data-sub=mute] .col-hd{display:flex;padding:var(--s3) var(--s4) 0}
+  #panel-lib .ctab[data-sub=lib]{display:none}
   .srch{margin-top:var(--s3)}
   .frow{height:44px}
   .field,.srch input{font-size:var(--fs-md)} /* ≥16px: no iOS zoom on focus */
@@ -683,8 +716,9 @@ details.more .gchips{margin-top:var(--s2)}
     <div class="ctabs" role="tablist">
       <button class="ctab on" data-sub="lib" role="tab">library</button>
       <button class="ctab" data-sub="int" role="tab">intervals</button>
+      <button class="ctab" data-sub="mute" role="tab">mute charge</button>
     </div>
-    <span class="num" id="libct"></span>
+    <span class="num" id="libct" hidden></span>
   </div>
 
   <div class="sub sub-lib">
@@ -800,6 +834,46 @@ details.more .gchips{margin-top:var(--s2)}
           add &amp; play
         </button>
       </div>
+    </div>
+  </div>
+
+  <div class="sub sub-mute">
+    <div class="int-scroll scroll" id="mutepanel">
+      <p class="lede">three “resonance of silence” concepts, packaged as charges. <b>no tone can make a space silent</b> — cancelling sound needs a microphone and an inverted copy of that exact noise at your ear. each charge says what it really does.</p>
+
+      <article class="charge sk" data-charge="infra">
+        <div class="ch-hd"><span class="gi"><i data-ic="skull"></i></span><span class="ch-t"><b>infrasound interference</b><small>ELF · brainwave</small></span><span class="ch-hz num">18.98<small>HZ</small></span></div>
+        <div class="ch-tags"><span class="ev ev-concept">concept</span><span class="ev ev-doc">anecdotal · 1998</span></div>
+        <p class="ch-p"><b>really:</b> sits at the very edge of hearing; phones, laptops and headphones barely reproduce it. the “ghost frequency” comes from one engineer's report. loud subwoofer output strains drivers and can cause unease.</p>
+        <div class="ch-act"><button class="btn" data-arm="infra">arm</button><button class="btn light" data-arm="infra" data-play="1">arm &amp; play</button></div>
+      </article>
+
+      <article class="charge" data-charge="room">
+        <div class="ch-hd"><span class="gi"><i data-ic="room"></i></span><span class="ch-t"><b>room resonance</b><small>PEMF · research</small></span><span class="ch-hz num" id="roomHz">175<small>HZ</small></span></div>
+        <div class="ch-tags"><span class="ev ev-concept">concept</span><span class="ev ev-doc">real physics · room modes</span></div>
+        <p class="ch-p"><b>really:</b> your room's dimensions set its resonant frequencies. playing one makes it <b>boom louder</b> in some spots and nearly vanish in others — nodes, not silence. enter your room to find its modes:</p>
+        <div class="room-dims">
+          <label><span class="caps">length</span><span class="unit-field"><input class="field num" id="roomL" type="number" inputmode="decimal" min="1.5" max="30" step="0.1" value="4" aria-label="room length in metres"><em>m</em></span></label>
+          <label><span class="caps">width</span><span class="unit-field"><input class="field num" id="roomW" type="number" inputmode="decimal" min="1.5" max="30" step="0.1" value="3.5" aria-label="room width in metres"><em>m</em></span></label>
+          <label><span class="caps">height</span><span class="unit-field"><input class="field num" id="roomH" type="number" inputmode="decimal" min="1.5" max="30" step="0.1" value="2.6" aria-label="room height in metres"><em>m</em></span></label>
+        </div>
+        <div class="modes" id="modes" role="group" aria-label="room modes"></div>
+        <p class="ch-p" id="modehint"></p>
+        <div class="seg seg-wide" id="roomkind" role="group" aria-label="room charge type">
+          <button class="sbtn on" data-v="mode">single mode</button>
+          <button class="sbtn" data-v="sweep">sweep 150–200</button>
+        </div>
+        <div class="ch-act"><button class="btn" data-arm="room">arm</button><button class="btn light" data-arm="room" data-play="1">arm &amp; play</button></div>
+      </article>
+
+      <article class="charge sk" data-charge="sat">
+        <div class="ch-hd"><span class="gi"><i data-ic="skull"></i></span><span class="ch-t"><b>auditory saturation</b><small>LRAD</small></span><span class="ch-hz num">2500<small>HZ</small></span></div>
+        <div class="ch-tags"><span class="ev ev-concept">concept</span><span class="ev ev-haz">hearing hazard</span></div>
+        <p class="ch-p"><b>really:</b> hearing is most sensitive around 2–5 kHz. “silence by saturation” is <b>temporary threshold shift</b> — the first stage of noise-induced hearing loss. armed at 20 % volume; keep it quiet and brief.</p>
+        <div class="ch-act"><button class="btn" data-arm="sat">arm</button><button class="btn light" data-arm="sat" data-play="1">arm &amp; play</button></div>
+      </article>
+
+      <div class="ch-act arm-all"><button class="btn" data-arm="all">arm all three</button><button class="btn danger" data-arm="all" data-play="1">arm all &amp; play</button></div>
     </div>
   </div>
 </aside>
@@ -1067,6 +1141,10 @@ const DB = [
   {hz:440,  name:'concert A 440 Hz', star:1,    cat:'reference', desc:'ISO 16 standard; 440=110x4; 440-432=8 Hz (alpha-theta boundary)'},
   {hz:1000, name:'1 kHz reference',        cat:'reference', desc:'standard audio test tone; equal-loudness reference'},
   {hz:3000, name:'speech clarity peak',   cat:'reference', desc:'peak speech intelligibility; human ear most sensitive 2k-5 kHz'},
+  // MUTE CHARGE — "resonance of silence" concepts (see the mute charge panel: none of these create silence)
+  {hz:18.98,name:'mute · infrasound interference', cat:'mutecharge', desc:'mute charge, ELF / brainwave domain: edge of hearing; barely reproduced by speakers'},
+  {hz:175,  name:'mute · room resonance (150–200)', cat:'mutecharge', desc:'mute charge, PEMF / research domain: typical indoor room-mode band; driving a mode makes it boom, not silent'},
+  {hz:2500, name:'mute · auditory saturation',     cat:'mutecharge', desc:'mute charge, LRAD domain: peak ear sensitivity; "saturation" is temporary threshold shift — hearing strain'},
 ];
 
 // Deduplicate by hz+cat
@@ -1077,13 +1155,13 @@ const FREQ = DB.filter(f => {
   seen.add(k); return true;
 }).sort((a,b) => a.hz - b.hz);
 
-const CATS = ['brainwave','earth','pemf','infrasound','solfeggio','sacred','compound','research','medical','lrad','mosquito','submarine','drone','gnss','reference'];
+const CATS = ['brainwave','earth','pemf','infrasound','solfeggio','sacred','compound','research','medical','lrad','mosquito','submarine','drone','gnss','reference','mutecharge'];
 const CAT_LABEL = {
   brainwave:'brainwave',earth:'earth / schumann',pemf:'PEMF therapeutic',
   infrasound:'infrasound',solfeggio:'solfeggio',sacred:'sacred / tuning',
   compound:'synthesized compound',research:'research anomalous',medical:'medical reference',
   lrad:'LRAD acoustic',mosquito:'mosquito device',submarine:'ELF submarine',
-  drone:'drone RF (rep)',gnss:'GNSS / GPS (rep)',reference:'reference'
+  drone:'drone RF (rep)',gnss:'GNSS / GPS (rep)',reference:'reference',mutecharge:'mute charge'
 };
 // perceptually even: equal L and C, hue rotated (oklch)
 
@@ -1130,6 +1208,10 @@ class Engine {
     const now=ctx.currentTime;
     const osc=ctx.createOscillator(), gn=ctx.createGain();
     osc.type=t.waveform||'sine'; osc.frequency.value=t.hz;
+    if(t.sweepTo){ // slow exponential sweep back and forth (≈20 min of legs)
+      const f=osc.frequency; f.setValueAtTime(t.hz,now); let tt=now;
+      for(let k=0;k<60;k++){ tt+=t.sweepSec; f.exponentialRampToValueAtTime(k%2===0?t.sweepTo:t.hz,tt); }
+    }
     gn.gain.setValueAtTime(0,now);
     gn.gain.linearRampToValueAtTime(t.volume??0.5,now+FADE);
     let pan=null, am=null, lfo=null, lg=null, out=gn;
@@ -1219,6 +1301,9 @@ const ICON_PATHS = {
   ratio:'<circle cx="4.6" cy="4.6" r="1.6"/><circle cx="11.4" cy="11.4" r="1.6"/><path d="m12.6 3.4-9.2 9.2"/>',
   rough:'<path d="m1.5 8 1.8-3 1.8 6 1.8-6 1.8 6 1.8-6 1.8 6 1.8-3"/>',
   info:'<circle cx="8" cy="8" r="6"/><path d="M8 7.2v4M8 4.9v.1"/>',
+  mute:'<path d="M2.5 6h2.5l3.5-3v10L5 10H2.5z"/><path d="m10.6 6.2 3.6 3.6m0-3.6-3.6 3.6"/>',
+  room:'<path d="M2 5.5 8 2.5l6 3v5l-6 3-6-3z"/><path d="M2 5.5l6 3 6-3M8 8.5v5"/>',
+  sweep:'<path d="M1.5 8c.8-3 1.6-3 2.4 0s1.4 3 2.1 0 1.2-3 1.8 0 1 3 1.5 0 .8-3 1.2 0 .7 3 1 0 .6-3 .9 0 .5 2 .8 1"/>',
   skull:'<path d="M8 1.8c-3.2 0-5.5 2.2-5.5 5.2 0 1.7.8 3 2 3.8v2c0 .5.4.9.9.9h5.2c.5 0 .9-.4.9-.9v-2c1.2-.8 2-2.1 2-3.8 0-3-2.3-5.2-5.5-5.2z"/><circle cx="5.9" cy="7.3" r="1.25" fill="currentColor" stroke="none"/><circle cx="10.1" cy="7.3" r="1.25" fill="currentColor" stroke="none"/><path d="M7 13.7v-1.5M9 13.7v-1.5M8 9.3l-.7 1.3h1.4z"/>',
 };
 const icon = (n,s=16) => `<svg width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[n]||''}</svg>`;
@@ -1238,6 +1323,8 @@ const GROUPS = {
             line:'measured phenomena and single reports — read the note on each'},
   hazard:  {label:'deterrents & hazards',  ev:'use responsibly',     cls:'haz',   icon:'alert',
             line:'bands used to repel people or animals — never aim them at anyone'},
+  mute:    {label:'mute charge',           ev:'concept · not silence', cls:'concept', icon:'mute',
+            line:'“resonance of silence” presets — interesting tones, but no tone can create silence'},
   signal:  {label:'radio & signal bands',  ev:'audio stand-in',      cls:'em',    icon:'antenna',
             line:'MHz–GHz radio named by number; sound cannot touch radio'},
   measure: {label:'measurement & reference', ev:'reference standard', cls:'ref',  icon:'ruler',
@@ -1245,18 +1332,20 @@ const GROUPS = {
 };
 const CAT_GROUP = {brainwave:'entrain',earth:'natural',pemf:'therapy',infrasound:'research',solfeggio:'wellness',
   sacred:'wellness',compound:'wellness',research:'research',medical:'measure',lrad:'hazard',mosquito:'hazard',
-  submarine:'signal',drone:'signal',gnss:'signal',reference:'measure'};
+  submarine:'signal',drone:'signal',gnss:'signal',reference:'measure',mutecharge:'mute'};
 const groupOf = cat => GROUPS[CAT_GROUP[cat]||'measure'];
 // skull: tones that need an extreme warning — deterrent bands, infrasound, ≥15 kHz
 const DANGER_CATS = new Set(['lrad','mosquito','infrasound']);
-const isDanger = t => DANGER_CATS.has(t.cat) || Number(t.hz)>=15000;
+const isDanger = t => DANGER_CATS.has(t.cat) || Number(t.hz)>=15000
+  || (t.cat==='mutecharge' && (Number(t.hz)<20 || Number(t.hz)>=2000));   // infrasound + saturation charges
 const SKULL_WHY = t => t.cat==='lrad'?'crowd-control band — painful and harmful at high level; never aim at people'
+  : t.cat==='mutecharge'&&t.hz>=2000?'auditory saturation — "silence" here means temporary hearing loss; keep very quiet and brief'
   : t.cat==='mosquito'||t.hz>=15000?'high-pitched deterrent range — can hurt children\'s and pets\' ears; never use on others'
   : 'infrasound — strains speakers; linked to unease and nausea at high level';
 // colour filters — one per evidence class, plus the skull
 const EV_FILTERS = [
   {k:'claim', label:'claim'}, {k:'mix', label:'mixed'}, {k:'doc', label:'documented'},
-  {k:'em', label:'EM / signal'}, {k:'haz', label:'hazard'}, {k:'ref', label:'reference'},
+  {k:'em', label:'EM / signal'}, {k:'haz', label:'hazard'}, {k:'ref', label:'reference'}, {k:'concept', label:'concept'},
   {k:'danger', label:'extreme', skull:true},
 ];
 const evFilter = new Set();
@@ -1319,6 +1408,12 @@ const NOTES = [
   {area:'claims', icon:'alert', title:'deterrent devices',
    when:m=>m.groups.has('hazard'),
    text:'Real LRAD and “mosquito” devices use specialised, very loud or highly directional hardware. Home playback is not equivalent — and using such tones to target people or animals may be unlawful.'},
+  {area:'claims', icon:'mute', title:'mute charge is a concept, not silence',
+   when:m=>m.cats.has('mutecharge'),
+   text:'No tone creates silence. Active noise cancellation plays an inverted copy of one specific, measured noise and only works close to its microphone. Room-mode tones make those frequencies boom louder; 2500 Hz “saturation” is temporary threshold shift — the first stage of noise-induced hearing loss; 18.98 Hz sits at the edge of hearing and most speakers barely reproduce it.'},
+  {area:'matter', icon:'matter', title:'room modes',
+   when:m=>m.tones.some(t=>(t.hz>=30&&t.hz<=300)||t.sweepTo),
+   text:'Every room has standing waves set by its dimensions (f = n × 343 ÷ 2L). Driving one makes bass boom in some spots and almost vanish in others. Those quiet spots are nodes of one frequency — not silence. Walk around while a mode plays to hear it.'},
   {area:'claims', icon:'shield', title:'not medical advice', always:true,
    text:'Nothing here diagnoses, treats or cures anything. With a hearing or neurological condition, or during pregnancy, check with a professional before using intense or rhythmic tones.'},
 ];
@@ -1397,7 +1492,7 @@ function save(){
   try{
     localStorage.setItem(STORE_KEY,JSON.stringify({
       vol:ENG.vol,
-      tones:tones.map(({id,hz,name,cat,desc,channel,waveform,volume,deviceId,pulse})=>({id,hz,name,cat,desc,channel,waveform,volume,deviceId,pulse}))
+      tones:tones.map(({id,hz,name,cat,desc,channel,waveform,volume,deviceId,pulse,sweepTo,sweepSec})=>({id,hz,name,cat,desc,channel,waveform,volume,deviceId,pulse,sweepTo,sweepSec}))
     }));
   }catch(_){}
 }
@@ -1422,6 +1517,8 @@ function load(){
           waveform:['sine','triangle','square','sawtooth'].includes(t.waveform)?t.waveform:'sine',
           volume:clampNum(t.volume,0,1,.5),
           pulse:[0,2,4,6,8,10,12,14,20,40].includes(Number(t.pulse))?Number(t.pulse):0,
+          sweepTo:t.sweepTo==null?0:clampNum(t.sweepTo,LIMITS.hzMin,LIMITS.hzMax,0),
+          sweepSec:clampNum(t.sweepSec,2,120,20),
           deviceId:cleanText(t.deviceId,256)||'default',
           playing:false,
         };
@@ -1657,7 +1754,7 @@ function renderTones(){
     return `<article class="tc${t.playing?' on':''}${ent?' enter':''}" id="tc${t.id}"${ent?` data-d="${(i++)*60}"`:''}>
       <div class="tc-head">
         <button class="tc-play${t.playing?' on':''}" data-a="toggle" data-id="${t.id}" aria-label="${t.playing?'stop':'play'} ${fHz(t.hz)} Hz">${t.playing?IC.stop:IC.play}</button>
-        <div class="tc-hz num">${fHz(t.hz)}<span class="u">HZ</span></div>
+        <div class="tc-hz num${t.sweepTo?' sw':''}">${fHz(t.hz)}${t.sweepTo?'–'+fHz(t.sweepTo):''}<span class="u">HZ</span></div>
         <button class="tc-x" data-a="remove" data-id="${t.id}" aria-label="remove">${IC.x}</button>
       </div>
       <div class="tc-meta">
@@ -1792,9 +1889,10 @@ function setSub(col,sub){
 }
 function switchTab(name){
   document.body.dataset.tab=name;
-  if(name==='lib'||name==='int') setSub($('panel-lib'),name);
+  if(name==='lib'||name==='int'||name==='mute') setSub($('panel-lib'),name);
   if(name==='ins'||name==='spk') setSub($('panel-spk'),name);
-  document.querySelectorAll('.mobt').forEach(t=>{ const on=t.dataset.tab===name; t.classList.toggle('on',on); t.setAttribute('aria-selected',on); });
+  const tabOf = name==='mute'?'int':name;
+  document.querySelectorAll('.mobt').forEach(t=>{ const on=t.dataset.tab===tabOf; t.classList.toggle('on',on); t.setAttribute('aria-selected',on); });
 }
 
 // ── OFFLINE: service worker, install, single-file download ───
@@ -1960,13 +2058,15 @@ function renderPreview(){
     ? 'binaural beats form inside the brain — use headphones.'
     : 'monaural beats are real interference in the air — they work on speakers.';
 }
-function addSet(play){
-  const {set}=buildSet(); if(!set.length) return;
+function addTones(set,play,desc){
+  if(!set.length) return;
   const go=async()=>{
     const room=LIMITS.tones-tones.length;
     if(room<=0){ updateStatus(`limit reached — ${LIMITS.tones} tones max`); return; }
-    const ids=set.slice(0,room).map(s=>{ const t={id:nid++,hz:s.hz,name:cleanText(s.name,LIMITS.name),cat:s.cat,channel:s.channel,pulse:s.pulse,
-      waveform:'sine',volume:isDanger(s)?.2:.4,deviceId:devs[0]?.deviceId||'default',playing:false,desc:'interval set'}; tones.push(t); enterIds.add(t.id); return t.id; });
+    const ids=set.slice(0,room).map(s=>{ const t={id:nid++,hz:clampNum(s.hz,LIMITS.hzMin,LIMITS.hzMax,440),name:cleanText(s.name,LIMITS.name),
+      cat:CATS.includes(s.cat)?s.cat:'reference',channel:s.channel||'both',pulse:s.pulse||0,sweepTo:s.sweepTo||0,sweepSec:s.sweepSec||20,
+      waveform:'sine',volume:isDanger(s)?.2:.4,deviceId:devs[0]?.deviceId||'default',playing:false,desc:cleanText(s.desc||desc,LIMITS.desc)};
+      tones.push(t); enterIds.add(t.id); return t.id; });
     if(set.length>room) updateStatus(`added ${room} of ${set.length} — ${LIMITS.tones} tones max`);
     heroId=ids[0];
     if(play){
@@ -1977,6 +2077,52 @@ function addSet(play){
     if(isCompact()) switchTab('main');
   };
   if(play) requireAck(()=>requireDanger(set,go)); else go();
+}
+function addSet(play){ addTones(buildSet().set,play,'interval set'); }
+
+// ── MUTE CHARGE ──────────────────────────────────────────────
+// Three "resonance of silence" concepts. They are tone presets — the panel and
+// the insight notes say plainly that none of them can create silence.
+const SPEED_OF_SOUND = 343; // m/s, air at 20 °C
+const room = {kind:'mode', hz:175};
+function roomModes(L,W,H){
+  const out=[];
+  for(const [d,tag] of [[L,'L'],[W,'W'],[H,'H']]) for(let n=1;n<=16;n++){
+    const f=n*SPEED_OF_SOUND/(2*d); if(f>300) break;
+    if(f>=30) out.push({f:r2(f),n,tag});
+  }
+  return out.sort((a,b)=>a.f-b.f);
+}
+function renderRoom(){
+  const dims=['roomL','roomW','roomH'].map(id=>parseFloat($(id).value));
+  const ok=dims.every(v=>Number.isFinite(v)&&v>=1.5&&v<=30);
+  if(!ok){ $('modes').innerHTML=''; $('modehint').textContent='enter each dimension between 1.5 and 30 m.'; return; }
+  const ms=roomModes(...dims), inBand=ms.filter(m=>m.f>=150&&m.f<=200);
+  if(!ms.some(m=>m.f===room.hz)) room.hz=inBand.length?inBand.reduce((a,b)=>Math.abs(b.f-175)<Math.abs(a.f-175)?b:a).f:175;
+  $('modes').innerHTML=ms.map(m=>`<button class="mode${m.f>=150&&m.f<=200?' band':''}${m.f===room.hz&&room.kind==='mode'?' on':''}" data-f="${m.f}" title="${m.tag} axial mode n=${m.n}">${fHz(m.f)}<small>${m.tag}${m.n}</small></button>`).join('');
+  $('modehint').textContent=`${inBand.length} axial mode${inBand.length===1?'':'s'} in the 150–200 Hz band (highlighted). tap one to use it.`;
+  $('roomHz').innerHTML=room.kind==='sweep'?'150–200<small>HZ</small>':`${esc(fHz(room.hz))}<small>HZ</small>`;
+}
+const CHARGES = {
+  infra:()=>({hz:18.98,name:'mute · infrasound interference',cat:'mutecharge',desc:'mute charge · ELF / brainwave domain'}),
+  room:()=>room.kind==='sweep'
+    ? {hz:150,sweepTo:200,sweepSec:20,name:'mute · room sweep 150–200',cat:'mutecharge',desc:'mute charge · PEMF / research domain · room-mode sweep'}
+    : {hz:room.hz,name:`mute · room mode ${fHz(room.hz)}`,cat:'mutecharge',desc:'mute charge · PEMF / research domain · room mode'},
+  sat:()=>({hz:2500,name:'mute · auditory saturation',cat:'mutecharge',desc:'mute charge · LRAD domain'}),
+};
+function initMute(){
+  for(const id of ['roomL','roomW','roomH']) $(id).addEventListener('input',renderRoom);
+  $('modes').addEventListener('click',e=>{ const b=e.target.closest('.mode'); if(!b) return;
+    room.hz=+b.dataset.f; room.kind='mode';
+    $('roomkind').querySelectorAll('.sbtn').forEach(x=>x.classList.toggle('on',x.dataset.v==='mode')); renderRoom(); });
+  $('roomkind').addEventListener('click',e=>{ const b=e.target.closest('.sbtn'); if(!b) return;
+    room.kind=b.dataset.v; $('roomkind').querySelectorAll('.sbtn').forEach(x=>x.classList.toggle('on',x===b)); renderRoom(); });
+  $('mutepanel').addEventListener('click',e=>{ const b=e.target.closest('[data-arm]'); if(!b) return;
+    const keys=b.dataset.arm==='all'?['infra','room','sat']:[b.dataset.arm];
+    if(!keys.every(k=>Object.hasOwn(CHARGES,k))) return;
+    addTones(keys.map(k=>CHARGES[k]()),!!b.dataset.play,'mute charge');
+  });
+  renderRoom();
 }
 function initIntervals(){
   const seg=(id,key,cb)=>$(id).addEventListener('click',e=>{
@@ -2039,7 +2185,7 @@ function initAck(){
 
 // ── INIT ─────────────────────────────────────────────────────
 function init(){
-  [DB,FREQ,CATS,CAT_LABEL,GROUPS,CAT_GROUP,NOTES,AREAS,INTERVALS,BANDS,EV_FILTERS,ICON_PATHS].forEach(deepFreeze); // app data is read-only
+  [DB,FREQ,CATS,CAT_LABEL,GROUPS,CAT_GROUP,NOTES,AREAS,INTERVALS,BANDS,EV_FILTERS,ICON_PATHS,CHARGES].forEach(deepFreeze); // app data is read-only
   load();
   setRangeFill($('mvol'));
   sizeCanvas(); requestAnimationFrame(frame);
@@ -2071,7 +2217,7 @@ function init(){
   });
   if(navigator.mediaDevices?.addEventListener) navigator.mediaDevices.addEventListener('devicechange',()=>scanDevs(false));
   scanDevs(false);
-  initOffline(); initIntervals(); initAck(); initDanger(); renderInsight();
+  initOffline(); initIntervals(); initMute(); initAck(); initDanger(); renderInsight();
   document.querySelectorAll('[data-ic]').forEach(el=>el.innerHTML=icon(el.dataset.ic));
   document.querySelectorAll('.ctab').forEach(b=>b.addEventListener('click',()=>setSub(b.closest('.column'),b.dataset.sub)));
 

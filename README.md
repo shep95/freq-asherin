@@ -31,6 +31,12 @@ vercel.json            headers (security, service worker, manifest)
   musical interval and difference tones, plus the body / matter / claims notes
   that apply right now (hearing, high and infrasonic ranges, seizures, glass
   resonance, rattling objects, speaker damage, healing and PEMF claims …).
+- **Mute charge** — three “resonance of silence” concepts as tone charges:
+  infrasound interference (18.98 Hz · ELF / brainwave), room resonance
+  (150–200 Hz · PEMF / research) and auditory saturation (2500 Hz · LRAD).
+  Each states plainly what it really does — **no tone can create silence**.
+  The room charge includes a real axial room-mode calculator
+  (f = n·343 / 2L from your room's size) and a slow 150–200 Hz sweep.
 - A one-time safety notice appears before the first sound.
 - **Colour filters** under the search box narrow the library by evidence
   colour; combine several. The **skull** filter shows extreme-caution tones
@@ -54,6 +60,16 @@ command and output directory empty. Or with the CLI: `vercel --prod`.
 
 When you change a file that the service worker caches, bump `VERSION` in
 `sw.js` so installed copies pick up the update.
+
+## Tests
+
+`tests/run.mjs` drives a real Chromium through every feature, safety gate and
+a set of attacks (140 checks), served with the production headers:
+
+```sh
+npm i --no-save playwright && npx playwright install chromium
+node tests/run.mjs
+```
 
 ## Run locally
 
