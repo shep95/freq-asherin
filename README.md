@@ -32,6 +32,10 @@ vercel.json            headers (security, service worker, manifest)
   that apply right now (hearing, high and infrasonic ranges, seizures, glass
   resonance, rattling objects, speaker damage, healing and PEMF claims …).
 - A one-time safety notice appears before the first sound.
+- **Colour filters** under the search box narrow the library by evidence
+  colour; combine several. The **skull** filter shows extreme-caution tones
+  (deterrent bands, infrasound, 15 kHz and up). Skull tones start at 20 %
+  volume and need a separate confirmation before they play.
 
 ## Use it offline
 
@@ -75,6 +79,30 @@ opening, so those anchors hold on every screen size.
 - Sound → light: low tones draw long, tall, slow waves and a heavier numeral;
   high tones draw short, bright ones. Ambient light breathes on an 8 s cycle
   (never flickers). All motion respects `prefers-reduced-motion`.
+
+## Security model
+
+A static, client-only app — no server code, accounts, cookies, analytics or
+third-party resources. Hardening (each control was attack-tested):
+
+| Threat | Control |
+|---|---|
+| Script injection (XSS) via labels, saved data or Bluetooth device names | all dynamic text escaped; strict **CSP** with SHA-256 hashes for the one inline script and style — no `unsafe-inline`, no `unsafe-eval`, no external origins |
+| Injection through any HTML sink | **Trusted Types** `default` policy routes every `innerHTML` through a tag-aware sanitizer; `eval`, string timers and new policies are refused |
+| Data exfiltration | `connect-src 'self'`, `default-src 'none'`, `form-action 'none'` |
+| Clickjacking / framing | `frame-ancestors 'none'`, `X-Frame-Options: DENY`, JS frame-guard in the single file |
+| Prototype pollution | saved state rebuilt from an allow-list of keys (no object spread); built-in prototypes and app data frozen |
+| Oversized / malformed saved state | strict type checks and clamps; max 48 tones, 40-char labels; control and bidi-override characters stripped |
+| Service-worker cache poisoning | caches an explicit allow-list only; no query strings, redirects, errors or cross-origin responses |
+| Cross-origin attacks / side channels | COOP + COEP + CORP same-origin (cross-origin isolated), `nosniff`, `no-referrer`, `Origin-Agent-Cluster` |
+| Downgrade | HSTS (2 years) + `upgrade-insecure-requests` |
+| Permission abuse | Permissions-Policy denies everything except microphone (device names, on click only, released immediately) and speaker selection |
+| Repo files exposed by deploy | `.vercelignore` ships only the app |
+| Supply chain | zero runtime dependencies; font self-hosted; CI action pinned by commit |
+
+**After editing `index.html`, run `node tools/csp.mjs`** to refresh the CSP
+hashes (CI fails if you forget). Report vulnerabilities via
+[SECURITY.md](SECURITY.md).
 
 ## Browser notes
 

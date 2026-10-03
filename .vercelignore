@@ -1,0 +1,7 @@
+# only the app is deployed — never repo tooling or docs
+README.md
+tools/
+.gitignore
+.vercelignore
+*.mjs
+SECURITY.md

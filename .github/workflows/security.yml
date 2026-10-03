@@ -1,0 +1,16 @@
+name: security
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  csp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: CSP hashes match index.html
+        run: node tools/csp.mjs --check
+      - name: No third-party origins in the app
+        run: |
+          ! grep -nE 'https?://(?!www\.w3\.org)' index.html sw.js manifest.webmanifest -P | grep -vE 'xmlns|github\.com/shep95' 

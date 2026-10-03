@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-8I/G9EIwoiMRGlhhQhIcrbmW0SOfNvG1/F9vU3eW6+s='; style-src 'sha256-w2h0U6gRTbnLbl3IKsZ4SkE4k8OVeZRqS1qPgyWCHJk='; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types default">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>shepherd.freq</title>
 <meta name="description" content="Multi-tone frequency generator. Layer tones, route each to left, right or both channels and to separate output devices. Works fully offline.">
@@ -522,6 +524,34 @@ details.more .gchips{margin-top:var(--s2)}
 .ack-list b{color:var(--tx-1);font-weight:500}
 .modal-actions{display:grid;grid-template-columns:auto 1fr;gap:var(--s2)}
 
+/* colour filters */
+.evf{display:flex;flex-wrap:wrap;gap:6px;margin:0 var(--s4) var(--s3)}
+.evc{--c:var(--tx-3);display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 9px;border-radius:var(--r-pill);
+  font-size:11px;color:var(--tx-2);background:oklch(0 0 0 / .26);box-shadow:inset 0 0 0 1px var(--line-1);
+  transition:background var(--t-fast),box-shadow var(--t-fast),color var(--t-fast),transform var(--t-spring) var(--spring)}
+.evc i{width:8px;height:8px;border-radius:50%;background:var(--c);box-shadow:0 0 6px var(--c)}
+.evc b{font-weight:500;font-size:10px;color:var(--tx-4)}
+.evc:hover{color:var(--tx-1);box-shadow:inset 0 0 0 1px var(--line-3)}
+.evc:active{transform:scale(.95)}
+.evc:disabled{opacity:.35;cursor:default}
+.evc.on{color:var(--tx-1);background:color-mix(in oklch, var(--c) 20%, transparent);box-shadow:inset 0 0 0 1px color-mix(in oklch, var(--c) 60%, transparent)}
+.evc.on b{color:var(--c)}
+.evc[data-k=claim]{--c:oklch(0.82 0.07 40)} .evc[data-k=mix]{--c:oklch(0.86 0.07 90)} .evc[data-k=doc]{--c:oklch(0.84 0.07 160)}
+.evc[data-k=em]{--c:oklch(0.84 0.06 250)} .evc[data-k=haz]{--c:var(--rose)} .evc[data-k=ref]{--c:oklch(0.78 0.01 230)}
+.evc.sk{--c:oklch(0.68 0.16 22)} .evc.sk svg{color:var(--c)}
+.evc.clr{color:var(--tx-3)}
+/* skull marks */
+.skull{display:inline-flex;color:oklch(0.70 0.15 22)}
+.fmarks{display:flex;align-items:center;gap:6px;min-width:4px}
+.tc-cat .skull{margin-left:2px}
+.ptag.sk{color:oklch(0.78 0.13 22);background:oklch(0.68 0.16 22 / .14)} .ptag.sk svg{color:oklch(0.72 0.15 22)}
+.nt.sk{background:oklch(0.68 0.16 22 / .07);box-shadow:inset 0 0 0 1px oklch(0.68 0.16 22 / .32)} .nt.sk>svg{color:oklch(0.72 0.15 22)}
+.modal-card.sk .modal-ic{background:oklch(0.68 0.16 22 / .16);color:oklch(0.74 0.15 22)}
+.modal-card.sk .ack-list li>i{color:oklch(0.72 0.15 22)}
+.modal-p{color:var(--tx-2);line-height:1.6;margin:-4px 0 var(--s4)}
+.btn.danger{background:oklch(0.68 0.16 22 / .22);color:oklch(0.9 0.05 22);box-shadow:inset 0 0 0 1px oklch(0.68 0.16 22 / .5)}
+.btn.danger:hover{background:oklch(0.68 0.16 22 / .32)}
+.dev-txt{min-width:0}
 .mobtabs{display:none}
 
 /* ══ COMPACT — phones, tablets, narrow windows ═══════════════
@@ -662,6 +692,7 @@ details.more .gchips{margin-top:var(--s2)}
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5" stroke-linecap="round"/></svg>
       <input id="srch" type="search" placeholder="search frequencies" autocomplete="off" spellcheck="false" aria-label="search frequencies">
     </label>
+    <div class="evf" id="evf" role="group" aria-label="filter by evidence colour"></div>
     <div class="flib scroll" id="flib"></div>
     <div class="custom">
       <span class="caps">custom frequency</span>
@@ -823,6 +854,25 @@ details.more .gchips{margin-top:var(--s2)}
   </div>
 </aside>
 
+<!-- ── EXTREME-CAUTION NOTICE ────────────────────────── -->
+<div class="modal" id="danger" role="alertdialog" aria-modal="true" aria-labelledby="dgt" aria-describedby="dgd" hidden>
+  <div class="modal-card sk">
+    <i data-ic="skull" class="modal-ic"></i>
+    <h2 id="dgt">extreme caution</h2>
+    <p class="modal-p" id="dgd">these tones can cause pain, nausea or hearing harm to people and animals, and can damage speakers.</p>
+    <ul class="ack-list" id="dglist"></ul>
+    <ul class="ack-list">
+      <li><i data-ic="spk"></i><span><b>they start at 20 % volume.</b> keep the master low and sessions brief.</span></li>
+      <li><i data-ic="alert"></i><span><b>never aim them at anyone</b> — people, pets or wildlife. doing so may be unlawful.</span></li>
+      <li><i data-ic="ear"></i><span><b>stop immediately</b> if anyone feels pain, pressure, dizziness or nausea.</span></li>
+    </ul>
+    <div class="modal-actions">
+      <button class="btn" id="dgno">cancel</button>
+      <button class="btn danger" id="dgyes">play quietly</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── FIRST-LISTEN NOTICE ───────────────────────────── -->
 <div class="modal" id="ack" role="dialog" aria-modal="true" aria-labelledby="ackt" hidden>
   <div class="modal-card">
@@ -843,6 +893,52 @@ details.more .gchips{margin-top:var(--s2)}
 
 <script>
 'use strict';
+// ══ SECURITY ═════════════════════════════════════════════════
+// 1. Trusted Types default policy: with CSP `require-trusted-types-for 'script'`
+//    the browser routes EVERY innerHTML / insertAdjacentHTML string through
+//    sanitizeHTML, and every script URL through the allow-list below.
+//    All dynamic text is already escaped with esc(); this is the backstop.
+// Tag-aware: only real markup is inspected, so escaped user text (&lt;…&gt;)
+// is never altered. Dangerous elements are dropped; event handlers, srcdoc
+// and script-bearing URLs are stripped from every remaining tag.
+const BAD_TAGS = /^(script|iframe|frame|frameset|object|embed|applet|link|meta|base|form|style|template|noscript|portal|math|foreignobject)$/i;
+const BAD_ATTR = /^(on|srcdoc$|formaction$|xmlns:xlink$|xlink:href$|style$)/i;
+const BAD_URL  = /^\s*(javascript|vbscript|data:(?!image\/(png|webp|jpeg|gif);))/i;
+const sanitizeHTML = s => String(s).replace(/<(\/?)([a-zA-Z][\w:-]*)([^>]*)>/g, (m, close, tag, attrs) => {
+  if (BAD_TAGS.test(tag)) return '';
+  if (close) return `</${tag}>`;
+  const kept = [];
+  attrs.replace(/([^\s"'=<>\/]+)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s"'=<>`]+))?/g, (a, name, val='') => {
+    const v = val.replace(/^["']|["']$/g,'');
+    if (BAD_ATTR.test(name)) return '';
+    if (/^(href|src|action|data|poster|background)$/i.test(name) && BAD_URL.test(v.replace(/&#?\w+;|[\u0000-\u0020]/g,''))) return '';
+    kept.push(val ? `${name}=${val}` : name);
+  });
+  return `<${tag}${kept.length?' '+kept.join(' '):''}${/\/\s*$/.test(attrs)?' /':''}>`;
+});
+const SCRIPT_URLS = new Set(['sw.js']);
+if (window.trustedTypes && trustedTypes.createPolicy) {
+  try{
+    trustedTypes.createPolicy('default', {
+      createHTML: sanitizeHTML,
+      createScriptURL: u => { if (SCRIPT_URLS.has(String(u))) return u; throw new TypeError('blocked script URL'); },
+      createScript: () => { throw new TypeError('dynamic code is disabled'); },
+    });
+  }catch(_){}
+}
+// 2. Anti-framing for the downloaded single file (the server sends frame-ancestors 'none').
+if (window.top !== window.self) {
+  try { window.top.location.replace(window.self.location.href); }
+  catch(_) { document.documentElement.style.display='none'; }
+}
+// 3. Freeze the built-in prototypes: prototype pollution has nothing to write to.
+for (const proto of [Object.prototype, Array.prototype, Function.prototype, String.prototype, Number.prototype, Boolean.prototype, Promise.prototype]) Object.freeze(proto);
+const deepFreeze = o => { if (o && typeof o === 'object' && !Object.isFrozen(o)) { Object.freeze(o); for (const v of Object.values(o)) deepFreeze(v); } return o; };
+// 4. Hard limits so stored or crafted state can't exhaust the device.
+const LIMITS = Object.freeze({ tones:48, name:40, desc:240, devLabel:64, hzMin:0.01, hzMax:22000 });
+// strip control and bidi-override characters (label spoofing)
+const cleanText = (v,max) => String(v ?? '').replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g,'').trim().slice(0,max);
+const clampNum = (v,lo,hi,d) => { const n=Number(v); return Number.isFinite(n)?Math.min(hi,Math.max(lo,n)):d; };
 // ── FREQ DATABASE ────────────────────────────────────────────
 const DB = [
   // BRAINWAVE
@@ -1123,6 +1219,7 @@ const ICON_PATHS = {
   ratio:'<circle cx="4.6" cy="4.6" r="1.6"/><circle cx="11.4" cy="11.4" r="1.6"/><path d="m12.6 3.4-9.2 9.2"/>',
   rough:'<path d="m1.5 8 1.8-3 1.8 6 1.8-6 1.8 6 1.8-6 1.8 6 1.8-3"/>',
   info:'<circle cx="8" cy="8" r="6"/><path d="M8 7.2v4M8 4.9v.1"/>',
+  skull:'<path d="M8 1.8c-3.2 0-5.5 2.2-5.5 5.2 0 1.7.8 3 2 3.8v2c0 .5.4.9.9.9h5.2c.5 0 .9-.4.9-.9v-2c1.2-.8 2-2.1 2-3.8 0-3-2.3-5.2-5.5-5.2z"/><circle cx="5.9" cy="7.3" r="1.25" fill="currentColor" stroke="none"/><circle cx="10.1" cy="7.3" r="1.25" fill="currentColor" stroke="none"/><path d="M7 13.7v-1.5M9 13.7v-1.5M8 9.3l-.7 1.3h1.4z"/>',
 };
 const icon = (n,s=16) => `<svg width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[n]||''}</svg>`;
 const IC = new Proxy({},{get:(_,n)=>icon(n,n==='play'||n==='stop'?12:n==='x'?12:n==='plus'||n==='check'?13:16)});
@@ -1150,6 +1247,19 @@ const CAT_GROUP = {brainwave:'entrain',earth:'natural',pemf:'therapy',infrasound
   sacred:'wellness',compound:'wellness',research:'research',medical:'measure',lrad:'hazard',mosquito:'hazard',
   submarine:'signal',drone:'signal',gnss:'signal',reference:'measure'};
 const groupOf = cat => GROUPS[CAT_GROUP[cat]||'measure'];
+// skull: tones that need an extreme warning — deterrent bands, infrasound, ≥15 kHz
+const DANGER_CATS = new Set(['lrad','mosquito','infrasound']);
+const isDanger = t => DANGER_CATS.has(t.cat) || Number(t.hz)>=15000;
+const SKULL_WHY = t => t.cat==='lrad'?'crowd-control band — painful and harmful at high level; never aim at people'
+  : t.cat==='mosquito'||t.hz>=15000?'high-pitched deterrent range — can hurt children\'s and pets\' ears; never use on others'
+  : 'infrasound — strains speakers; linked to unease and nausea at high level';
+// colour filters — one per evidence class, plus the skull
+const EV_FILTERS = [
+  {k:'claim', label:'claim'}, {k:'mix', label:'mixed'}, {k:'doc', label:'documented'},
+  {k:'em', label:'EM / signal'}, {k:'haz', label:'hazard'}, {k:'ref', label:'reference'},
+  {k:'danger', label:'extreme', skull:true},
+];
+const evFilter = new Set();
 const evTag = g => `<span class="ev ev-${g.cls}">${esc(g.ev)}</span>`;
 
 // ── NOTES — what tones (and combinations) can do to bodies and matter ──
@@ -1158,6 +1268,9 @@ const AREAS = {body:{label:'body & hearing',icon:'body'}, matter:{label:'matter 
 const NOTES = [
   {area:'body', icon:'ear', title:'hearing safety', always:true,
    text:'Pure, sustained tones fatigue the ear faster than music. Start quiet, keep sessions short, and stop if you notice ringing, pressure or muffled hearing. Long exposure above roughly 85 dB can cause permanent damage.'},
+  {area:'body', icon:'skull', title:'extreme caution tones', danger:true,
+   when:m=>m.danger,
+   text:'Skull-marked tones (deterrent bands, infrasound, 15 kHz and up) can cause pain, nausea or hearing harm to people and animals at high level, and can damage speakers. They start at 20 % volume. Keep them low and brief, never aim them at anyone, and stop immediately if anyone is uncomfortable.'},
   {area:'body', icon:'plus', title:'stacked tones add up',
    when:m=>m.sumVol>1,
    text:'Every tone adds energy. Several tones at 50 % can be louder than one at 100 %; the built-in limiter stops distortion, not loudness. Lower the master when layering.'},
@@ -1258,6 +1371,7 @@ function analyzePair(a,b){
     if(iv) tags.push(['ratio',iv.name+(Math.abs(iv.cents)>3?` ${iv.cents>0?'+':''}${iv.cents}¢`:''),'']),tags.push(['info',iv.feel,'']);
     if(!opposite && lo.hz>=200 && beat>=20 && beat<=1000) tags.push(['plus',`difference tone ${fHz(beat)} Hz`,'']);
   }
+  if(isDanger(lo)||isDanger(hi)) tags.unshift(['skull','extreme caution','sk']);
   return {lo,hi,beat,tags,notes,low,rough};
 }
 function mixModel(){
@@ -1273,6 +1387,7 @@ function mixModel(){
     pulsed:ts.some(t=>t.pulse>0),
     harsh:ts.some(t=>(t.waveform==='square'||t.waveform==='sawtooth')&&t.volume>.5),
     beatsLow:pairs.some(p=>p.low), rough:pairs.some(p=>p.rough),
+    danger:ts.some(isDanger),
   };
 }
 
@@ -1289,23 +1404,35 @@ function save(){
 function load(){
   try{
     const d=JSON.parse(localStorage.getItem(STORE_KEY)||'null'); if(!d) return;
-    if(typeof d.vol==='number'){ ENG.vol=Math.min(1,Math.max(0,d.vol)); $('mvol').value=ENG.vol; }
-    if(Array.isArray(d.tones)) tones=d.tones
-      .filter(t=>t&&isFinite(t.hz)&&t.hz>0&&t.hz<=22000)
-      .map(t=>({...t,name:String(t.name||'custom'),cat:CATS.includes(t.cat)?t.cat:'reference',desc:String(t.desc||''),
-        channel:['left','both','right'].includes(t.channel)?t.channel:'both',
-        waveform:['sine','triangle','square','sawtooth'].includes(t.waveform)?t.waveform:'sine',
-        volume:isFinite(t.volume)?Math.min(1,Math.max(0,+t.volume)):.5,
-        pulse:isFinite(t.pulse)?Math.min(40,Math.max(0,+t.pulse)):0,
-        deviceId:String(t.deviceId||'default'),playing:false}));
-    nid=tones.reduce((m,t)=>Math.max(m,+t.id||0),0)+1;
-    tones.forEach(t=>{ t.id=Number.isInteger(+t.id)&&+t.id>0?+t.id:nid++; });
-    tones.forEach((t,i)=>{ enterIds.add(t.id); });
-  }catch(_){}
+    if(!d||typeof d!=='object'||Array.isArray(d)) return;
+    ENG.vol=clampNum(d.vol,0,1,.7); $('mvol').value=ENG.vol;
+    const seenIds=new Set();
+    if(Array.isArray(d.tones)) tones=d.tones.slice(0,LIMITS.tones)
+      .filter(t=>t&&typeof t==='object'&&Number.isFinite(Number(t.hz))&&Number(t.hz)>=LIMITS.hzMin&&Number(t.hz)<=LIMITS.hzMax)
+      .map(t=>{
+        // build a fresh object from known keys only — no spread, no __proto__ carry-over
+        let id=Number(t.id); if(!Number.isSafeInteger(id)||id<1||id>1e9||seenIds.has(id)) id=0;
+        if(id) seenIds.add(id);
+        return {
+          id, hz:Number(t.hz),
+          name:cleanText(t.name,LIMITS.name)||'custom',
+          cat:CATS.includes(t.cat)?t.cat:'reference',
+          desc:cleanText(t.desc,LIMITS.desc),
+          channel:['left','both','right'].includes(t.channel)?t.channel:'both',
+          waveform:['sine','triangle','square','sawtooth'].includes(t.waveform)?t.waveform:'sine',
+          volume:clampNum(t.volume,0,1,.5),
+          pulse:[0,2,4,6,8,10,12,14,20,40].includes(Number(t.pulse))?Number(t.pulse):0,
+          deviceId:cleanText(t.deviceId,256)||'default',
+          playing:false,
+        };
+      });
+    nid=tones.reduce((m,t)=>Math.max(m,t.id),0)+1;
+    tones.forEach(t=>{ if(!t.id) t.id=nid++; enterIds.add(t.id); });
+  }catch(_){ tones=[]; try{ localStorage.removeItem(STORE_KEY); }catch(_){} }
 }
 
 // ── HELPERS ─────────────────────────────────────────────────
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') }
 function fHz(hz){
   if(hz<1) return hz.toFixed(3).replace(/0+$/,'').replace(/\.$/,'');
   if(hz<100) return hz%1===0?String(hz):String(+hz.toFixed(2));
@@ -1427,7 +1554,8 @@ async function scanDevs(withLabels){
       }catch(_){}
     }
     const all=await md.enumerateDevices();
-    devs=all.filter(d=>d.kind==='audiooutput' && d.deviceId);
+    devs=all.filter(d=>d.kind==='audiooutput' && d.deviceId).slice(0,32)
+      .map(d=>({deviceId:String(d.deviceId).slice(0,256),label:cleanText(d.label,LIMITS.devLabel),kind:'audiooutput'}));
   }catch(_){ devs=[]; }
   // Firefox/Safari often hide output devices — always offer the system default
   if(!devs.some(d=>d.deviceId==='default')) devs.unshift(DEFAULT_DEV);
@@ -1442,14 +1570,23 @@ function renderDevs(){
     const bt=isBT(d.label), def=d.deviceId==='default';
     const lbl=d.label||(def?'Default Output':'Audio Device');
     const tag=bt?'<span class="tag bt">bt</span>':def?'<span class="tag">default</span>':'';
-    return `<div class="dev">${bt?IC.bt:IC.spk}<div style="min-width:0"><div class="dev-name">${esc(lbl)}</div><div class="dev-id">${esc(d.deviceId)}</div></div>${tag}</div>`;
+    return `<div class="dev">${bt?IC.bt:IC.spk}<div class="dev-txt"><div class="dev-name">${esc(lbl)}</div><div class="dev-id">${esc(d.deviceId)}</div></div>${tag}</div>`;
   }).join('');
 }
 
 // ── LIBRARY ─────────────────────────────────────────────────
+function renderEvFilters(list,evOf){
+  const counts={}; for(const f of list){ const k=evOf(f); counts[k]=(counts[k]||0)+1; if(isDanger(f)) counts.danger=(counts.danger||0)+1; }
+  $('evf').innerHTML=EV_FILTERS.map(e=>`<button class="evc${evFilter.has(e.k)?' on':''}${e.skull?' sk':''}" data-k="${e.k}" aria-pressed="${evFilter.has(e.k)}"${counts[e.k]?'':' disabled'}>`
+    +(e.skull?icon('skull',13):'<i></i>')+`<span>${e.label}</span><b class="num">${counts[e.k]||0}</b></button>`).join('')
+    +(evFilter.size?'<button class="evc clr" data-k="clear">clear</button>':'');
+}
 function renderLib(){
   const q=srchQ.toLowerCase().trim();
-  const fil=q?FREQ.filter(f=>f.name.toLowerCase().includes(q)||String(f.hz).includes(q)||f.cat.includes(q)||(CAT_LABEL[f.cat]||'').toLowerCase().includes(q)||(f.desc||'').toLowerCase().includes(q)):FREQ;
+  const bySearch=q?FREQ.filter(f=>f.name.toLowerCase().includes(q)||String(f.hz).includes(q)||f.cat.includes(q)||(CAT_LABEL[f.cat]||'').toLowerCase().includes(q)||(f.desc||'').toLowerCase().includes(q)):FREQ;
+  const evOf=f=>groupOf(f.cat).cls;
+  const fil=evFilter.size?bySearch.filter(f=>evFilter.has(evOf(f))||(evFilter.has('danger')&&isDanger(f))):bySearch;
+  renderEvFilters(bySearch,evOf);
   const grp={}; for(const c of CATS) grp[c]=[];
   for(const f of fil) (grp[f.cat]||grp.reference).push(f);
   const used=new Set(tones.map(t=>t.hz+'|'+t.cat));
@@ -1462,13 +1599,19 @@ function renderLib(){
         return `<div class="frow${u?' used':''}" data-idx="${FREQ.indexOf(f)}" title="${esc(f.desc||'')}" role="button" tabindex="0">
           <span class="fhz num">${fHz(f.hz)}</span>
           <span class="fname">${esc(cleanName(f.name))}</span>
-          ${isStar(f)?'<span class="fstar" title="notable"></span>':'<span></span>'}
+          <span class="fmarks">${isDanger(f)?`<span class="skull" title="extreme caution: ${esc(SKULL_WHY(f))}">${icon('skull',14)}</span>`:''}${isStar(f)?'<span class="fstar" title="notable"></span>':''}</span>
           <span class="fadd" aria-hidden="true">${u?IC.check:IC.plus}</span>
         </div>`;
       }).join('')}
     </div>`).join('');
   $('flib').innerHTML=html||'<div class="flib-empty">nothing matches — try a number like 432</div>';
 }
+$('evf').addEventListener('click',e=>{
+  const b=e.target.closest('.evc'); if(!b||b.disabled) return;
+  const k=b.dataset.k;
+  if(k==='clear') evFilter.clear(); else evFilter.has(k)?evFilter.delete(k):evFilter.add(k);
+  renderLib(); $('flib').scrollTop=0;
+});
 $('flib').addEventListener('click',e=>{ const fr=e.target.closest('.frow'); if(fr) addByIdx(+fr.dataset.idx); });
 $('flib').addEventListener('keydown',e=>{
   if(e.key!=='Enter'&&e.key!==' ') return;
@@ -1477,7 +1620,12 @@ $('flib').addEventListener('keydown',e=>{
 });
 
 function newTone(o){
-  const t={id:nid++,channel:'both',waveform:'sine',volume:.5,pulse:0,deviceId:devs[0]?.deviceId||'default',playing:false,...o};
+  if(tones.length>=LIMITS.tones){ updateStatus(`limit reached — ${LIMITS.tones} tones max`); return; }
+  const hz=clampNum(o.hz,LIMITS.hzMin,LIMITS.hzMax,NaN); if(!Number.isFinite(hz)) return;
+  const t={id:nid++,hz,name:cleanText(o.name,LIMITS.name)||'custom',cat:CATS.includes(o.cat)?o.cat:'reference',
+    desc:cleanText(o.desc,LIMITS.desc),channel:'both',waveform:'sine',pulse:0,
+    volume:isDanger({hz,cat:o.cat})?.2:.5,          // extreme-caution tones start quiet
+    deviceId:devs[0]?.deviceId||'default',playing:false};
   tones.push(t); enterIds.add(t.id); heroId=t.id;
   renderTones(); renderLib(); updateStatus();
   if(isCompact()) switchTab('main');
@@ -1506,7 +1654,7 @@ function renderTones(){
   grid.innerHTML=tones.map(t=>{
     const ent=enterIds.has(t.id);
     const devOpts=devs.map(d=>`<option value="${esc(d.deviceId)}"${t.deviceId===d.deviceId?' selected':''}>${esc((d.label||'Device').slice(0,32))}</option>`).join('');
-    return `<article class="tc${t.playing?' on':''}${ent?' enter':''}" id="tc${t.id}"${ent?` style="--d:${(i++)*60}ms"`:''}>
+    return `<article class="tc${t.playing?' on':''}${ent?' enter':''}" id="tc${t.id}"${ent?` data-d="${(i++)*60}"`:''}>
       <div class="tc-head">
         <button class="tc-play${t.playing?' on':''}" data-a="toggle" data-id="${t.id}" aria-label="${t.playing?'stop':'play'} ${fHz(t.hz)} Hz">${t.playing?IC.stop:IC.play}</button>
         <div class="tc-hz num">${fHz(t.hz)}<span class="u">HZ</span></div>
@@ -1514,7 +1662,7 @@ function renderTones(){
       </div>
       <div class="tc-meta">
         <div class="tc-name" title="${esc(t.desc)}">${esc(t.name)}</div>
-        <div class="tc-cat caps"><span class="gico">${icon(groupOf(t.cat).icon,12)}</span>${esc(CAT_LABEL[t.cat]||t.cat)}${t.pulse?`<span class="tc-pulse">· ${icon('pulse',12)}${t.pulse}</span>`:''}</div>
+        <div class="tc-cat caps"><span class="gico">${icon(groupOf(t.cat).icon,12)}</span>${esc(CAT_LABEL[t.cat]||t.cat)}${isDanger(t)?`<span class="skull" title="extreme caution: ${esc(SKULL_WHY(t))}">${icon('skull',12)}</span>`:''}${t.pulse?`<span class="tc-pulse">· ${icon('pulse',12)}${t.pulse}</span>`:''}</div>
       </div>
       <div class="tc-row">
         <div class="seg" role="group" aria-label="channel">
@@ -1525,7 +1673,7 @@ function renderTones(){
         </select>
       </div>
       <div class="tc-row">
-        <input type="range" class="vol" min="0" max="1" step="0.01" value="${t.volume}" style="--p:${t.volume*100}%" data-a="vol" data-id="${t.id}" aria-label="volume">
+        <input type="range" class="vol" min="0" max="1" step="0.01" value="${t.volume}" data-a="vol" data-id="${t.id}" aria-label="volume">
         <span class="vpct num" id="vp${t.id}">${Math.round(t.volume*100)}</span>
       </div>
       <div class="tc-row">
@@ -1536,6 +1684,8 @@ function renderTones(){
       </div>
     </article>`;
   }).join('');
+  grid.querySelectorAll('[data-d]').forEach(el=>el.style.setProperty('--d',el.dataset.d+'ms'));
+  grid.querySelectorAll('input[type=range]').forEach(setRangeFill);
   enterIds.clear();
   updateHero(); updateEnergy(); renderInsight();
 }
@@ -1585,6 +1735,7 @@ async function toggleTone(id){
   if(t.playing){ ENG.stop(id); t.playing=false; }
   else {
     if(!acked()) return requireAck(()=>toggleTone(id));
+    if(isDanger(t)&&!dangerOk()) return requireDanger([t],()=>toggleTone(id));
     try{ ENG.init(); await ENG.play(t); t.playing=true; heroId=t.id; }
     catch(err){ audioErr(err); return; }
   }
@@ -1605,6 +1756,7 @@ async function toggleAll(){
   } else {
     if(!tones.length){ updateStatus('add a frequency first'); if(isCompact()) switchTab('lib'); return; }
     if(!acked()) return requireAck(toggleAll);
+    if(tones.some(isDanger)&&!dangerOk()) return requireDanger(tones,toggleAll);
     try{
       ENG.init();
       for(const t of tones){ await ENG.play(t); t.playing=true; }
@@ -1672,6 +1824,17 @@ function initOffline(){
   }).catch(()=>setOffline(false,'offline cache unavailable — use download'));
 }
 
+async function sha256b64(text){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));
+  let bin=''; for(const b of new Uint8Array(buf)) bin+=String.fromCharCode(b); return btoa(bin);
+}
+async function rehashCSP(html){
+  const st=html.match(/<style>([\s\S]*?)<\/style>/), sc=html.match(/<script>([\s\S]*?)<\/script>/);
+  if(!st||!sc||!crypto?.subtle) throw new Error('cannot secure the download');
+  const sh=await sha256b64(st[1]), ch=await sha256b64(sc[1]);
+  return html.replace(/(<meta http-equiv="Content-Security-Policy" content="[^"]*?script-src )'sha256-[^']+'/, `$1'sha256-${ch}'`)
+             .replace(/(<meta http-equiv="Content-Security-Policy" content="[^"]*?style-src )'sha256-[^']+'/, `$1'sha256-${sh}'`);
+}
 function toDataURL(blob){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(blob); }); }
 async function doDownload(){
   const lbl=$('dllbl'); lbl.textContent='preparing…';
@@ -1692,6 +1855,8 @@ async function doDownload(){
       }catch(_){}
     }
     html=html.replace(/<!--pwa-->[\s\S]*?<!--\/pwa-->/g,'').replace(/<link rel="preload"[^>]*>\n?/g,'');
+    // inlining assets changed the <style> text: re-hash it so the file's own CSP still matches
+    html=await rehashCSP(html);
     const blob=new Blob([html],{type:'text/html'});
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob); a.download='shepherd.freq.html';
@@ -1704,7 +1869,7 @@ async function doDownload(){
 
 // ── INSIGHT — categories, combinations and the notes that apply ──
 function noteHTML(n,now){
-  return `<div class="nt${now?' now':''}">${icon(n.icon)}<div><h4>${esc(n.title)}${now?'<span class="now-tag">applies now</span>':''}</h4><p>${esc(n.text)}</p></div></div>`;
+  return `<div class="nt${now?' now':''}${n.danger?' sk':''}">${icon(n.icon)}<div><h4>${esc(n.title)}${now?'<span class="now-tag">applies now</span>':''}</h4><p>${esc(n.text)}</p></div></div>`;
 }
 function notesByArea(list,now){
   return Object.entries(AREAS).map(([k,a])=>{
@@ -1798,7 +1963,11 @@ function renderPreview(){
 function addSet(play){
   const {set}=buildSet(); if(!set.length) return;
   const go=async()=>{
-    const ids=set.map(s=>{ const t={id:nid++,waveform:'sine',volume:.4,deviceId:devs[0]?.deviceId||'default',playing:false,desc:'interval set',...s}; tones.push(t); enterIds.add(t.id); return t.id; });
+    const room=LIMITS.tones-tones.length;
+    if(room<=0){ updateStatus(`limit reached — ${LIMITS.tones} tones max`); return; }
+    const ids=set.slice(0,room).map(s=>{ const t={id:nid++,hz:s.hz,name:cleanText(s.name,LIMITS.name),cat:s.cat,channel:s.channel,pulse:s.pulse,
+      waveform:'sine',volume:isDanger(s)?.2:.4,deviceId:devs[0]?.deviceId||'default',playing:false,desc:'interval set'}; tones.push(t); enterIds.add(t.id); return t.id; });
+    if(set.length>room) updateStatus(`added ${room} of ${set.length} — ${LIMITS.tones} tones max`);
     heroId=ids[0];
     if(play){
       try{ ENG.init(); for(const id of ids){ const t=tones.find(x=>x.id===id); await ENG.play(t); t.playing=true; } }
@@ -1807,7 +1976,7 @@ function addSet(play){
     renderTones(); renderLib(); updateGlobalBtn(); updateStatus();
     if(isCompact()) switchTab('main');
   };
-  if(play) requireAck(go); else go();
+  if(play) requireAck(()=>requireDanger(set,go)); else go();
 }
 function initIntervals(){
   const seg=(id,key,cb)=>$(id).addEventListener('click',e=>{
@@ -1831,6 +2000,24 @@ function initIntervals(){
   renderPreview();
 }
 
+// ── EXTREME-CAUTION CONFIRMATION (once per session) ───────────
+let dangerPending=null, dangerSession=false;
+const dangerOk=()=>dangerSession;
+function requireDanger(list,fn){
+  const ds=list.filter(isDanger);
+  if(!ds.length||dangerOk()) return fn();
+  dangerPending=fn;
+  $('dglist').innerHTML=ds.slice(0,4).map(t=>`<li><i>${icon('skull')}</i><span><b class="num">${esc(fHz(t.hz))} Hz</b> — ${esc(SKULL_WHY(t))}</span></li>`).join('');
+  $('danger').hidden=false; setTimeout(()=>$('dgno').focus(),50);  // safe default focus
+}
+function closeDanger(){ $('danger').hidden=true; dangerPending=null; }
+function initDanger(){
+  $('dgyes').addEventListener('click',()=>{ dangerSession=true; const fn=dangerPending; closeDanger(); fn&&fn(); });
+  $('dgno').addEventListener('click',closeDanger);
+  $('danger').addEventListener('click',e=>{ if(e.target.id==='danger') closeDanger(); });
+  addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('danger').hidden) closeDanger(); });
+}
+
 // ── FIRST-LISTEN NOTICE ──────────────────────────────────────
 const ACK_KEY='shepherd.freq.ack';
 let ackPending=null;
@@ -1852,6 +2039,7 @@ function initAck(){
 
 // ── INIT ─────────────────────────────────────────────────────
 function init(){
+  [DB,FREQ,CATS,CAT_LABEL,GROUPS,CAT_GROUP,NOTES,AREAS,INTERVALS,BANDS,EV_FILTERS,ICON_PATHS].forEach(deepFreeze); // app data is read-only
   load();
   setRangeFill($('mvol'));
   sizeCanvas(); requestAnimationFrame(frame);
@@ -1878,12 +2066,12 @@ function init(){
   // space = play / stop all (when not typing)
   addEventListener('keydown',e=>{
     if(e.code!=='Space'||e.repeat) return;
-    if(e.target.closest('input,select,textarea,button,[role=button],summary')||!$('ack').hidden) return;
+    if(e.target.closest('input,select,textarea,button,[role=button],summary')||!$('ack').hidden||!$('danger').hidden) return;
     e.preventDefault(); toggleAll();
   });
   if(navigator.mediaDevices?.addEventListener) navigator.mediaDevices.addEventListener('devicechange',()=>scanDevs(false));
   scanDevs(false);
-  initOffline(); initIntervals(); initAck(); renderInsight();
+  initOffline(); initIntervals(); initAck(); initDanger(); renderInsight();
   document.querySelectorAll('[data-ic]').forEach(el=>el.innerHTML=icon(el.dataset.ic));
   document.querySelectorAll('.ctab').forEach(b=>b.addEventListener('click',()=>setSub(b.closest('.column'),b.dataset.sub)));
 
