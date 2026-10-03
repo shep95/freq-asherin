@@ -119,6 +119,7 @@ try {
     check('tones', 'stop all', await ev(p, () => ENG.nodes.size === 0 && !tones.some(t => t.playing)));
     check('tones', 'hero shows the latest tone', (await p.textContent('#heroHz')).length > 0);
     await p.reload(); await wait(1200);
+    check('tones', 'non-sweep tones stay non-sweep after reload (no 0 → 0.01 Hz clamp)', await ev(p, () => tones.every(t => t.sweepTo === 0)) && !(await p.textContent('#tgrid')).includes('0.01'));
     check('tones', 'tones persist across reload (with settings)', await ev(p, () => tones.length === 2 && tones[0].channel === 'left' && tones[0].waveform === 'square' && tones[0].pulse === 10));
     await p.click('.tc >> nth=0 >> [data-a=remove]'); await wait(100);
     check('tones', 'remove tone', await ev(p, () => tones.length === 1));
@@ -182,7 +183,7 @@ try {
     await addLib(p, 'Verdi A (432 Hz)');
     await p.click('.tc >> nth=0 >> [data-a=toggle]'); await wait(200);
     check('safety', 'first-listen notice before any sound', await p.isVisible('#ack') && await ev(p, () => ENG.nodes.size === 0));
-    await p.click('#ackno'); await wait(100);
+    await p.click('#ackno'); await wait(320);
     check('safety', '"not now" keeps silence', await ev(p, () => ENG.nodes.size === 0) && !(await p.isVisible('#ack')));
     await p.click('.tc >> nth=0 >> [data-a=toggle]'); await p.click('#ackyes'); await wait(300);
     check('safety', '"I understand" plays and is remembered', await ev(p, () => ENG.nodes.size === 1 && localStorage.getItem('shepherd.freq.ack') === '1'));
@@ -190,7 +191,7 @@ try {
     check('safety', 'skull tone added at 20 % volume', await ev(p, () => tones.at(-1).volume === 0.2));
     await p.click('.tc >> nth=1 >> [data-a=toggle]'); await wait(200);
     check('safety', 'extreme-caution warning, cancel focused', await p.isVisible('#danger') && await ev(p, () => document.activeElement.id === 'dgno'));
-    await p.keyboard.press('Escape'); await wait(100);
+    await p.keyboard.press('Escape'); await wait(320);
     check('safety', 'Escape cancels — skull tone silent', await ev(p, () => !tones[1].playing) && !(await p.isVisible('#danger')));
     await p.click('.tc >> nth=1 >> [data-a=toggle]'); await p.click('#dgyes'); await wait(300);
     check('safety', '"play quietly" plays the skull tone', await ev(p, () => tones[1].playing));
@@ -296,6 +297,100 @@ try {
     await c6.close();
   }
 
+  // ── 8b · UNCLICK, RESET, CAUTION COLOURS, COMBOS ──────────
+  {
+    const { ctx, p } = await page();
+    await p.goto(U); await wait(1200);
+    await addLib(p, 'Verdi A (432 Hz)'); await addLib(p, 'solfeggio 528 Hz');
+    await p.click('.tc >> nth=0 >> [data-a=toggle]'); await wait(200);
+    await addLib(p, 'Verdi A (432 Hz)'); await wait(150);
+    check('unclick', 'clicking an added frequency again removes it (and stops it)', await ev(p, () => tones.length === 1 && tones[0].hz === 528 && ENG.nodes.size === 0));
+    check('unclick', 'row no longer marked used', await ev(p, () => ![...document.querySelectorAll('.frow.used')].some(r => r.textContent.includes('Verdi'))));
+    await addLib(p, 'Verdi A (432 Hz)');
+    check('unclick', 'clicking again re-adds it', await ev(p, () => tones.length === 2));
+
+    // reset + undo
+    await p.click('#gbtn'); await wait(300);
+    await p.click('#resetbtn'); await wait(200);
+    check('reset', 'reset clears every tone and stops audio', await ev(p, () => tones.length === 0 && ENG.nodes.size === 0) && await p.isVisible('#toast'));
+    check('reset', 'reset/save/stop buttons hidden when empty', await ev(p, () => ['resetbtn', 'savebtn', 'stopallbtn'].every(id => document.getElementById(id).hidden)));
+    await p.click('#toastact'); await wait(200);
+    check('reset', 'undo restores the tones (silent)', await ev(p, () => tones.length === 2 && tones.every(t => !t.playing)));
+
+    // caution colours on beat rate
+    await p.click('.ctab[data-sub=int]'); await wait(100);
+    const chipRisk = await ev(p, () => [...document.querySelectorAll('#ibeatp .chip')].map(c => c.dataset.v + ':' + [...c.classList].find(k => k.startsWith('rk-'))).join(' '));
+    check('caution', 'beat chips colour-coded (delta/theta caution, alpha low, beta mild, gamma high)', chipRisk === '2:rk-care 6:rk-care 10:rk-low 18:rk-mild 40:rk-high', chipRisk);
+    check('caution', 'legend shows 4 levels', (await p.$$('.rk-legend span')).length === 4);
+    for (const [v, k, word] of [['2', 'care', 'driving'], ['10', 'low', 'gentlest'], ['18', 'mild', 'restless'], ['40', 'high', 'seizure'], ['5.5', 'care', 'driving'], ['25', 'mild', 'restless']]) {
+      await p.fill('#ibeat', v); await wait(40);
+      const n = await ev(p, () => [document.getElementById('ibeatrisk').className, document.getElementById('ibeatrisk').textContent]);
+      check('caution', `beat ${v} Hz → ${k} note`, n[0].includes('rk-' + k) && n[1].includes(word), n.join(' / '));
+    }
+    await p.selectOption('#ipulse', '40'); await wait(40);
+    check('caution', 'pulse rate gets the same caution note', await ev(p, () => !document.getElementById('ipulserisk').hidden && document.getElementById('ipulserisk').className.includes('rk-high')));
+
+    // combos
+    await p.click('.ctab[data-sub=combos]'); await wait(100);
+    check('combos', 'empty state shown', await p.isVisible('#combolist .ins-empty'));
+    await p.fill('#comboName', 'evening <b>set</b>'); await p.press('#comboName', 'Enter'); await wait(150);
+    check('combos', 'save current mix with a name', await ev(p, () => combos.length === 1 && combos[0].tones.length === 2 && combos[0].name === 'evening <b>set</b>'));
+    check('combos', 'name rendered as text, not markup', (await p.$$('.combo b')).length === 0);
+    await p.click('#savebtn'); await wait(150);
+    check('combos', '"save" above the tones auto-names', await ev(p, () => combos.length === 2 && /^(432 \+ 528|528 \+ 432) Hz$/.test(combos[0].name)), await ev(p, () => combos.map(c=>c.name+':'+c.tones.map(t=>t.hz)).join(' / ')));
+    await p.reload(); await wait(1200); await p.click('.ctab[data-sub=combos]');
+    check('combos', 'combos persist across reload', await ev(p, () => combos.length === 2));
+    await p.fill('.combo >> nth=1 >> .combo-name', 'renamed'); await p.press('.combo >> nth=1 >> .combo-name', 'Tab'); await wait(100);
+    check('combos', 'rename', await ev(p, () => combos[1].name === 'renamed'));
+    await ev(p, () => { tones = []; renderTones(); });
+    await addLib(p, 'gamma 40 Hz');
+    await p.click('.combo >> nth=1 >> button[data-a=add]'); await wait(200);
+    check('combos', '"add" appends to the current mix', await ev(p, () => tones.length === 3));
+    await p.click('.ctab[data-sub=combos]');
+    await p.click('.combo >> nth=1 >> button[data-a=load]'); await wait(200);
+    check('combos', '"load" replaces the current mix', await ev(p, () => tones.length === 2 && tones.map(t => t.hz).sort().join() === '432,528'));
+    await p.click('.ctab[data-sub=combos]');
+    await p.click('.combo >> nth=0 >> button[data-a=play]'); await wait(400);
+    check('combos', '"play" loads and plays', await ev(p, () => tones.length === 2 && tones.every(t => t.playing) && ENG.nodes.size === 2));
+    await p.click('.ctab[data-sub=combos]');
+    await p.click('.combo >> nth=0 >> button[data-a=delete]'); await wait(100);
+    check('combos', 'delete', await ev(p, () => combos.length === 1));
+    await p.click('#toastact'); await wait(100);
+    check('combos', 'undo delete', await ev(p, () => combos.length === 2));
+    const [dl] = await Promise.all([p.waitForEvent('download'), p.click('#comboexp')]);
+    const exp = path.join(tmp, 'combos.json'); await dl.saveAs(exp);
+    const ej = JSON.parse(fs.readFileSync(exp, 'utf8'));
+    check('combos', 'export file', ej.app === 'shepherd.freq' && ej.combos.length === 2 && !('deviceId' in ej.combos[0].tones[0]));
+    await ev(p, () => { combos.length = 0; saveCombos(); renderCombos(); });
+    await p.setInputFiles('#combofile', exp); await wait(300);
+    check('combos', 'import round-trip', await ev(p, () => combos.length === 2 && combos.some(c => c.name === 'renamed')));
+    await p.setInputFiles('#combofile', exp); await wait(300);
+    check('combos', 're-import skips duplicates', await ev(p, () => combos.length === 2));
+    const evilFile = path.join(tmp, 'evil.json');
+    const evilCombos = [{ name: '<img src=x onerror=alert(9)>', tones: [{ hz: '1e3', name: '<svg onload=alert(8)>', cat: '__proto__', volume: 50, __proto__: { x: 1 } }, { hz: -4 }, { hz: 1e9 }] }];
+    for (let i = 0; i < 500; i++) evilCombos.push({ name: 'n' + i, tones: [{ hz: 100 + i }] });
+    fs.writeFileSync(evilFile, '{"__proto__":{"polluted":1},"combos":' + JSON.stringify(evilCombos) + '}');
+    await p.setInputFiles('#combofile', evilFile); await wait(400);
+    const ci = await ev(p, () => ({ n: combos.length, pol: ({}).polluted ?? null, t: combos.find(c => c.name.startsWith('<img'))?.tones, imgs: document.querySelectorAll('#combolist img,#combolist svg[onload]').length }));
+    check('combos', 'hostile import: capped at 50, no pollution, inert names, bad tones dropped', ci.n === 50 && ci.pol === null && ci.imgs === 0 && ci.t?.length === 1 && ci.t[0].hz === 1000 && ci.t[0].volume === 1 && ci.t[0].cat === 'reference', JSON.stringify(ci));
+    const big = path.join(tmp, 'big.json'); fs.writeFileSync(big, 'x'.repeat(300 * 1024));
+    await p.setInputFiles('#combofile', big); await wait(200);
+    check('combos', 'oversized import refused', (await p.textContent('#toastmsg')).includes('too large'));
+    const bad = path.join(tmp, 'bad.json'); fs.writeFileSync(bad, '{not json');
+    await p.setInputFiles('#combofile', bad); await wait(200);
+    check('combos', 'malformed import refused', (await p.textContent('#toastmsg')).includes('not a valid'));
+    check('combos', 'no page errors / dialogs', p.errors.length === 0 && p.dialogs.length === 0, p.errors.join(' | '));
+    await ctx.close();
+
+    const { ctx: c2, p: p2 } = await page({ ack: true });
+    await p2.goto(U); await wait(1000);
+    await addLib(p2, 'LRAD midpoint'); await p2.click('#savebtn'); await ev(p2, () => { tones = []; renderTones(); });
+    await p2.click('.ctab[data-sub=combos]'); await p2.click('.combo >> nth=0 >> button[data-a=play]'); await wait(200);
+    check('combos', 'playing a combo with a skull tone asks extreme caution first', await p2.isVisible('#danger') && await ev(p2, () => ENG.nodes.size === 0));
+    check('combos', 'skull shown on that combo', (await p2.$$('.combo.sk .ev-haz')).length === 1);
+    await c2.close();
+  }
+
   // ── 9 · RESPONSIVE ───────────────────────────────────────
   for (const [w, h, mobile] of [[1920, 947, 0], [1440, 900, 0], [1100, 640, 0], [820, 1180, 1], [390, 844, 1], [844, 390, 1], [360, 640, 1]]) {
     const { ctx, p } = await page({ vp: { width: w, height: h }, mobile: !!mobile });
@@ -311,6 +406,8 @@ try {
       }
       await p.click('.mobt[data-tab=int]'); await p.click('#panel-lib .ctab[data-sub=mute]'); await wait(200);
       check('responsive', `${w}×${h}: mute charge reachable`, await p.isVisible('.charge'));
+      await p.click('.mobt[data-tab=ins]'); await p.click('#panel-spk .ctab[data-sub=combos]'); await wait(200);
+      check('responsive', `${w}×${h}: combos reachable`, await p.isVisible('#combosave'));
     } else {
       check('responsive', `${w}×${h}: both columns + stage visible`, await p.isVisible('#panel-lib') && await p.isVisible('#panel-spk') && await p.isVisible('.vista'));
     }

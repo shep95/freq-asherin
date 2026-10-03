@@ -37,6 +37,15 @@ vercel.json            headers (security, service worker, manifest)
   Each states plainly what it really does — **no tone can create silence**.
   The room charge includes a real axial room-mode calculator
   (f = n·343 / 2L from your room's size) and a slow 150–200 Hz sweep.
+- **Combos** — save the current mix (frequencies, channels, waves, volumes,
+  pulses) by name; load, add, play, rename or delete (with undo). Export /
+  import as JSON to move them between devices — imports are size-capped and
+  re-validated field by field.
+- Click an added frequency in the library again to **remove** it; **reset**
+  clears every active tone (with undo).
+- Beat-rate and pulse choices are **colour-coded by caution**: green low
+  (alpha), yellow mild (beta — can feel restless), amber caution (delta /
+  theta — drowsiness, never while driving), rose high (gamma — seizure caution).
 - A one-time safety notice appears before the first sound.
 - **Colour filters** under the search box narrow the library by evidence
   colour; combine several. The **skull** filter shows extreme-caution tones
@@ -64,7 +73,7 @@ When you change a file that the service worker caches, bump `VERSION` in
 ## Tests
 
 `tests/run.mjs` drives a real Chromium through every feature, safety gate and
-a set of attacks (140 checks), served with the production headers:
+a set of attacks (180 checks), served with the production headers:
 
 ```sh
 npm i --no-save playwright && npx playwright install chromium

@@ -6,7 +6,7 @@
 // (no cache poisoning via arbitrary URLs or query strings), redirects and
 // non-OK / non-basic responses are never stored, and cross-origin requests
 // are not intercepted at all.
-const VERSION = 'shepherd-v5';
+const VERSION = 'shepherd-v6';
 const ASSETS = [
   './',
   'manifest.webmanifest',
