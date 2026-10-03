@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-LoB3uPrAJUwUsa8Bl178yu2UVeteECmUzQij6crufvQ='; style-src 'sha256-LjeOQhiQJ1L3x4nQhWgo4+FwG7pxhKdTo96l9VKXCRA='; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types default">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-vibjP7Pqe21LdvXo7VQNuHVchwKaZD+SQTfVUqkGKbk='; style-src 'sha256-SJolDoBJ6iYdtWigsapCEFtfasAH4lpFPRDDtwG2pBA='; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types default">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>shepherd.freq</title>
@@ -679,6 +679,78 @@ a.btn{text-decoration:none;cursor:pointer}
 .dev-act{display:flex;gap:2px}
 .dev-act .txtbtn{height:28px;padding:0 10px}
 .dev-act .use{color:var(--light)} .dev-act .use:hover{background:var(--light-a);color:var(--light)}
+/* ── RADIOS ─────────────────────────────────────────────────── */
+.radios{padding:var(--s4);border-radius:20px;margin:0 0 var(--s5);background:oklch(0 0 0 / .24);box-shadow:inset 0 0 0 1px var(--line-1)}
+.radios-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s3)}
+.radios-hd .txtbtn{display:inline-flex;align-items:center;gap:6px;color:var(--light);white-space:nowrap}
+.radios-hd .txtbtn:hover{background:var(--light-a);color:var(--light)}
+.radio{display:grid;grid-template-columns:32px 1fr auto;gap:var(--s3);align-items:center;padding:var(--s2) 0}
+.radio+.radio{border-top:1px solid var(--line-1)}
+.radio .gi{color:var(--tx-2)}
+.radio-txt{display:flex;flex-direction:column;min-width:0}
+.radio-txt b{font-weight:500;color:var(--tx-1);font-size:12px}
+.radio-txt span{font-size:var(--fs-xs);color:var(--tx-3);line-height:1.5}
+.radio .txtbtn{color:var(--light)} .radio .txtbtn:hover{background:var(--light-a);color:var(--light)}
+.txtbtn:disabled{opacity:.5;cursor:default}
+/* ── SPECTRUM MAP ───────────────────────────────────────────── */
+.spec-modal{place-items:center}
+.spec-card{width:min(1120px,100%);max-height:calc(var(--H) - 32px);overflow-y:auto;display:flex;flex-direction:column;padding:var(--s5) var(--s6);position:relative}
+.sp.narrow{min-width:0}
+.spec-hd{display:flex;justify-content:space-between;gap:var(--s4);align-items:flex-start}
+.spec-hd h2{margin-bottom:var(--s2)}
+.spec-tools{display:flex;align-items:center;gap:var(--s2)}
+.spec-x{width:32px;height:32px}
+.spec-legend{display:flex;flex-wrap:wrap;gap:var(--s4);font-size:var(--fs-xs);color:var(--tx-3);margin:var(--s2) 0 var(--s3)}
+.spec-legend span{display:inline-flex;align-items:center;gap:6px}
+.spec-legend i{width:14px;height:8px;border-radius:3px}
+.lg-audio i{background:oklch(0.80 0.10 70 / .35);box-shadow:inset 0 0 0 1px oklch(0.80 0.10 70 / .7)}
+.lg-band i{background:oklch(0.78 0.02 230 / .45)}
+.lg-live i{background:var(--light);box-shadow:0 0 8px var(--light)}
+.spec-scroll{overflow-x:auto;overflow-y:hidden;flex-shrink:0}
+.sp{display:block;width:100%;min-width:880px;height:auto;font-family:var(--font)}
+.sp-grid{stroke:oklch(1 0 0 / .06);stroke-width:1}
+.sp-tick{fill:var(--tx-3);font-size:11px;font-variant-numeric:tabular-nums}
+.sp-audio{fill:oklch(0.80 0.10 70 / .10);stroke:oklch(0.80 0.10 70 / .45);stroke-width:1}
+.sp-audio-l{fill:oklch(0.86 0.08 75);font-size:12px;font-weight:500}
+.sp-audio-s{fill:oklch(0.80 0.06 75 / .8);font-size:10.5px}
+.sp-pat{fill:var(--tx-3);font-size:11px;letter-spacing:.02em}
+.sp-band{cursor:pointer;outline:none}
+.sp-hit{fill:transparent}
+.sp-bar{fill:oklch(0.78 0.02 230 / .32);transition:fill var(--t-std)}
+.sp-lbl{fill:var(--tx-2);font-size:12px;pointer-events:none}
+.sp-lbl.in{fill:var(--tx-1)}
+.sp-band:hover .sp-bar,.sp-band:focus-visible .sp-bar{fill:oklch(0.78 0.02 230 / .55)}
+.sp-band:focus-visible .sp-hit{stroke:var(--light);stroke-width:1.5}
+.sp-band.sel .sp-hit{fill:oklch(1 0 0 / .05);stroke:oklch(1 0 0 / .14);stroke-width:1}
+.sp-band.on .sp-bar{fill:var(--light);filter:drop-shadow(0 0 6px oklch(0.9 0.045 215 / .7))}
+.sp-band.on .sp-lbl.in{fill:var(--void)}
+.sp-band.on .sp-lbl{fill:var(--light)}
+.spec-table{overflow:auto;max-height:46vh}
+.sp-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.sp-tbl th{text-align:left;font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;font-weight:500;color:var(--tx-3);padding:var(--s2);border-bottom:1px solid var(--line-2);position:sticky;top:0;background:oklch(0.17 0.012 200)}
+.sp-tbl td{padding:var(--s2);border-bottom:1px solid var(--line-1);color:var(--tx-2);vertical-align:top}
+.sp-tbl tr.on td{color:var(--light)} .sp-tbl tr.aud td{color:oklch(0.86 0.08 75)}
+.spec-tip{position:absolute;z-index:2;pointer-events:none;padding:6px 10px;border-radius:10px;font-size:12px;color:var(--tx-1);background:oklch(0.22 0.012 220 / .95);box-shadow:var(--pane-edge),0 8px 20px oklch(0 0 0 / .5);white-space:nowrap}
+.spec-detail{margin-top:var(--s4);padding:var(--s4);border-radius:18px;background:oklch(0 0 0 / .24);box-shadow:inset 0 0 0 1px var(--line-1)}
+.sd-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--s3)}
+.sd-hd b{font-size:var(--fs-lg);font-weight:400;color:var(--tx-1);margin-right:var(--s3)}
+.sd-hd .num{color:var(--tx-3);font-size:12px}
+.sd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s4)}
+.sd-grid div,.sd-bars div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.sd-grid span{color:var(--tx-2);font-size:12px;line-height:1.5}
+.sd-bars{display:grid;grid-template-columns:1fr 1fr;gap:var(--s4);margin:var(--s4) 0}
+.meter{display:block;height:6px;border-radius:3px;background:oklch(1 0 0 / .07);overflow:hidden}
+.meter i{display:block;height:100%;border-radius:3px;background:oklch(0.78 0.02 230 / .7)}
+.meter .m-0{width:0%}.meter .m-1{width:10%}.meter .m-2{width:20%}.meter .m-3{width:30%}.meter .m-4{width:40%}.meter .m-5{width:50%}.meter .m-6{width:60%}.meter .m-7{width:70%}.meter .m-8{width:80%}.meter .m-9{width:90%}.meter .m-10{width:100%}
+.sd-act{display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap}
+.sd-act .hint{flex:1;min-width:200px;margin:0}
+@media (max-width:720px){
+  .spec-card{padding:var(--s4)}
+  .sd-grid{grid-template-columns:1fr 1fr}
+  .spec-hd{flex-direction:column}
+  .spec-modal{padding:var(--s3)}
+  .sd-hd{flex-wrap:wrap;gap:var(--s2)}
+}
 /* colour filters */
 .evf{display:flex;flex-wrap:wrap;gap:6px;margin:0 var(--s4) var(--s3)}
 .evc{--c:var(--tx-3);display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 9px;border-radius:var(--r-pill);
@@ -834,7 +906,7 @@ a.btn{text-decoration:none;cursor:pointer}
   <button class="mobt" data-tab="int" role="tab"><i data-ic="intervals"></i><span>intervals</span></button>
   <button class="mobt" data-tab="main" role="tab"><i data-ic="active"></i><span>active <b class="num" id="tabct"></b></span></button>
   <button class="mobt" data-tab="ins" role="tab"><i data-ic="insight"></i><span>insight</span></button>
-  <button class="mobt" data-tab="spk" role="tab"><i data-ic="spk"></i><span>outputs</span></button>
+  <button class="mobt" data-tab="spk" role="tab"><i data-ic="antenna"></i><span>connect</span></button>
 </nav>
 
 <!-- ── LEFT GLASS COLUMN — library · intervals ───────── -->
@@ -1029,7 +1101,7 @@ a.btn{text-decoration:none;cursor:pointer}
     <div class="ctabs" role="tablist">
       <button class="ctab on" data-sub="ins" role="tab">insight</button>
       <button class="ctab" data-sub="combos" role="tab">combos</button>
-      <button class="ctab" data-sub="spk" role="tab">outputs</button>
+      <button class="ctab" data-sub="spk" role="tab">connect</button>
     </div>
   </div>
 
@@ -1078,6 +1150,25 @@ a.btn{text-decoration:none;cursor:pointer}
         </div>
       </div>
 
+      <div class="radios">
+        <div class="radios-hd"><span class="caps">your radios</span><button class="txtbtn" id="specopen"><i data-ic="wave"></i>spectrum map</button></div>
+        <div class="radio" id="r-net">
+          <span class="gi"><i data-ic="antenna"></i></span>
+          <div class="radio-txt"><b>network</b><span id="netinfo">checking…</span></div>
+        </div>
+        <div class="radio" id="r-gps">
+          <span class="gi"><i data-ic="globe"></i></span>
+          <div class="radio-txt"><b>GPS · 1575 MHz</b><span id="gpsinfo">find your position from satellites</span></div>
+          <button class="txtbtn" id="gpsbtn">locate</button>
+        </div>
+        <div class="radio" id="r-ble">
+          <span class="gi"><i data-ic="bt"></i></span>
+          <div class="radio-txt"><b>bluetooth · 2.4 GHz</b><span id="bleinfo">find and connect nearby devices</span></div>
+          <button class="txtbtn" id="blebtn">find</button>
+        </div>
+        <p class="hint">browsers can't scan WiFi, cell towers or AM/FM — your phone's radios answer only to the system. these three are what a web page is allowed to see.</p>
+      </div>
+
       <div class="dev-hd"><span class="caps">output devices <b class="num" id="spk-big">1</b></span>
         <button class="txtbtn" id="scanbtn"><i data-ic="reset"></i><span id="scanlbl">scan</span></button></div>
       <div id="devlist"></div>
@@ -1102,6 +1193,25 @@ a.btn{text-decoration:none;cursor:pointer}
 </aside>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toastmsg"></span><button class="txtbtn" id="toastact" hidden></button></div>
+
+<!-- ── SPECTRUM MAP ──────────────────────────────────── -->
+<div class="modal spec-modal" id="spec" role="dialog" aria-modal="true" aria-labelledby="spect" hidden>
+  <div class="modal-card spec-card">
+    <div class="spec-hd">
+      <div><h2 id="spect">the wireless spectrum</h2>
+        <p class="modal-p">all wireless is frequency — same physics as shepherd, a higher tier. lit bands are in use on this device now.</p></div>
+      <div class="spec-tools">
+        <div class="seg" id="specview" role="group" aria-label="view"><button class="sbtn on" data-v="map">map</button><button class="sbtn" data-v="table">table</button></div>
+        <button class="tc-x spec-x" id="specclose" aria-label="close"><i data-ic="x"></i></button>
+      </div>
+    </div>
+    <div class="spec-legend" aria-hidden="true"><span class="lg-audio"><i></i>shepherd.freq · 20 Hz – 20 kHz</span><span class="lg-band"><i></i>radio band</span><span class="lg-live"><i></i>in use on this device</span></div>
+    <div class="spec-scroll scroll" id="specmap"></div>
+    <div class="spec-table scroll" id="spectable" hidden></div>
+    <div class="spec-tip" id="spectip" hidden></div>
+    <div class="spec-detail" id="specdetail"></div>
+  </div>
+</div>
 
 <!-- ── EXTREME-CAUTION NOTICE ────────────────────────── -->
 <div class="modal" id="danger" role="alertdialog" aria-modal="true" aria-labelledby="dgt" aria-describedby="dgd" hidden>
@@ -1323,20 +1433,46 @@ const DB = [
 ];
 
 // Deduplicate by hz+cat
+// ── WIRELESS SPECTRUM — same physics, a different tier ───────
+// Hz ranges; `reach` and `rate` are relative (0–1) for the pattern view.
+const C_LIGHT = 299792458; // m/s
+const SPECTRUM = [
+  {k:'am',     name:'AM radio',          lo:535e3,   hi:1.705e6, carries:'baseline broadcast audio',                 reach:'hundreds of km; bends over the horizon at night', live:''},
+  {k:'fm',     name:'FM radio',          lo:87.5e6,  hi:108e6,   carries:'higher-quality broadcast audio',            reach:'tens of km, line of sight', live:''},
+  {k:'lte',    name:'4G LTE',            lo:700e6,   hi:2.6e9,   carries:'mobile data and calls',                     reach:'several km per tower', live:'cellular'},
+  {k:'nr6',    name:'5G sub-6',          lo:600e6,   hi:3.7e9,   carries:'5G wide-area coverage',                     reach:'km-scale; mid-band ~1 km', live:'cellular'},
+  {k:'gps',    name:'GPS L1',            lo:1.57542e9-1e6, hi:1.57542e9+1e6, carries:'positioning signal from satellites ~20,000 km up', reach:'global, but blocked by roofs', live:'gps'},
+  {k:'wifi24', name:'WiFi 2.4 GHz',      lo:2.4e9,   hi:2.4835e9,carries:'most common home internet',                 reach:'~30–45 m indoors, best through walls', live:'wifi'},
+  {k:'bt',     name:'Bluetooth',         lo:2.402e9, hi:2.48e9,  carries:'headphones, speakers, watches, sensors',     reach:'~10 m (up to ~100 m)', live:'bluetooth'},
+  {k:'wifi5',  name:'WiFi 5 GHz',        lo:5.15e9,  hi:5.85e9,  carries:'faster home internet',                      reach:'~15–30 m indoors', live:'wifi'},
+  {k:'wifi6e', name:'WiFi 6E',           lo:5.925e9, hi:7.125e9, carries:'newest WiFi band, least crowded',           reach:'roughly one room to a floor', live:'wifi'},
+  {k:'starlink',name:'Starlink',         lo:10.7e9,  hi:18e9,    carries:'low-orbit satellite internet (~550 km up)', reach:'needs a clear view of the sky', live:''},
+  {k:'mmw',    name:'5G mmWave',         lo:24e9,    hi:60e9,    carries:'5G extreme speed',                          reach:'hundreds of metres; stopped by walls, even hands', live:'cellular'},
+  {k:'geo',    name:'HughesNet / Viasat',lo:26.5e9,  hi:40e9,    carries:'geostationary satellite internet (~35,786 km up)', reach:'needs a dish aimed at the satellite', live:''},
+];
+const AUDIO_TIER = {lo:20, hi:20000};
+const fmtF = f => f>=1e9?`${+(f/1e9).toFixed(f>=1e10?1:3)} GHz`:f>=1e6?`${+(f/1e6).toFixed(1)} MHz`:f>=1e3?`${+(f/1e3).toFixed(f>=1e5?0:1)} kHz`:`${+f.toFixed(1)} Hz`;
+const fmtLen = m => m>=1000?`${+(m/1000).toFixed(1)} km`:m>=1?`${+m.toFixed(1)} m`:m>=.01?`${+(m*100).toFixed(1)} cm`:`${+(m*1000).toFixed(1)} mm`;
+const bandCenter = b => Math.sqrt(b.lo*b.hi);
+// bring a radio frequency into hearing by whole octaves: same ratios, audible tier
+function transpose(f){ const n=Math.max(0,Math.floor(Math.log2(f/220))); return {hz:Math.round(f/2**n*100)/100, n}; }
+const SPECTRUM_TONES = SPECTRUM.map(b=>{ const fc=bandCenter(b), t=transpose(fc);
+  return {hz:t.hz, name:`${b.name} ↓${t.n} oct`, cat:'spectrum', desc:`audio stand-in: ${b.name} (${fmtF(fc)}) transposed ${t.n} octaves down — sound cannot reach radio`}; });
+
 const seen = new Set();
-const FREQ = DB.filter(f => {
+const FREQ = DB.concat(SPECTRUM_TONES).filter(f => {
   const k = f.hz + '|' + f.cat;
   if (seen.has(k)) return false;
   seen.add(k); return true;
 }).sort((a,b) => a.hz - b.hz);
 
-const CATS = ['brainwave','earth','pemf','infrasound','solfeggio','sacred','compound','research','medical','lrad','mosquito','submarine','drone','gnss','reference','mutecharge'];
+const CATS = ['brainwave','earth','pemf','infrasound','solfeggio','sacred','compound','research','medical','lrad','mosquito','submarine','drone','gnss','reference','mutecharge','spectrum'];
 const CAT_LABEL = {
   brainwave:'brainwave',earth:'earth / schumann',pemf:'PEMF therapeutic',
   infrasound:'infrasound',solfeggio:'solfeggio',sacred:'sacred / tuning',
   compound:'synthesized compound',research:'research anomalous',medical:'medical reference',
   lrad:'LRAD acoustic',mosquito:'mosquito device',submarine:'ELF submarine',
-  drone:'drone RF (rep)',gnss:'GNSS / GPS (rep)',reference:'reference',mutecharge:'mute charge'
+  drone:'drone RF (rep)',gnss:'GNSS / GPS (rep)',reference:'reference',mutecharge:'mute charge',spectrum:'wireless spectrum (rep)'
 };
 // perceptually even: equal L and C, hue rotated (oklch)
 
@@ -1526,7 +1662,7 @@ const GROUPS = {
 };
 const CAT_GROUP = {brainwave:'entrain',earth:'natural',pemf:'therapy',infrasound:'research',solfeggio:'wellness',
   sacred:'wellness',compound:'wellness',research:'research',medical:'measure',lrad:'hazard',mosquito:'hazard',
-  submarine:'signal',drone:'signal',gnss:'signal',reference:'measure',mutecharge:'mute'};
+  submarine:'signal',drone:'signal',gnss:'signal',reference:'measure',mutecharge:'mute',spectrum:'signal'};
 const groupOf = cat => GROUPS[CAT_GROUP[cat]||'measure'];
 // skull: tones that need an extreme warning — deterrent bands, infrasound, ≥15 kHz
 const DANGER_CATS = new Set(['lrad','mosquito','infrasound']);
@@ -2513,6 +2649,166 @@ async function importCombos(file){
     toast(added?`imported ${added} combo${added>1?'s':''}`:'nothing new to import');
   }catch(_){ toast('that file is not a valid combos export'); }
 }
+// ── RADIOS: what a web page may see of the device's wireless ─
+const live = new Map();   // band key → reason
+function setLive(keys,reason){ for(const k of keys) live.set(k,reason); renderSpec(); }
+function clearLive(reason){ for(const [k,r] of [...live]) if(r===reason) live.delete(k); renderSpec(); }
+function readNetwork(){
+  const c=navigator.connection, el=$('netinfo');
+  clearLive('network');
+  if(!navigator.onLine){ el.textContent='offline — no network right now'; return; }
+  if(!c){ el.textContent='online · this browser hides the connection type'; return; }
+  const type=String(c.type||''), parts=[];
+  if(type==='wifi'){ parts.push('WiFi'); setLive(['wifi24','wifi5','wifi6e'],'network'); }
+  else if(type==='cellular'){ parts.push('cellular'); setLive(['lte','nr6','mmw'],'network'); }
+  else if(type==='ethernet') parts.push('cable (ethernet)');
+  else if(type==='bluetooth'){ parts.push('bluetooth tether'); setLive(['bt'],'network'); }
+  else parts.push('online');
+  if(c.effectiveType) parts.push(`${String(c.effectiveType).toUpperCase()}-class speed`);
+  if(Number.isFinite(c.downlink)&&c.downlink>0) parts.push(`~${c.downlink} Mbps`);
+  if(Number.isFinite(c.rtt)&&c.rtt>0) parts.push(`${c.rtt} ms`);
+  el.textContent=parts.join(' · ')+(type?'':' · type hidden by this browser');
+}
+function locate(){
+  const el=$('gpsinfo'), b=$('gpsbtn');
+  if(!navigator.geolocation){ el.textContent='location is not available in this browser'; return; }
+  b.disabled=true; el.textContent='listening for satellites…';
+  navigator.geolocation.getCurrentPosition(p=>{
+    const a=Math.round(p.coords.accuracy), sat=a<=30;
+    // shown rounded to ~100 m; never stored or sent anywhere
+    el.textContent=`±${a} m · ${p.coords.latitude.toFixed(3)}, ${p.coords.longitude.toFixed(3)} · ${sat?'satellite-grade fix':'approximate (WiFi / cell assisted)'}`;
+    setLive(['gps'],'gps'); b.disabled=false; b.textContent='again';
+  },e=>{
+    el.textContent=e.code===1?'location permission denied — allow it in site settings to try':'no fix — go near a window or outdoors and try again';
+    b.disabled=false;
+  },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+}
+let bleDev=null;
+async function bleFind(){
+  const el=$('bleinfo'), b=$('blebtn');
+  if(bleDev?.gatt?.connected){ bleDev.gatt.disconnect(); return; }
+  if(!navigator.bluetooth){ el.textContent='bluetooth search needs Chrome or Edge on a computer or Android'; return; }
+  try{
+    if(navigator.bluetooth.getAvailability && !(await navigator.bluetooth.getAvailability())){ el.textContent='bluetooth is off or missing on this device'; return; }
+    const dev=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:['battery_service']});
+    bleDev=dev; const name=cleanText(dev.name,LIMITS.devLabel)||'unnamed device';
+    el.textContent=`connecting to ${name}…`;
+    dev.addEventListener('gattserverdisconnected',()=>{ el.textContent=`${name} disconnected`; b.textContent='find'; clearLive('ble'); });
+    await dev.gatt.connect();
+    let batt='';
+    try{ const v=await (await (await dev.gatt.getPrimaryService('battery_service')).getCharacteristic('battery_level')).readValue(); batt=` · battery ${Math.min(100,v.getUint8(0))} %`; }catch(_){}
+    el.textContent=`connected · ${name}${batt}`; b.textContent='disconnect'; setLive(['bt'],'ble');
+  }catch(e){
+    if(e?.name==='NotFoundError') el.textContent='no device chosen';
+    else if(e?.name==='SecurityError') el.textContent='bluetooth is blocked here — open the app directly, not inside another page';
+    else el.textContent='could not connect — move closer and try again';
+  }
+}
+
+// ── SPECTRUM MAP ─────────────────────────────────────────────
+let specSel='wifi24';
+const SX={min:1, max:11, W:1000, L:28, R:34};   // mutable: narrow screens re-scale it          // log10(Hz) 10 Hz … 100 GHz
+const xOf=f=>SX.L+(Math.log10(f)-SX.min)/(SX.max-SX.min)*(SX.W-SX.L-SX.R);
+function renderSpec(){
+  if(!$('specmap')||$('spec').hidden) return;
+  // narrow screens: zoom to the radio decades and draw at true pixel width (no sideways scrolling)
+  const host=$('specmap'), cw=host.clientWidth, narrow=cw>0&&cw<640;
+  Object.assign(SX, narrow?{min:5,W:Math.max(300,Math.round(cw)),L:12,R:12}:{min:1,W:1000,L:28,R:34});
+  // lane packing: a band's footprint includes its label
+  const lanes=[], edge=SX.W-SX.R, placed=SPECTRUM.map(b=>{
+    const x1=xOf(b.lo), x2=Math.max(xOf(b.hi),x1+6), lw=b.name.length*6.4+14;
+    const inside=x2-x1>lw, left=!inside&&x2+lw>edge;          // near the right edge → label on the left
+    const start=left?x1-lw:x1, end=inside?x2:left?x2:x2+lw;
+    let lane=lanes.findIndex(e=>e<start-6); if(lane<0){ lane=lanes.length; lanes.push(0); } lanes[lane]=end;
+    return {b,x1,x2,lane,inside,left,lw};
+  });
+  const top=narrow?58:34, laneH=34, H=top+lanes.length*laneH+44;
+  const ax=[]; for(let d=SX.min; d<=SX.max; d++){ const x=xOf(10**d); ax.push(`<line class="sp-grid" x1="${x}" x2="${x}" y1="${top-8}" y2="${H-34}"/><text class="sp-tick" x="${x}" y="${H-18}" text-anchor="${d===SX.max?'end':d===SX.min?'start':'middle'}">${narrow?['10','100','1k','10k','100k','1M','10M','100M','1G','10G','100G'][d-1]:fmtF(10**d).replace('.0','')}</text>`); }
+  const a1=narrow?0:xOf(AUDIO_TIER.lo), a2=narrow?0:xOf(AUDIO_TIER.hi);
+  const audio=narrow
+    ? `<text class="sp-audio-l" x="${SX.L}" y="${top-20}">◂ shepherd.freq · 20 Hz – 20 kHz</text><text class="sp-audio-s" x="${SX.L}" y="${top-6}">sits left of this view — every band here is 25× higher or more</text>`
+    : `<rect class="sp-audio" x="${a1}" y="${top-14}" width="${a2-a1}" height="${H-top-20}" rx="10"/>
+    <text class="sp-audio-l" x="${(a1+a2)/2}" y="${top+12}" text-anchor="middle">shepherd.freq</text>
+    <text class="sp-audio-s" x="${(a1+a2)/2}" y="${top+28}" text-anchor="middle">20 Hz – 20 kHz</text>`;
+  const bars=placed.map(({b,x1,x2,lane,inside,left,lw})=>{
+    const y=top+lane*laneH, on=live.has(b.k), sel=b.k===specSel;
+    return `<g class="sp-band${on?' on':''}${sel?' sel':''}" data-k="${b.k}" tabindex="0" role="button" aria-label="${esc(b.name)}, ${esc(fmtF(b.lo))} to ${esc(fmtF(b.hi))}${on?', in use on this device':''}">
+      <rect class="sp-hit" x="${(left?x1-lw:x1)-4}" y="${y-4}" width="${(inside?x2-x1:x2-x1+lw)+8}" height="30" rx="8"/>
+      <rect class="sp-bar" x="${x1}" y="${y}" width="${x2-x1}" height="22" rx="4"/>
+      <text class="sp-lbl${inside?' in':''}" x="${inside?x1+8:left?x1-7:x2+7}" y="${y+15}"${left?' text-anchor="end"':''}>${esc(b.name)}</text>
+    </g>`;
+  }).join('');
+  $('specmap').innerHTML=`<svg class="sp${narrow?' narrow':''}" viewBox="0 0 ${SX.W} ${H}" role="img" aria-label="wireless frequency bands on a logarithmic axis from 10 hertz to 100 gigahertz">
+    ${ax.join('')}
+    ${audio}
+    ${bars}
+    <text class="sp-pat" x="${narrow?SX.L:SX.L}" y="${narrow?H-2:top-18}">${narrow?'← farther, through walls':'← lower: travels farther, passes walls, carries less'}</text>
+    <text class="sp-pat" x="${SX.W-SX.R}" y="${narrow?H-2:top-18}" text-anchor="end">${narrow?'more data →':'higher: carries more data, shorter range →'}</text>
+  </svg>`;
+  $('spectable').innerHTML=`<table class="sp-tbl"><thead><tr><th>technology</th><th>frequency</th><th>wavelength</th><th>carries</th><th>reach</th><th>now</th></tr></thead><tbody>
+    <tr class="aud"><td>shepherd.freq (sound)</td><td class="num">20 Hz – 20 kHz</td><td class="num">17 m – 1.7 cm in air</td><td>audible tones</td><td>room-scale</td><td>—</td></tr>
+    ${SPECTRUM.map(b=>`<tr${live.has(b.k)?' class="on"':''}><td>${esc(b.name)}</td><td class="num">${esc(fmtF(b.lo))} – ${esc(fmtF(b.hi))}</td><td class="num">${esc(fmtLen(C_LIGHT/bandCenter(b)))}</td><td>${esc(b.carries)}</td><td>${esc(b.reach)}</td><td>${live.has(b.k)?'in use':''}</td></tr>`).join('')}
+  </tbody></table>`;
+  renderSpecDetail();
+}
+function renderSpecDetail(){
+  const b=SPECTRUM.find(x=>x.k===specSel); if(!b) return;
+  const fc=bandCenter(b), t=transpose(fc), lvl=(Math.log10(fc)-5)/(11-5);      // 100 kHz … 100 GHz → 0 … 1
+  const on=live.get(b.k);
+  $('specdetail').innerHTML=`
+    <div class="sd-hd"><div><b>${esc(b.name)}</b><span class="num">${esc(fmtF(b.lo))} – ${esc(fmtF(b.hi))}</span></div>
+      ${on?`<span class="tag in">in use${on==='network'?' (one of these)':''}</span>`:''}</div>
+    <div class="sd-grid">
+      <div><small class="caps">carries</small><span>${esc(b.carries)}</span></div>
+      <div><small class="caps">reach</small><span>${esc(b.reach)}</span></div>
+      <div><small class="caps">wavelength</small><span class="num">${esc(fmtLen(C_LIGHT/fc))}</span></div>
+      <div><small class="caps">vs shepherd</small><span class="num">${esc(fmtF(fc))} is ${t.n} octaves above ${esc(fHz(t.hz))} Hz</span></div>
+    </div>
+    <div class="sd-bars" aria-hidden="true">
+      <div><small class="caps">data capacity</small><span class="meter"><i class="m-${Math.round(lvl*10)}"></i></span></div>
+      <div><small class="caps">range & walls</small><span class="meter"><i class="m-${10-Math.round(lvl*10)}"></i></span></div>
+    </div>
+    <div class="sd-act"><button class="btn light" id="sdhear"><span>${IC.play}</span>hear it · ${esc(fHz(t.hz))} Hz</button>
+      <p class="hint">sound can't reach radio — this is the band moved ${t.n} octaves down so you can hear its place.</p></div>`;
+}
+function openSpec(){
+  $('spec').hidden=false; renderSpec(); setTimeout(()=>$('specclose').focus(),50);
+  requestAnimationFrame(renderSpec);   // re-lay out once the dialog has its real width
+}
+function initSpectrum(){
+  readNetwork();
+  navigator.connection?.addEventListener?.('change',readNetwork);
+  addEventListener('online',readNetwork); addEventListener('offline',readNetwork);
+  $('gpsbtn').addEventListener('click',locate);
+  $('blebtn').addEventListener('click',bleFind);
+  $('specopen').addEventListener('click',openSpec);
+  $('specclose').addEventListener('click',()=>closeModal('spec'));
+  $('spec').addEventListener('click',e=>{ if(e.target.id==='spec') closeModal('spec'); });
+  addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('spec').hidden) closeModal('spec'); });
+  $('specview').addEventListener('click',e=>{ const b=e.target.closest('.sbtn'); if(!b) return;
+    $('specview').querySelectorAll('.sbtn').forEach(x=>x.classList.toggle('on',x===b));
+    const tbl=b.dataset.v==='table'; $('spectable').hidden=!tbl; $('specmap').hidden=tbl; });
+  const pick=e=>{ const g=e.target.closest('.sp-band'); if(!g) return; specSel=g.dataset.k; renderSpec(); };
+  $('specmap').addEventListener('click',pick);
+  $('specmap').addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(e); $('specmap').querySelector(`[data-k="${specSel}"]`)?.focus(); } });
+  $('specmap').addEventListener('pointermove',e=>{
+    const g=e.target.closest('.sp-band'), tip=$('spectip');
+    if(!g){ tip.hidden=true; return; }
+    const b=SPECTRUM.find(x=>x.k===g.dataset.k), box=$('spec').querySelector('.spec-card').getBoundingClientRect();
+    tip.textContent=`${b.name} · ${fmtF(b.lo)} – ${fmtF(b.hi)}${live.has(b.k)?' · in use':''}`;
+    tip.hidden=false; tip.style.left=Math.min(e.clientX-box.left+14,box.width-240)+'px'; tip.style.top=(e.clientY-box.top+16)+'px';
+  });
+  $('specmap').addEventListener('pointerleave',()=>{ $('spectip').hidden=true; });
+  $('specdetail').addEventListener('click',e=>{
+    if(!e.target.closest('#sdhear')) return;
+    const b=SPECTRUM.find(x=>x.k===specSel), fc=bandCenter(b), t=transpose(fc);
+    const idx=FREQ.findIndex(f=>f.cat==='spectrum'&&f.hz===t.hz);
+    if(!tones.some(x=>x.cat==='spectrum'&&x.hz===t.hz)) newTone({hz:t.hz,name:`${b.name} ↓${t.n} oct`,cat:'spectrum',desc:FREQ[idx]?.desc||''});
+    const tt=tones.find(x=>x.cat==='spectrum'&&x.hz===t.hz);
+    if(tt&&!tt.playing){ closeModal('spec'); toggleTone(tt.id); }
+  });
+}
+
 function initCombos(){
   loadCombos(); renderCombos();
   const doSave=()=>{ const c=saveCombo($('comboName').value); if(c){ $('comboName').value=''; toast(`saved “${c.name}”`); } };
@@ -2643,11 +2939,11 @@ function initAck(){
 
 // ── INIT ─────────────────────────────────────────────────────
 function init(){
-  [DB,FREQ,CATS,CAT_LABEL,GROUPS,CAT_GROUP,NOTES,AREAS,INTERVALS,BANDS,EV_FILTERS,ICON_PATHS,CHARGES,RISK].forEach(deepFreeze); // app data is read-only
+  [DB,FREQ,CATS,CAT_LABEL,GROUPS,CAT_GROUP,NOTES,AREAS,INTERVALS,BANDS,EV_FILTERS,ICON_PATHS,CHARGES,RISK,SPECTRUM,SPECTRUM_TONES].forEach(deepFreeze); // app data is read-only
   load();
   setRangeFill($('mvol'));
   sizeCanvas(); requestAnimationFrame(frame);
-  addEventListener('resize',sizeCanvas);
+  addEventListener('resize',()=>{ sizeCanvas(); renderSpec(); });
 
   renderLib(); renderDevs(); renderTones(); updateGlobalBtn(); updateStatus();
   $('srch').addEventListener('input',e=>{ srchQ=e.target.value; renderLib(); });
@@ -2681,12 +2977,12 @@ function init(){
   // space = play / stop all (when not typing)
   addEventListener('keydown',e=>{
     if(e.code!=='Space'||e.repeat) return;
-    if(e.target.closest('input,select,textarea,button,[role=button],summary')||!$('ack').hidden||!$('danger').hidden) return;
+    if(e.target.closest('input,select,textarea,button,[role=button],summary')||!$('ack').hidden||!$('danger').hidden||!$('spec').hidden) return;
     e.preventDefault(); toggleAll();
   });
   if(navigator.mediaDevices?.addEventListener) navigator.mediaDevices.addEventListener('devicechange',()=>scanDevs(false));
   renderConn(); scanDevs(false);
-  initOffline(); initIntervals(); initMute(); initCombos(); initAck(); initDanger(); renderInsight();
+  initOffline(); initIntervals(); initMute(); initCombos(); initSpectrum(); initAck(); initDanger(); renderInsight();
   document.querySelectorAll('[data-ic]').forEach(el=>el.innerHTML=icon(el.dataset.ic));
   document.querySelectorAll('.ctab').forEach(b=>b.addEventListener('click',()=>setSub(b.closest('.column'),b.dataset.sub)));
 

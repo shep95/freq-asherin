@@ -51,6 +51,15 @@ vercel.json            headers (security, service worker, manifest)
   button on Windows, Mac and Android), notices the speaker the moment it
   connects and offers to use it. Each output has **test** (soft chime) and
   **use**; the choice is remembered and restored when the device reconnects.
+- **Wireless spectrum** (connect tab) — a log-scale map from 10 Hz to 100 GHz
+  placing shepherd's audio tier beside AM/FM, 4G/5G, WiFi 2.4/5/6E, Bluetooth,
+  GPS, Starlink and geostationary satellite bands, with wavelength, reach and
+  the more-data ↔ more-reach pattern. Bands this device is using light up:
+  the **network** (WiFi / cellular, speed, latency), a **GPS** fix (shown
+  rounded, never stored) and a real **find & connect** to nearby Bluetooth LE
+  devices (name, battery) in Chrome / Edge. Any band can be heard as an
+  octave-transposed stand-in. Browsers cannot scan WiFi, cell towers or radio,
+  and sound cannot transmit on these bands — the app says so plainly.
 - A one-time safety notice appears before the first sound.
 - **Colour filters** under the search box narrow the library by evidence
   colour; combine several. The **skull** filter shows extreme-caution tones
@@ -78,7 +87,7 @@ When you change a file that the service worker caches, bump `VERSION` in
 ## Tests
 
 `tests/run.mjs` drives a real Chromium through every feature, safety gate and
-a set of attacks (199 checks), served with the production headers:
+a set of attacks (221 checks), served with the production headers:
 
 ```sh
 npm i --no-save playwright && npx playwright install chromium
@@ -126,7 +135,7 @@ third-party resources. Hardening (each control was attack-tested):
 | Service-worker cache poisoning | caches an explicit allow-list only; no query strings, redirects, errors or cross-origin responses |
 | Cross-origin attacks / side channels | COOP + COEP + CORP same-origin (cross-origin isolated), `nosniff`, `no-referrer`, `Origin-Agent-Cluster` |
 | Downgrade | HSTS (2 years) + `upgrade-insecure-requests` |
-| Permission abuse | Permissions-Policy denies everything except microphone (device names, on click only, released immediately) and speaker selection |
+| Permission abuse | Permissions-Policy denies everything except microphone (device names, on click only, released immediately), speaker selection, and — only on a tap — geolocation and Bluetooth |
 | Repo files exposed by deploy | `.vercelignore` ships only the app |
 | Supply chain | zero runtime dependencies; font self-hosted; CI action pinned by commit |
 

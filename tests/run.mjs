@@ -49,7 +49,7 @@ try {
       v: window.__v || [], tt: !!window.trustedTypes?.defaultPolicy, coi: self.crossOriginIsolated,
     }));
     check('load', 'font, image and reveal', st.font && st.img === 736 && st.lit);
-    check('load', 'library renders all entries', st.rows === 114, st.rows);
+    check('load', 'library renders all entries (114 + 12 spectrum)', st.rows === 126, st.rows);
     check('load', 'no CSP violations', st.v.length === 0, st.v.join());
     check('load', 'Trusted Types policy + cross-origin isolation', st.tt && st.coi);
     check('load', 'service worker active', await ev(p, async () => !!(await navigator.serviceWorker.ready).active));
@@ -78,7 +78,7 @@ try {
     await p.click('.evc[data-k=claim]'); await p.click('.evc[data-k=danger]'); await wait(60);
     check('library', 'filters combine', (await p.$$('.frow')).length >= counts.claim + 1);
     await p.click('.evc.clr'); await wait(60);
-    check('library', 'clear resets filters', (await p.$$('.frow')).length === 114);
+    check('library', 'clear resets filters', (await p.$$('.frow')).length === 126);
     await p.click('.evc[data-k=danger]');
     check('library', 'every "extreme" row carries a skull', await ev(p, () => [...document.querySelectorAll('.frow')].every(r => r.querySelector('.skull'))));
     await p.click('.evc.clr');
@@ -293,7 +293,7 @@ try {
     await c6.route('**/*', r => /^(file|data|blob):/.test(r.request().url()) ? r.continue() : r.abort());
     const p6 = await c6.newPage(); await p6.goto('file://' + single); await wait(2200);
     const s6 = await ev(p6, () => ({ font: document.fonts.check('300 20px Inter'), img: document.querySelector('.vista').naturalWidth, v: window.__v || [], rows: document.querySelectorAll('.frow').length }));
-    check('security', 'single file: offline, CSP intact, fully styled', s6.font && s6.img === 736 && s6.v.length === 0 && s6.rows === 114, JSON.stringify(s6));
+    check('security', 'single file: offline, CSP intact, fully styled', s6.font && s6.img === 736 && s6.v.length === 0 && s6.rows === 126, JSON.stringify(s6));
     await c6.close();
   }
 
@@ -449,6 +449,66 @@ try {
       check('connect', `${os}: tailored steps${linkPrefix ? ' + open-settings button' : ''}${routes ? '' : ' + "sound follows system" wording'}`, g.t.includes(os === 'ios' ? 'iphone' : os === 'mac' ? 'mac' : os) && linkOk && g.listen === routes && (routes || g.cap.includes('follows')), JSON.stringify(g));
       await c.close();
     }
+  }
+
+  // ── 8d · RADIOS + SPECTRUM MAP ────────────────────────────
+  {
+    const radioMocks = () => {
+      Object.defineProperty(navigator, 'connection', { configurable: true, value: Object.assign(new EventTarget(), { type: 'wifi', effectiveType: '4g', downlink: 48, rtt: 30 }) });
+      navigator.geolocation.getCurrentPosition = (ok) => setTimeout(() => ok({ coords: { latitude: 51.50739, longitude: -0.12776, accuracy: 9 } }), 50);
+      const dev = Object.assign(new EventTarget(), { name: 'Pulse <b>Watch</b>\u202E', gatt: { connected: false,
+        connect() { this.connected = true; return Promise.resolve(this); },
+        disconnect() { this.connected = false; dev.dispatchEvent(new Event('gattserverdisconnected')); },
+        getPrimaryService: async () => ({ getCharacteristic: async () => ({ readValue: async () => new DataView(new Uint8Array([87]).buffer) }) }) } });
+      Object.defineProperty(navigator, 'bluetooth', { configurable: true, value: { getAvailability: async () => true, requestDevice: async () => dev } });
+    };
+    const { ctx, p } = await page({ init: radioMocks });
+    await p.goto(U); await wait(1200);
+    await p.click('.ctab[data-sub=spk]'); await wait(150);
+    check('radios', 'connect tab renamed and shows radios', (await p.textContent('.ctab[data-sub=spk]')) === 'connect' && await p.isVisible('.radios'));
+    check('radios', 'network: WiFi · 4G-class · 48 Mbps · 30 ms', (await p.textContent('#netinfo')) === 'WiFi · 4G-class speed · ~48 Mbps · 30 ms', await p.textContent('#netinfo'));
+    check('radios', 'WiFi bands marked live', await ev(p, () => ['wifi24', 'wifi5', 'wifi6e'].every(k => live.get(k) === 'network')));
+    await p.click('#gpsbtn'); await wait(300);
+    check('radios', 'GPS fix shown rounded (~100 m) with accuracy', (await p.textContent('#gpsinfo')) === '±9 m · 51.507, -0.128 · satellite-grade fix', await p.textContent('#gpsinfo'));
+    check('radios', 'GPS band live; position never stored', await ev(p, () => live.get('gps') === 'gps' && !JSON.stringify(localStorage).includes('51.50')));
+    await p.click('#blebtn'); await wait(300);
+    check('radios', 'bluetooth: find → connect → battery; hostile name inert', (await p.textContent('#bleinfo')) === 'connected · Pulse <b>Watch</b> · battery 87 %' && (await p.$$('#bleinfo b')).length === 0, await p.textContent('#bleinfo'));
+    check('radios', 'bluetooth band live while connected', await ev(p, () => live.get('bt') === 'ble') && (await p.textContent('#blebtn')) === 'disconnect');
+    await p.click('#blebtn'); await wait(150);
+    check('radios', 'disconnect clears it', await ev(p, () => !live.has('bt')) && (await p.textContent('#bleinfo')).includes('disconnected'));
+    await ev(p, () => { navigator.connection.type = 'cellular'; navigator.connection.dispatchEvent(new Event('change')); });
+    check('radios', 'network change → cellular bands live', await ev(p, () => ['lte', 'nr6', 'mmw'].every(k => live.has(k)) && !live.has('wifi24')));
+
+    await p.click('#specopen'); await wait(400);
+    const sp = await ev(p, () => ({ bands: document.querySelectorAll('.sp-band').length, on: [...document.querySelectorAll('.sp-band.on')].map(g => g.dataset.k).sort().join(), audio: !!document.querySelector('.sp-audio'), ticks: document.querySelectorAll('.sp-tick').length }));
+    check('spectrum', 'map: 12 bands, audio tier, 11 decade ticks', sp.bands === 12 && sp.audio && sp.ticks === 11, JSON.stringify(sp));
+    check('spectrum', 'live bands lit (cellular + GPS)', sp.on === 'gps,lte,mmw,nr6', sp.on);
+    const ov = await ev(p, () => { const r = [...document.querySelectorAll('.sp-band')].map(g => g.querySelector('.sp-lbl').getBBox()).map(b => [b.x, b.y, b.x + b.width, b.y + b.height]); let n = 0; for (let i = 0; i < r.length; i++) for (let j = i + 1; j < r.length; j++) if (r[i][0] < r[j][2] && r[j][0] < r[i][2] && r[i][1] < r[j][3] && r[j][1] < r[i][3]) n++; return n; });
+    check('spectrum', 'no overlapping band labels', ov === 0, ov);
+    const order = await ev(p, () => { const xs = SPECTRUM.map(b => xOf(bandCenter(b))); return xOf(20) < xOf(20000) && xOf(20000) < xs[0] && xs[0] < xs[1]; });
+    check('spectrum', 'log axis order: audio < AM < FM', order);
+    await p.click('.sp-band[data-k=mmw]'); await wait(150);
+    const d = await p.textContent('#specdetail');
+    check('spectrum', 'detail: 5G mmWave, wavelength ~7.8 mm, octave link', d.includes('5G mmWave') && d.includes('7.9 mm') && /\d+ octaves above/.test(d), d.slice(0, 160));
+    await p.focus('.sp-band[data-k=fm]'); await p.keyboard.press('Enter'); await wait(100);
+    check('spectrum', 'keyboard select works', (await p.textContent('.sd-hd b')) === 'FM radio');
+    await p.hover('.sp-band[data-k=am] .sp-bar'); await wait(100);
+    check('spectrum', 'hover tooltip', await p.isVisible('#spectip') && (await p.textContent('#spectip')).startsWith('AM radio'));
+    await p.click('#specview .sbtn[data-v=table]'); await wait(100);
+    check('spectrum', 'table view: audio row + 12 bands', (await p.$$('#spectable tbody tr')).length === 13 && await p.isHidden('#specmap'));
+    await p.click('#specview .sbtn[data-v=map]');
+    const t = await ev(p, () => transpose(2.4e9));
+    check('spectrum', 'octave transposition (2.4 GHz → 286.1 Hz, 23 oct)', t.n === 23 && Math.abs(t.hz - 286.1) < 0.1, JSON.stringify(t));
+    await p.click('#sdhear'); await wait(600);
+    check('spectrum', '"hear it" adds + plays the stand-in, closes map', await ev(p, () => tones.some(x => x.cat === 'spectrum' && x.playing && /FM radio/.test(x.name))) && await p.isHidden('#spec'));
+    check('spectrum', 'spectrum entries in library, tagged audio stand-in', await ev(p, () => FREQ.filter(f => f.cat === 'spectrum').length === 12 && groupOf('spectrum').ev === 'audio stand-in'));
+    check('spectrum', 'no page errors', p.errors.length === 0, p.errors.join(' | '));
+    await ctx.close();
+
+    const c2 = await browser.newContext(); await c2.addInitScript(() => { try { delete Navigator.prototype.bluetooth; } catch (_) {} Object.defineProperty(navigator, 'bluetooth', { value: undefined, configurable: true }); });
+    const q = await c2.newPage(); await q.goto(U); await wait(900); await q.click('.ctab[data-sub=spk]'); await q.click('#blebtn'); await wait(100);
+    check('radios', 'no Web Bluetooth → clear browser guidance', (await q.textContent('#bleinfo')).includes('Chrome or Edge'));
+    await c2.close();
   }
 
   // ── 9 · RESPONSIVE ───────────────────────────────────────
