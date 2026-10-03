@@ -60,6 +60,17 @@ vercel.json            headers (security, service worker, manifest)
   devices (name, battery) in Chrome / Edge. Any band can be heard as an
   octave-transposed stand-in. Browsers cannot scan WiFi, cell towers or radio,
   and sound cannot transmit on these bands — the app says so plainly.
+- **Playlists** (saved locally, in this browser only) — sequences of combos
+  with a duration per stage, 3 s crossfades, optional loop, previous / next /
+  stop and a live countdown. Build your own from the current mix or saved
+  combos; rename, set minutes, reorder, duplicate, delete (with undo);
+  included in export / import.
+- **asherin.playlist** (built-in preset, copy to edit): sleep / deep
+  restoration · focus / cognition · meditation / presence · healing /
+  recovery · EMF / magnetic protection · silence field (mute charge). Rates
+  under ~20 Hz (delta, theta, alpha, beta, gamma, Schumann) are built as
+  binaural beats — use headphones. Each stage shows its intent and a short
+  "what's known" note.
 - A one-time safety notice appears before the first sound.
 - **Colour filters** under the search box narrow the library by evidence
   colour; combine several. The **skull** filter shows extreme-caution tones
@@ -87,7 +98,7 @@ When you change a file that the service worker caches, bump `VERSION` in
 ## Tests
 
 `tests/run.mjs` drives a real Chromium through every feature, safety gate and
-a set of attacks (221 checks), served with the production headers:
+a set of attacks (256 checks), served with the production headers:
 
 ```sh
 npm i --no-save playwright && npx playwright install chromium

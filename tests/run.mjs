@@ -511,6 +511,87 @@ try {
     await c2.close();
   }
 
+  // ── 8e · PLAYLISTS ───────────────────────────────────────
+  {
+    const { ctx, p } = await page({ ack: false });
+    await p.goto(U); await wait(1200);
+    await p.click('.ctab[data-sub=combos]'); await wait(150);
+    check('playlists', 'tab renamed "playlists"', (await p.textContent('.ctab[data-sub=combos]')) === 'playlists');
+    const A = await ev(p, () => ASHERIN.items.map(i => [i.name, i.minutes, i.tones.map(t => t.hz + (t.channel[0])).join(' ')]));
+    check('playlists', 'asherin.playlist: 6 stages in order', A.map(x => x[0]).join(' | ') === 'sleep / deep restoration | focus / cognition | meditation / presence | healing / recovery | EMF / magnetic protection | silence field (mute charge)', A.map(x => x[0]).join(' | '));
+    check('playlists', 'sleep: delta 2 Hz binaural + Schumann 7.83 binaural + 528', A[0][2] === '100l 102r 200l 207.83r 528b', A[0][2]);
+    check('playlists', 'focus: gamma 40 + beta 20 binaural + 432', A[1][2] === '300l 340r 200l 220r 432b', A[1][2]);
+    check('playlists', 'meditation: theta 6 + alpha 10 + Schumann 7.83', A[2][2] === '200l 206r 300l 310r 150l 157.83r', A[2][2]);
+    check('playlists', 'healing: PEMF-rate 10 + 528 + 7.83', A[3][2] === '250l 260r 528b 150l 157.83r', A[3][2]);
+    check('playlists', 'EMF: Schumann 7.83 / 14.3 / 20.8', A[4][2] === '150l 157.83r 250l 264.3r 350l 370.8r', A[4][2]);
+    check('playlists', 'silence field: 18.98 + 150 + 2500, short', A[5][2] === '18.98b 150b 2500b' && A[5][1] === 2, A[5].join(' / '));
+    check('playlists', 'preset shown with every stage, intent and "what\'s known"', (await p.$$('.pl.builtin .pl-item')).length === 6 && (await p.$$('.pl.builtin .pl-known')).length === 6);
+    check('playlists', 'skull marked on the silence-field stage only', await ev(p, () => [...document.querySelectorAll('.pl.builtin .pl-item')].map(li => li.classList.contains('sk')).join()) === 'false,false,false,false,false,true');
+    await p.click('.pl.builtin button[data-a=play]'); await wait(200);
+    check('playlists', 'play asks first-listen notice, then extreme caution', await p.isVisible('#ack'));
+    await p.click('#ackyes'); await wait(250);
+    check('playlists', '…then extreme caution (playlist contains skull stage)', await p.isVisible('#danger') && await ev(p, () => ENG.nodes.size === 0));
+    await p.click('#dgyes'); await wait(700);
+    const st = await ev(p, () => ({ id: plState?.id, i: plState?.i, n: ENG.nodes.size, hz: tones.map(t => t.hz + t.channel[0]).join(' '), wave: tones.every(t => t.waveform === 'sine'), status: document.getElementById('status').textContent }));
+    check('playlists', 'stage 1 playing (5 tones, headphone pairs)', st.id === 'asherin' && st.i === 0 && st.n === 5 && st.hz === '100l 102r 200l 207.83r 528b' && st.wave, JSON.stringify(st));
+    check('playlists', 'status + now-playing panel', st.status === 'asherin.playlist · sleep / deep restoration' && await p.isVisible('#plnow') && /\d+:\d\d left/.test(await p.textContent('#plleft')));
+    await ev(p, () => { plState.endsAt = Date.now() - 1; }); await wait(1600);
+    check('playlists', 'stage time up → auto-advances to stage 2', await ev(p, () => plState?.i === 1 && tones.some(t => t.hz === 432 && t.playing)));
+    await p.click('#plnext'); await wait(500);
+    check('playlists', 'next → stage 3', await ev(p, () => plState?.i === 2));
+    await p.click('#plprev'); await wait(500);
+    check('playlists', 'previous → stage 2', await ev(p, () => plState?.i === 1));
+    await ev(p, () => { plState.i = 5; plState.endsAt = Date.now() - 1; }); await wait(1600);
+    check('playlists', 'after the last stage it finishes (no loop)', await ev(p, () => plState === null && ENG.nodes.size === 0) && (await p.textContent('#toastmsg')).includes('finished'));
+
+    // copy & edit
+    await p.click('.pl.builtin button[data-a=dup]'); await wait(200);
+    check('playlists', '"copy & edit" makes an editable copy', await ev(p, () => playlists.length === 1 && playlists[0].name === 'asherin.playlist copy' && playlists[0].items.length === 6));
+    const card = '.pl:not(.builtin)';
+    await p.fill(`${card} .pl-name`, 'my nights'); await p.press(`${card} .pl-name`, 'Tab'); await wait(100);
+    await p.fill(`${card} .pl-item >> nth=0 >> input[data-a=min]`, '45'); await p.press(`${card} .pl-item >> nth=0 >> input[data-a=min]`, 'Tab'); await wait(100);
+    check('playlists', 'rename + set minutes', await ev(p, () => playlists[0].name === 'my nights' && playlists[0].items[0].minutes === 45));
+    await p.click(`${card} .pl-item >> nth=1 >> [data-a=up]`); await wait(100);
+    check('playlists', 'reorder', await ev(p, () => playlists[0].items[0].name === 'focus / cognition'));
+    await p.click(`${card} .pl-item >> nth=5 >> [data-a=rm]`); await wait(100);
+    check('playlists', 'remove a stage', await ev(p, () => playlists[0].items.length === 5));
+    await p.click(`${card} [data-a=loop]`); await wait(100);
+    check('playlists', 'loop toggle', await ev(p, () => playlists[0].loop === true));
+    await ev(p, () => { tones = []; renderTones(); });   // start from an empty mix (432 may still be loaded from "focus")
+    await addLib(p, 'Verdi A (432 Hz)'); await p.click('.ctab[data-sub=combos]');
+    await p.click(`${card} [data-a=addmix]`); await wait(100);
+    check('playlists', 'add current mix as a stage', await ev(p, () => playlists[0].items.length === 6 && playlists[0].items[5].tones.map(t => t.hz).join() === '432'));
+    await p.click('.pl.builtin .pl-item >> nth=2 >> [data-a=keep]'); await wait(150);
+    check('playlists', 'preset stage → saved combo', await ev(p, () => combos.some(c => c.name === 'meditation / presence')));
+    await p.selectOption(`${card} select[data-a=addcombo]`, { label: 'meditation / presence' }); await wait(150);
+    check('playlists', 'add a saved combo as a stage', await ev(p, () => playlists[0].items.length === 7 && playlists[0].items[6].name === 'meditation / presence'));
+    await ev(p, () => { tones = []; renderTones(); });
+    await p.click(`${card} button[data-a=play]`); await wait(600);
+    await ev(p, () => { plState.i = playlists[0].items.length - 1; plState.endsAt = Date.now() - 1; }); await wait(1600);
+    check('playlists', 'loop wraps to stage 1', await ev(p, () => plState?.i === 0));
+    await p.click('#stopallbtn'); await wait(1300);
+    check('playlists', 'manual "stop all" also ends the playlist', await ev(p, () => plState === null) && await p.isHidden('#plnow'));
+    await p.reload(); await wait(1200); await p.click('.ctab[data-sub=combos]');
+    check('playlists', 'saved locally — survives reload', await ev(p, () => playlists.length === 1 && playlists[0].name === 'my nights' && playlists[0].loop && playlists[0].items.length === 7 && !!localStorage.getItem('shepherd.freq.playlists.v1')));
+    const [dl] = await Promise.all([p.waitForEvent('download'), p.click('#comboexp')]);
+    const f = path.join(tmp, 'library.json'); await dl.saveAs(f);
+    check('playlists', 'export includes playlists (not the built-in)', (() => { const j = JSON.parse(fs.readFileSync(f, 'utf8')); return j.playlists?.length === 1 && j.playlists[0].name === 'my nights'; })());
+    await p.click(`${card} [data-a=del]`); await wait(100);
+    check('playlists', 'delete', await ev(p, () => playlists.length === 0));
+    await p.click('#toastact'); await wait(100);
+    check('playlists', 'undo delete', await ev(p, () => playlists.length === 1));
+    await ev(p, () => { playlists.length = 0; savePlaylists(); renderPlaylists(); });
+    await p.setInputFiles('#combofile', f); await wait(300);
+    check('playlists', 'import restores the playlist', await ev(p, () => playlists.length === 1 && playlists[0].items.length === 7) && (await p.textContent('#toastmsg')).includes('1 playlist'));
+    const evil = path.join(tmp, 'evilpl.json');
+    fs.writeFileSync(evil, JSON.stringify({ playlists: [{ name: '<img src=x onerror=alert(7)>', loop: 'yes', items: [{ name: '<b>x</b>', minutes: 99999, tones: [{ hz: 300 }, { hz: 'nope' }] }, { tones: [] }] }, { name: 'asherin.playlist', items: [{ tones: [{ hz: 1 }] }] }] }));
+    await p.setInputFiles('#combofile', evil); await wait(300);
+    const ep = await ev(p, () => { const x = playlists.find(q => q.name.startsWith('<img')); return x && { loop: x.loop, items: x.items.length, min: x.items[0].minutes, tones: x.items[0].tones.length, imgs: document.querySelectorAll('#pllist img').length, fake: playlists.filter(q => q.name === 'asherin.playlist').length }; });
+    check('playlists', 'hostile import: inert, clamped, no fake preset', ep && ep.loop === false && ep.items === 1 && ep.min === 180 && ep.tones === 1 && ep.imgs === 0 && ep.fake === 0, JSON.stringify(ep));
+    check('playlists', 'no page errors / dialogs', p.errors.length === 0 && p.dialogs.length === 0, p.errors.join(' | '));
+    await ctx.close();
+  }
+
   // ── 9 · RESPONSIVE ───────────────────────────────────────
   for (const [w, h, mobile] of [[1920, 947, 0], [1440, 900, 0], [1100, 640, 0], [820, 1180, 1], [390, 844, 1], [844, 390, 1], [360, 640, 1]]) {
     const { ctx, p } = await page({ vp: { width: w, height: h }, mobile: !!mobile });

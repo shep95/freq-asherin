@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-vibjP7Pqe21LdvXo7VQNuHVchwKaZD+SQTfVUqkGKbk='; style-src 'sha256-SJolDoBJ6iYdtWigsapCEFtfasAH4lpFPRDDtwG2pBA='; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types default">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-DVGR5VkssaCUI/Z6WNACJIsDDZnwFrXjQHRdXCCytwY='; style-src 'sha256-rOMCwTyFGguOz1zo3uifT3ZHCe+urnBAdXcP+ydU3EA='; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types default">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>shepherd.freq</title>
@@ -679,6 +679,57 @@ a.btn{text-decoration:none;cursor:pointer}
 .dev-act{display:flex;gap:2px}
 .dev-act .txtbtn{height:28px;padding:0 10px}
 .dev-act .use{color:var(--light)} .dev-act .use:hover{background:var(--light-a);color:var(--light)}
+/* ── PLAYLISTS ──────────────────────────────────────────────── */
+.ins-sec .sec-act{margin-left:auto;display:inline-flex;align-items:center;gap:4px;color:var(--light);letter-spacing:.1em}
+.ins-sec .sec-act:hover{background:var(--light-a);color:var(--light)}
+.pl-now{padding:var(--s4);border-radius:20px;margin:var(--s1) 0 var(--s2);background:var(--light-a);box-shadow:inset 0 0 0 1px oklch(0.9 0.045 215 / .3);animation:subIn 360ms var(--ease-out)}
+.pl-now-top{display:flex;justify-content:space-between;align-items:center}
+.pl-now-top .caps{color:var(--light)} .pl-now-top .num{font-size:12px;color:var(--tx-1)}
+.pl-now b{display:block;font-weight:500;font-size:var(--fs-md);color:var(--tx-1);margin-top:var(--s2)}
+.pl-now small{font-size:var(--fs-xs);color:var(--tx-3)}
+.pl-meter{margin:var(--s3) 0}
+.pl-meter i{background:var(--light);transition:width 1s linear}
+.pl-ctl{display:grid;grid-template-columns:36px 1fr 36px;gap:6px}
+.pl-ctl .btn{height:34px;font-size:12px}
+.pl{padding:var(--s3) var(--s4) var(--s4);border-radius:20px;margin-bottom:var(--s3);background:oklch(0 0 0 / .24);box-shadow:inset 0 0 0 1px var(--line-1);transition:box-shadow var(--t-big) var(--ease-out)}
+.pl.builtin{background:linear-gradient(160deg, oklch(0.80 0.10 70 / .07), transparent 60%), oklch(0 0 0 / .24)}
+.pl.active{box-shadow:inset 0 0 0 1px oklch(0.9 0.045 215 / .35)}
+.pl-hd{display:flex;align-items:center;gap:var(--s2);min-height:32px}
+.pl-hd b.pl-name{font-weight:500;font-size:var(--fs-md);color:var(--tx-1);letter-spacing:.01em}
+.pl.builtin .pl-hd .tag{color:oklch(0.86 0.08 75);background:oklch(0.80 0.10 70 / .14)}
+.pl-meta{font-size:var(--fs-xs);color:var(--tx-3);margin:2px 0 var(--s3)}
+.pl-act{display:flex;flex-wrap:wrap;gap:6px}
+.pl-act .btn{height:34px;padding:0 var(--s3);font-size:12px}
+.pl-act .btn.on{background:var(--light-a);color:var(--light);box-shadow:inset 0 0 0 1px oklch(0.9 0.045 215 / .35)}
+.pl-items{list-style:none;display:flex;flex-direction:column;gap:6px;margin-top:var(--s3)}
+.pl-item{padding:var(--s3);border-radius:14px;background:oklch(1 0 0 / .03);box-shadow:inset 0 0 0 1px var(--line-1);transition:background var(--t-std),box-shadow var(--t-std)}
+.pl-item.on{background:var(--light-a);box-shadow:inset 0 0 0 1px oklch(0.9 0.045 215 / .35)}
+.pl-item.sk{box-shadow:inset 0 0 0 1px oklch(0.68 0.16 22 / .25)}
+.pl-item-hd{display:grid;grid-template-columns:22px 1fr auto;gap:var(--s2);align-items:center}
+.pl-n{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:600;background:oklch(1 0 0 / .08);color:var(--tx-2)}
+.pl-item.on .pl-n{background:var(--light);color:var(--void)}
+.pl-t{display:flex;flex-direction:column;min-width:0}
+.pl-t b{font-weight:500;font-size:12.5px;color:var(--tx-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-t span{font-size:10.5px;color:var(--tx-3);display:flex;align-items:center;gap:4px}
+.pl-t em{font-style:normal;color:var(--light)}
+.pl-min{font-size:11px;color:var(--tx-2);white-space:nowrap}
+.pl-min-in{position:relative;display:block;width:72px}
+.pl-min-in .field{height:28px;width:100%;padding:0 30px 0 10px;font-size:12px}
+.pl-min-in em{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-style:normal;font-size:9px;letter-spacing:.08em;color:var(--tx-3)}
+.pl-intent{font-size:11px;line-height:1.55;color:var(--tx-2);margin:var(--s2) 0 0 30px}
+.pl-known{display:flex;gap:6px;font-size:10.5px;line-height:1.55;color:var(--tx-3);margin:6px 0 0 30px}
+.pl-known i{display:inline-flex;margin-top:2px;color:oklch(0.86 0.07 90)}
+.pl-known b{font-weight:500;color:oklch(0.86 0.07 90)}
+.pl-tags{display:flex;align-items:center;gap:4px;margin:var(--s2) 0 0 30px;flex-wrap:wrap}
+.pl-hz{font-size:10.5px;color:var(--tx-3);margin-left:4px}
+.pl-item-act{display:flex;gap:2px;margin:6px 0 0 24px;flex-wrap:wrap}
+.pl-item-act .txtbtn{height:26px;padding:0 10px;font-size:10px}
+.pl-item-act .txtbtn.icon{width:26px;padding:0;display:inline-flex;align-items:center;justify-content:center;letter-spacing:0;font-size:12px}
+.pl-item-act .txtbtn.del:hover{color:var(--rose);background:var(--rose-a)}
+.pl-add{display:grid;grid-template-columns:1fr;gap:6px;margin-top:var(--s3)}
+.pl-add .btn{height:34px;font-size:12px}
+.pl-add .sel{height:34px;font-size:12px;letter-spacing:0;color:var(--tx-2)}
+
 /* ── RADIOS ─────────────────────────────────────────────────── */
 .radios{padding:var(--s4);border-radius:20px;margin:0 0 var(--s5);background:oklch(0 0 0 / .24);box-shadow:inset 0 0 0 1px var(--line-1)}
 .radios-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s3)}
@@ -1100,19 +1151,33 @@ a.btn{text-decoration:none;cursor:pointer}
   <div class="col-hd">
     <div class="ctabs" role="tablist">
       <button class="ctab on" data-sub="ins" role="tab">insight</button>
-      <button class="ctab" data-sub="combos" role="tab">combos</button>
+      <button class="ctab" data-sub="combos" role="tab">playlists</button>
       <button class="ctab" data-sub="spk" role="tab">connect</button>
     </div>
   </div>
 
   <div class="sub sub-combos">
     <div class="ins-scroll scroll">
+      <div class="pl-now" id="plnow" hidden>
+        <div class="pl-now-top"><span class="caps">now playing</span><span class="num" id="plleft"></span></div>
+        <b id="plnowname"></b><small id="plnowpl"></small>
+        <span class="meter pl-meter"><i id="plbar"></i></span>
+        <div class="pl-ctl">
+          <button class="btn icon-only" id="plprev" aria-label="previous stage"><i data-ic="prev"></i></button>
+          <button class="btn" id="plstop"><i data-ic="stopline"></i>stop playlist</button>
+          <button class="btn icon-only" id="plnext" aria-label="next stage"><i data-ic="next"></i></button>
+        </div>
+      </div>
+      <div class="ins-sec caps"><i data-ic="list"></i>playlists <span class="num" id="plct"></span><button class="txtbtn sec-act" id="plnew"><i data-ic="plus"></i>new</button></div>
+      <div id="pllist"></div>
+      <p class="hint">playlists and combos are saved only in this browser on this device. use export to keep a copy.</p>
+
       <p class="lede">save the current mix — frequencies, channels, waves, volumes and pulses — and bring it back any time. combos stay on this device; export to move them.</p>
       <div class="save-row">
         <input class="field" id="comboName" type="text" maxlength="40" placeholder="name this mix" aria-label="combo name">
         <button class="btn light" id="combosave">save</button>
       </div>
-      <div class="ins-sec caps"><i data-ic="list"></i>saved <span class="num" id="comboct"></span></div>
+      <div class="ins-sec caps"><i data-ic="bookmark"></i>saved combos <span class="num" id="comboct"></span></div>
       <div id="combolist"></div>
       <div class="io-row">
         <button class="btn" id="comboexp"><i data-ic="share"></i>export</button>
@@ -1512,7 +1577,7 @@ class Engine {
       return {ctx:this.ctx,g:this.mg};
     }
   }
-  async play(t){
+  async play(t,fadeIn=FADE){
     this.init(); this.stop(t.id);
     const {ctx,g} = await this.getCtx(t.deviceId);
     if(ctx.state!=='running') await ctx.resume().catch(()=>{});
@@ -1524,7 +1589,7 @@ class Engine {
       for(let k=0;k<60;k++){ tt+=t.sweepSec; f.exponentialRampToValueAtTime(k%2===0?t.sweepTo:t.hz,tt); }
     }
     gn.gain.setValueAtTime(0,now);
-    gn.gain.linearRampToValueAtTime(t.volume??0.5,now+FADE);
+    gn.gain.linearRampToValueAtTime(t.volume??0.5,now+fadeIn);
     let pan=null, am=null, lfo=null, lg=null, out=gn;
     osc.connect(gn);
     if(t.pulse>0){ // isochronic: soft-square amplitude gate at t.pulse Hz
@@ -1549,16 +1614,16 @@ class Engine {
     for(let k=1;k<N;k+=2){ const x=Math.PI*k/N; im[k]=(4/(Math.PI*k))*(Math.sin(x)/x); }
     const w=ctx.createPeriodicWave(re,im); this.sq.set(ctx,w); return w;
   }
-  stop(id){
+  stop(id,fade=FADE){
     const n=this.nodes.get(id); if(!n) return;
     this.nodes.delete(id);
     const now=n.ctx.currentTime;
     try{
       n.gn.gain.cancelScheduledValues(now);
       n.gn.gain.setValueAtTime(n.gn.gain.value,now);
-      n.gn.gain.linearRampToValueAtTime(0,now+FADE);
-      n.osc.stop(now+FADE+.01);
-      if(n.lfo) n.lfo.stop(now+FADE+.01);
+      n.gn.gain.linearRampToValueAtTime(0,now+fade);
+      n.osc.stop(now+fade+.01);
+      if(n.lfo) n.lfo.stop(now+fade+.01);
     }catch(_){ try{n.osc.stop()}catch(_){} try{n.lfo&&n.lfo.stop()}catch(_){} }
     n.osc.onended=()=>[n.osc,n.gn,n.pan,n.am,n.lfo,n.lg].forEach(x=>{try{if(x)x.disconnect()}catch(_){}});
   }
@@ -1570,7 +1635,7 @@ class Engine {
     const all=[...(this.mg?[{ctx:this.ctx,g:this.mg}]:[]),...this.dctx.values()];
     for(const e of all) e.g.gain.setTargetAtTime(v,e.ctx.currentTime,.015);
   }
-  stopAll(){ for(const id of [...this.nodes.keys()]) this.stop(id); }
+  stopAll(fade=FADE){ for(const id of [...this.nodes.keys()]) this.stop(id,fade); }
   // short, quiet two-note chime to confirm which device is playing
   async chime(devId){
     this.init();
@@ -1632,6 +1697,8 @@ const ICON_PATHS = {
   bookmark:'<path d="M4.5 2.5h7v11L8 11l-3.5 2.5z"/>',
   reset:'<path d="M3 8a5 5 0 1 0 1.6-3.7"/><path d="M3 2.6v3h3"/>',
   stopline:'<rect x="4" y="4" width="8" height="8" rx="1.6"/>',
+  prev:'<path d="M4 3v10M12.5 3.5 6 8l6.5 4.5z"/>',
+  next:'<path d="M12 3v10M3.5 3.5 10 8l-6.5 4.5z"/>',
   share:'<path d="M8 10V2.5M5 5.2 8 2.3l3 2.9M3 9.5v3A1.5 1.5 0 0 0 4.5 14h7a1.5 1.5 0 0 0 1.5-1.5v-3"/>',
   import:'<path d="M8 2.5V10M5 7.3 8 10.2l3-2.9M3 9.5v3A1.5 1.5 0 0 0 4.5 14h7a1.5 1.5 0 0 0 1.5-1.5v-3"/>',
   skull:'<path d="M8 1.8c-3.2 0-5.5 2.2-5.5 5.2 0 1.7.8 3 2 3.8v2c0 .5.4.9.9.9h5.2c.5 0 .9-.4.9-.9v-2c1.2-.8 2-2.1 2-3.8 0-3-2.3-5.2-5.5-5.2z"/><circle cx="5.9" cy="7.3" r="1.25" fill="currentColor" stroke="none"/><circle cx="10.1" cy="7.3" r="1.25" fill="currentColor" stroke="none"/><path d="M7 13.7v-1.5M9 13.7v-1.5M8 9.3l-.7 1.3h1.4z"/>',
@@ -2157,6 +2224,7 @@ function removeTone(id){
 // ── ACTIVE TONES ─────────────────────────────────────────────
 function renderTones(){
   save();
+  document.querySelectorAll('#pllist [data-a=addmix]').forEach(b=>{ b.disabled=!tones.length; });
   const grid=$('tgrid');
   $('pct').textContent=tones.length;
   $('tabct').textContent=tones.length||'';
@@ -2280,6 +2348,7 @@ async function toggleAll(){
   renderTones(); updateGlobalBtn(); updateStatus();
 }
 function stopAll(){
+  if(plState){ plState=null; queueMicrotask(()=>renderPlaylists()); }
   ENG.stopAll(); tones.forEach(t=>t.playing=false); globalOn=false;
   renderTones(); updateGlobalBtn(); updateStatus();
 }
@@ -2294,6 +2363,7 @@ function updateGlobalBtn(){
 function updateStatus(msg){
   const el=$('status');
   if(msg){ el.textContent=msg; return; }
+  if(plState&&plById(plState.id)){ const pl=plById(plState.id); el.textContent=`${pl.name} · ${pl.items[plState.i].name}`; return; }
   const p=tones.filter(t=>t.playing).length, bt=devs.filter(d=>isBT(d.label)).length;
   if(!tones.length) el.textContent='select frequencies, then play';
   else if(!p) el.textContent=`${tones.length} tone${tones.length>1?'s':''} ready`;
@@ -2547,6 +2617,7 @@ function hideToast(){
 // ── RESET ────────────────────────────────────────────────────
 function resetTones(){
   if(!tones.length) return;
+  if(plState){ plState=null; queueMicrotask(()=>renderPlaylists()); }
   const snapshot=tones.map(t=>({...t,playing:false}));
   const ids=tones.map(t=>t.id);
   ENG.stopAll(); tones=[]; globalOn=false;
@@ -2561,7 +2632,7 @@ function resetTones(){
 // ── COMBOS — saved mixes (this device; export/import to move) ─
 const COMBO_KEY='shepherd.freq.combos.v1', MAX_COMBOS=50, MAX_IMPORT_BYTES=256*1024;
 let combos=[];
-const comboTone = t => ({hz:t.hz,name:t.name,cat:t.cat,desc:t.desc,channel:t.channel,waveform:t.waveform,volume:t.volume,pulse:t.pulse||0,sweepTo:t.sweepTo||0,sweepSec:t.sweepSec||20});
+const comboTone = t => ({hz:t.hz,name:t.name,cat:t.cat,desc:t.desc||'',channel:t.channel||'both',waveform:t.waveform||'sine',volume:t.volume??.4,pulse:t.pulse||0,sweepTo:t.sweepTo||0,sweepSec:t.sweepSec||20});
 function sanitizeCombos(list){
   if(!Array.isArray(list)) return [];
   const out=[];
@@ -2605,6 +2676,7 @@ function deleteCombo(id){
   toast(`deleted “${c.name}”`,'undo',()=>{ combos.splice(Math.min(i,combos.length),0,c); saveCombos(); renderCombos(); });
 }
 function renderCombos(){
+  queueMicrotask(()=>renderPlaylists());
   $('comboct').textContent=combos.length||'';
   $('comboexp').disabled=!combos.length;
   $('combolist').innerHTML=combos.length?combos.map(c=>{
@@ -2627,7 +2699,7 @@ function renderCombos(){
   }).join(''):'<p class="ins-empty">no saved combos yet. build a mix, then save it here or with “save” above the tones.</p>';
 }
 function exportCombos(){
-  const blob=new Blob([JSON.stringify({app:'shepherd.freq',kind:'combos',version:1,combos},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({app:'shepherd.freq',kind:'library',version:2,combos,playlists},null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='shepherd-combos.json';
   document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1000);
 }
@@ -2637,7 +2709,11 @@ async function importCombos(file){
     if(file.size>MAX_IMPORT_BYTES){ toast('file too large — 256 KB max'); return; }
     const data=JSON.parse(await file.text());
     const list=sanitizeCombos(Array.isArray(data)?data:data?.combos);
-    if(!list.length){ toast('no valid combos in that file'); return; }
+    const pls=sanitizePlaylists(Array.isArray(data)?[]:data?.playlists).filter(p=>p.items.length);
+    if(!list.length&&!pls.length){ toast('no valid combos in that file'); return; }
+    let plAdded=0; const havePl=new Set(playlists.map(p=>p.name+'|'+p.items.length));
+    for(const p of pls){ if(playlists.length>=MAX_PLAYLISTS) break; const k=p.name+'|'+p.items.length; if(havePl.has(k)||p.name==='asherin.playlist') continue; p.id=uid()+plAdded; havePl.add(k); playlists.push(p); plAdded++; }
+    if(plAdded){ savePlaylists(); renderPlaylists(); }
     const have=new Set(combos.map(c=>c.name+'|'+c.tones.map(t=>t.hz).join(',')));
     let added=0;
     for(const c of list){
@@ -2646,9 +2722,217 @@ async function importCombos(file){
       c.id=Math.random().toString(36).slice(2,10)+Date.now().toString(36)+added; have.add(key); combos.push(c); added++;
     }
     saveCombos(); renderCombos();
-    toast(added?`imported ${added} combo${added>1?'s':''}`:'nothing new to import');
+    toast(added||plAdded?[added?`imported ${added} combo${added>1?'s':''}`:'',plAdded?`${plAdded} playlist${plAdded>1?'s':''}`:''].filter(Boolean).join(' · '):'nothing new to import');
   }catch(_){ toast('that file is not a valid combos export'); }
 }
+// ── PLAYLISTS — sequences of combos, saved locally ───────────
+// Rates under ~20 Hz can't be heard as tones, so they are built as binaural
+// beats: carrier in the left ear, carrier + rate in the right (headphones).
+const PL_KEY='shepherd.freq.playlists.v1', MAX_PLAYLISTS=30, MAX_PL_ITEMS=30, PL_FADE=3;
+const binPair=(carrier,rate,label,cat,vol=.25)=>[
+  {hz:carrier,name:`${label} · L`,cat,channel:'left',volume:vol,desc:`binaural ${rate} Hz: ${carrier} Hz left`},
+  {hz:Math.round((carrier+rate)*100)/100,name:`${label} · R`,cat,channel:'right',volume:vol,desc:`binaural ${rate} Hz: ${Math.round((carrier+rate)*100)/100} Hz right`}];
+const plain=(hz,label,cat,vol=.2)=>({hz,name:label,cat,channel:'both',volume:vol,desc:label});
+const ASHERIN = {
+  id:'asherin', name:'asherin.playlist', builtin:true, loop:false,
+  items:[
+    {name:'sleep / deep restoration', minutes:30,
+     intent:'delta 0.5–4 Hz + Schumann 7.83 Hz + 528 Hz — body repair, earth baseline, cellular reset. run simultaneously at low volume.',
+     known:'delta here is a 2 Hz binaural beat (headphones). “cellular reset” and 528 Hz repair are traditional claims, not established effects.',
+     tones:[...binPair(100,2,'delta 2 Hz','brainwave'),...binPair(200,7.83,'Schumann 7.83','earth'),plain(528,'solfeggio 528 Hz','solfeggio')]},
+    {name:'focus / cognition', minutes:25,
+     intent:'gamma 40 Hz + beta 18–22 Hz + 432 Hz — neural binding, active processing, natural tuning. binaural beats for 40 Hz entry.',
+     known:'40 Hz research used light + sound in mice and early trials; audio-only effects on focus are small and mixed.',
+     tones:[...binPair(300,40,'gamma 40 Hz','brainwave'),...binPair(200,20,'beta 20 Hz','brainwave'),plain(432,'Verdi A 432 Hz','sacred')]},
+    {name:'meditation / presence', minutes:20,
+     intent:'theta 6 Hz + alpha 10 Hz + Schumann 7.83 Hz — between waking and sleep, earth-resonance anchor. classic trance stack.',
+     known:'binaural theta/alpha can aid relaxation for some listeners; evidence is modest. Schumann resonance is electromagnetic — here it is a beat rate.',
+     tones:[...binPair(200,6,'theta 6 Hz','brainwave'),...binPair(300,10,'alpha 10 Hz','brainwave'),...binPair(150,7.83,'Schumann 7.83','earth')]},
+    {name:'healing / recovery', minutes:20,
+     intent:'PEMF 10 Hz + 528 Hz + 7.83 Hz — tissue repair, DNA solfeggio, earth entrainment.',
+     known:'PEMF research uses magnetic coils on the body; sound at 10 Hz is not PEMF. 528 Hz “DNA repair” has no reliable evidence.',
+     tones:[...binPair(250,10,'PEMF-rate 10 Hz','pemf'),plain(528,'solfeggio 528 Hz','solfeggio'),...binPair(150,7.83,'Schumann 7.83','earth')]},
+    {name:'EMF / magnetic protection', minutes:15,
+     intent:'Schumann 7.83 + 14.3 + 20.8 Hz — harmonics 1–3, re-entrain to the earth field after heavy EM exposure.',
+     known:'sound cannot shield against or cancel electromagnetic fields, and there is no evidence it “re-entrains” the body. enjoy it as a resonance stack.',
+     tones:[...binPair(150,7.83,'Schumann 1st','earth'),...binPair(250,14.3,'Schumann 2nd','earth'),...binPair(350,20.8,'Schumann 3rd','earth')]},
+    {name:'silence field (mute charge)', minutes:2,
+     intent:'18.98 Hz + 150 Hz + 2500 Hz — Vic Tandy infrasound + room resonance + auditory saturation. awareness / disorientation stack.',
+     known:'none of these create silence. 2500 Hz “saturation” is hearing strain. skull tones at 20 %, kept short — never use on others.',
+     tones:[plain(18.98,'mute · infrasound interference','mutecharge'),plain(150,'mute · room resonance 150','mutecharge',.25),plain(2500,'mute · auditory saturation','mutecharge')]},
+  ],
+};
+let playlists=[];
+const plAll=()=>[ASHERIN,...playlists];
+const plTones=pl=>pl.items.flatMap(i=>i.tones);
+const fmtMin=m=>m>=60?`${Math.floor(m/60)} h ${m%60?m%60+' min':''}`.trim():`${m} min`;
+const fmtClock=ms=>{ const s=Math.max(0,Math.round(ms/1000)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
+function sanitizePlaylists(list){
+  if(!Array.isArray(list)) return [];
+  const out=[];
+  for(const p of list.slice(0,MAX_PLAYLISTS)){
+    if(!p||typeof p!=='object'||!Array.isArray(p.items)) continue;
+    const items=[];
+    for(const it of p.items.slice(0,MAX_PL_ITEMS)){
+      if(!it||typeof it!=='object') continue;
+      const ts=sanitizeTones(it.tones).map(t=>{ delete t._id; delete t.deviceId; delete t.playing; return t; });
+      if(!ts.length) continue;
+      items.push({name:cleanText(it.name,LIMITS.name)||'stage',minutes:Math.round(clampNum(it.minutes,1,180,15)),
+        intent:cleanText(it.intent,LIMITS.desc),known:cleanText(it.known,LIMITS.desc),tones:ts});
+    }
+    out.push({id:cleanText(p.id,40)||uid(),name:cleanText(p.name,LIMITS.name)||'my playlist',loop:p.loop===true,items});
+  }
+  return out;
+}
+const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+function loadPlaylists(){ try{ playlists=sanitizePlaylists(JSON.parse(localStorage.getItem(PL_KEY)||'[]')).filter(p=>p.id!=='asherin'); }catch(_){ playlists=[]; } }
+function savePlaylists(){ try{ localStorage.setItem(PL_KEY,JSON.stringify(playlists)); }catch(_){ toast('could not save — storage is full or blocked'); } }
+
+// player
+let plState=null;     // {id, i, endsAt, total, busy}
+const plById=id=>plAll().find(p=>p.id===id);
+async function playStage(pl,i){
+  const it=pl.items[i]; if(!it) return stopPlaylist();
+  plState={id:pl.id,i,endsAt:Date.now()+it.minutes*60000,total:it.minutes*60000,busy:true};
+  ENG.stopAll(PL_FADE);
+  tones=it.tones.slice(0,LIMITS.tones).map(s=>({...comboTone(s),id:nid++,deviceId:outId(),playing:false}));
+  tones.forEach(t=>enterIds.add(t.id)); heroId=tones[0]?.id??null;
+  try{ ENG.init(); for(const t of tones){ await ENG.play(t,PL_FADE); t.playing=true; } }catch(err){ audioErr(err); }
+  if(plState) plState.busy=false;
+  renderTones(); renderLib(); updateGlobalBtn(); updateStatus(); renderPlaylists();
+}
+function startPlaylist(id,i=0){
+  const pl=plById(id); if(!pl||!pl.items.length) return;
+  requireAck(()=>requireDanger(plTones(pl),()=>{ playStage(pl,i); if(isCompact()) switchTab('main'); }));
+}
+function stepPlaylist(d){
+  if(!plState) return; const pl=plById(plState.id); if(!pl) return stopPlaylist();
+  let i=plState.i+d;
+  if(i>=pl.items.length){ if(pl.loop) i=0; else return stopPlaylist(true); }
+  if(i<0) i=0;
+  const stage=pl.items[i];
+  if(stage.tones.some(isDanger)&&!dangerOk()){ stopPlaylist(); toast(`“${stage.name}” needs the extreme-caution check`,'play',()=>startPlaylist(pl.id,i),9000); return; }
+  playStage(pl,i);
+}
+function stopPlaylist(finished){
+  if(!plState) return;
+  plState=null; ENG.stopAll(PL_FADE); tones.forEach(t=>t.playing=false); globalOn=false;
+  renderTones(); updateGlobalBtn(); updateStatus(); renderPlaylists();
+  if(finished) toast('playlist finished');
+}
+function plTick(){
+  if(!plState) return;
+  const pl=plById(plState.id); if(!pl) return stopPlaylist();
+  // the user stopped everything by hand → the playlist ends too
+  if(!plState.busy&&!tones.some(t=>t.playing)){ plState=null; renderPlaylists(); updateStatus(); return; }
+  const left=plState.endsAt-Date.now();
+  if(left<=0) return stepPlaylist(1);
+  $('plleft').textContent=`${fmtClock(left)} left`;
+  $('plbar').style.width=`${Math.min(100,100-left/plState.total*100).toFixed(1)}%`;
+}
+
+function plItemHTML(pl,it,i){
+  const playing=plState&&plState.id===pl.id&&plState.i===i, danger=it.tones.some(isDanger);
+  const groups=[...new Set(it.tones.map(t=>CAT_GROUP[t.cat]||'measure'))];
+  const bin=it.tones.some(t=>t.channel!=='both');
+  return `<li class="pl-item${playing?' on':''}${danger?' sk':''}" data-i="${i}">
+    <div class="pl-item-hd">
+      <span class="pl-n num">${i+1}</span>
+      <div class="pl-t"><b>${esc(it.name)}</b><span>${it.tones.length} tones${bin?' · <em>headphones</em>':''}${danger?` · <span class="skull">${icon('skull',11)}</span> extreme`:''}</span></div>
+      ${pl.builtin?`<span class="pl-min num">${fmtMin(it.minutes)}</span>`:`<label class="pl-min-in"><input class="field num" type="number" min="1" max="180" value="${it.minutes}" data-a="min" aria-label="minutes"><em>min</em></label>`}
+    </div>
+    ${it.intent?`<p class="pl-intent">${esc(it.intent)}</p>`:''}
+    ${it.known?`<p class="pl-known"><i>${icon('info',11)}</i><span><b>what's known:</b> ${esc(it.known)}</span></p>`:''}
+    <div class="pl-tags">${groups.map(g=>`<span class="gi-s" title="${esc(GROUPS[g].label)}">${icon(GROUPS[g].icon,12)}</span>`).join('')}
+      <span class="pl-hz num">${it.tones.filter(t=>t.channel!=='right').map(t=>esc(fHz(t.hz))).join(' · ')} Hz</span></div>
+    <div class="pl-item-act">
+      <button class="txtbtn" data-a="play1">${playing?'playing':'start here'}</button>
+      ${pl.builtin?`<button class="txtbtn" data-a="keep">save as combo</button>`:`<button class="txtbtn icon" data-a="up" aria-label="move up"${i===0?' disabled':''}>↑</button><button class="txtbtn icon" data-a="down" aria-label="move down"${i===pl.items.length-1?' disabled':''}>↓</button><button class="txtbtn icon del" data-a="rm" aria-label="remove stage">${icon('x',10)}</button>`}
+    </div>
+  </li>`;
+}
+function renderPlaylists(){
+  const el=$('pllist'); if(!el) return;
+  $('plct').textContent=plAll().length;
+  el.innerHTML=plAll().map(pl=>{
+    const total=pl.items.reduce((m,i)=>m+i.minutes,0), active=plState&&plState.id===pl.id;
+    const opts=combos.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+    return `<article class="pl${active?' active':''}${pl.builtin?' builtin':''}" data-id="${esc(pl.id)}">
+      <div class="pl-hd">
+        ${pl.builtin?`<b class="pl-name">${esc(pl.name)}</b>`:`<input class="combo-name pl-name" value="${esc(pl.name)}" maxlength="40" data-a="rename" aria-label="playlist name">`}
+        ${pl.builtin?'<span class="tag">preset</span>':''}
+      </div>
+      <div class="pl-meta num">${pl.items.length} stage${pl.items.length===1?'':'s'} · ${fmtMin(total)}${pl.loop?' · loops':''}</div>
+      <div class="pl-act">
+        <button class="btn light" data-a="${active?'stop':'play'}"${pl.items.length?'':' disabled'}>${active?icon('stopline',12)+'stop':IC.play+'play'}</button>
+        ${pl.builtin?'':`<button class="btn${pl.loop?' on':''}" data-a="loop" aria-pressed="${pl.loop}">${icon('reset',12)}loop</button>`}
+        <button class="btn" data-a="dup">${pl.builtin?'copy & edit':'duplicate'}</button>
+        ${pl.builtin?'':`<button class="btn icon-only" data-a="del" aria-label="delete playlist">${icon('x',12)}</button>`}
+      </div>
+      <ol class="pl-items">${pl.items.map((it,i)=>plItemHTML(pl,it,i)).join('')}</ol>
+      ${pl.builtin?'':`<div class="pl-add">
+        <button class="btn" data-a="addmix"${tones.length?'':' disabled'}><i>${icon('plus',12)}</i>add current mix</button>
+        ${combos.length?`<select class="sel" data-a="addcombo" aria-label="add a saved combo"><option value="">add a saved combo…</option>${opts}</select>`:''}
+      </div>`}
+    </article>`;
+  }).join('');
+  const now=plState&&plById(plState.id);
+  $('plnow').hidden=!now;
+  if(now){ $('plnowname').textContent=now.items[plState.i].name; $('plnowpl').textContent=`${now.name} · stage ${plState.i+1} of ${now.items.length}`; plTick(); }
+}
+function editPl(id,fn){ const p=playlists.find(x=>x.id===id); if(!p) return; fn(p); savePlaylists(); renderPlaylists(); }
+function initPlaylists(){
+  loadPlaylists(); renderPlaylists();
+  setInterval(plTick,1000);
+  $('plnew').addEventListener('click',()=>{
+    if(playlists.length>=MAX_PLAYLISTS) return toast(`limit reached — ${MAX_PLAYLISTS} playlists max`);
+    playlists.push({id:uid(),name:'my playlist',loop:false,items:[]}); savePlaylists(); renderPlaylists();
+    toast('new playlist — add the current mix or a saved combo');
+  });
+  $('plstop').addEventListener('click',()=>stopPlaylist());
+  $('plnext').addEventListener('click',()=>stepPlaylist(1));
+  $('plprev').addEventListener('click',()=>stepPlaylist(-1));
+  const L=$('pllist');
+  L.addEventListener('click',e=>{
+    const b=e.target.closest('[data-a]'); if(!b||b.tagName==='INPUT'||b.tagName==='SELECT') return;
+    const card=b.closest('.pl'), pl=plById(card.dataset.id), li=b.closest('.pl-item'), i=li?+li.dataset.i:-1;
+    switch(b.dataset.a){
+      case 'play': return startPlaylist(pl.id);
+      case 'stop': return stopPlaylist();
+      case 'play1': return requireAck(()=>requireDanger(pl.items[i].tones,()=>{ const one={...pl,id:pl.id,items:pl.items}; playStage(one,i); }));
+      case 'loop': return editPl(pl.id,p=>{ p.loop=!p.loop; });
+      case 'dup': {
+        if(playlists.length>=MAX_PLAYLISTS) return toast(`limit reached — ${MAX_PLAYLISTS} playlists max`);
+        const copy=sanitizePlaylists([{...pl,id:uid(),name:(pl.builtin?pl.name+' copy':pl.name+' 2').slice(0,40)}])[0];
+        playlists.push(copy); savePlaylists(); renderPlaylists(); return toast(`“${copy.name}” created — edit it below`);
+      }
+      case 'del': {
+        if(plState?.id===pl.id) stopPlaylist();
+        const idx=playlists.findIndex(p=>p.id===pl.id), [gone]=playlists.splice(idx,1); savePlaylists(); renderPlaylists();
+        return toast(`deleted “${gone.name}”`,'undo',()=>{ playlists.splice(Math.min(idx,playlists.length),0,gone); savePlaylists(); renderPlaylists(); });
+      }
+      case 'keep': {
+        if(combos.length>=MAX_COMBOS) return toast(`limit reached — ${MAX_COMBOS} combos max`);
+        const it=pl.items[i]; combos.unshift({id:uid(),name:it.name,created:Date.now(),tones:it.tones.map(comboTone)}); saveCombos(); renderCombos(); renderPlaylists();
+        return toast(`saved “${it.name}” to combos`);
+      }
+      case 'up': case 'down': return editPl(pl.id,p=>{ const j=i+(b.dataset.a==='up'?-1:1); if(j<0||j>=p.items.length) return; [p.items[i],p.items[j]]=[p.items[j],p.items[i]]; });
+      case 'rm': return editPl(pl.id,p=>{ p.items.splice(i,1); });
+      case 'addmix': return editPl(pl.id,p=>{
+        if(p.items.length>=MAX_PL_ITEMS) return toast(`limit reached — ${MAX_PL_ITEMS} stages max`);
+        p.items.push({name:autoName(tones),minutes:15,intent:'',known:'',tones:tones.map(comboTone)}); });
+    }
+  });
+  L.addEventListener('change',e=>{
+    const el=e.target, card=el.closest('.pl'); if(!card) return; const id=card.dataset.id;
+    if(el.dataset.a==='rename') editPl(id,p=>{ p.name=cleanText(el.value,LIMITS.name)||p.name; });
+    if(el.dataset.a==='min') editPl(id,p=>{ const i=+el.closest('.pl-item').dataset.i; p.items[i].minutes=Math.round(clampNum(el.value,1,180,15)); });
+    if(el.dataset.a==='addcombo'&&el.value){ const c=combos.find(x=>x.id===el.value); if(c) editPl(id,p=>{
+      if(p.items.length>=MAX_PL_ITEMS) return toast(`limit reached — ${MAX_PL_ITEMS} stages max`);
+      p.items.push({name:c.name,minutes:15,intent:'',known:'',tones:c.tones.map(comboTone)}); }); }
+  });
+}
+
 // ── RADIOS: what a web page may see of the device's wireless ─
 const live = new Map();   // band key → reason
 function setLive(keys,reason){ for(const k of keys) live.set(k,reason); renderSpec(); }
@@ -2939,7 +3223,7 @@ function initAck(){
 
 // ── INIT ─────────────────────────────────────────────────────
 function init(){
-  [DB,FREQ,CATS,CAT_LABEL,GROUPS,CAT_GROUP,NOTES,AREAS,INTERVALS,BANDS,EV_FILTERS,ICON_PATHS,CHARGES,RISK,SPECTRUM,SPECTRUM_TONES].forEach(deepFreeze); // app data is read-only
+  [DB,FREQ,CATS,CAT_LABEL,GROUPS,CAT_GROUP,NOTES,AREAS,INTERVALS,BANDS,EV_FILTERS,ICON_PATHS,CHARGES,RISK,SPECTRUM,SPECTRUM_TONES,ASHERIN].forEach(deepFreeze); // app data is read-only
   load();
   setRangeFill($('mvol'));
   sizeCanvas(); requestAnimationFrame(frame);
@@ -2982,7 +3266,7 @@ function init(){
   });
   if(navigator.mediaDevices?.addEventListener) navigator.mediaDevices.addEventListener('devicechange',()=>scanDevs(false));
   renderConn(); scanDevs(false);
-  initOffline(); initIntervals(); initMute(); initCombos(); initSpectrum(); initAck(); initDanger(); renderInsight();
+  initOffline(); initIntervals(); initMute(); initCombos(); initPlaylists(); initSpectrum(); initAck(); initDanger(); renderInsight();
   document.querySelectorAll('[data-ic]').forEach(el=>el.innerHTML=icon(el.dataset.ic));
   document.querySelectorAll('.ctab').forEach(b=>b.addEventListener('click',()=>setSub(b.closest('.column'),b.dataset.sub)));
 
