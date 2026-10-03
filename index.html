@@ -95,8 +95,11 @@
 
   /* scene geometry */
   --H:  100vh;
-  --sw: calc(var(--H) * 0.74874);        /* 736 / 983 */
-  --hd: max(56px, calc(var(--H) * 0.089)); /* header = ceiling band */
+  --gap: 14px;                            /* frame inset — everything floats, nothing touches an edge */
+  --SH: calc(var(--H) - var(--gap) * 2);  /* stage height */
+  --sw: calc(var(--SH) * 0.74874);        /* 736 / 983 */
+  --hd: max(56px, calc(var(--gap) + var(--SH) * 0.089)); /* header = ceiling band */
+  --r-frame: 28px; --r-col: 24px;
   --energy: 0;                            /* 0‥1, driven by playing tones */
   --px: 0; --py: 0;                       /* pointer parallax, spring-smoothed */
 }
@@ -118,7 +121,9 @@ button{cursor:pointer;background:none;border:0}
 svg{display:block;flex-shrink:0}
 :focus-visible{outline:1.5px solid var(--light);outline-offset:2px;border-radius:6px}
 ::selection{background:var(--light-b)}
-.scroll{scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+@supports not selector(::-webkit-scrollbar){ .scroll{scrollbar-width:thin;scrollbar-color:var(--line-2) transparent} }
+.scroll::-webkit-scrollbar-button{display:none;width:0;height:0}
+.scroll::-webkit-scrollbar-track{background:transparent}
 .scroll::-webkit-scrollbar{width:6px;height:6px}
 .scroll::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:3px}
 .caps{font-size:var(--fs-xs);letter-spacing:var(--track-caps);text-transform:uppercase;font-weight:500;color:var(--tx-3)}
@@ -128,15 +133,21 @@ svg{display:block;flex-shrink:0}
 
 /* ══ SCENE ═══════════════════════════════════════════════════ */
 .scene{position:fixed;inset:0;overflow:hidden;z-index:0}
-.backdrop{
-  position:absolute;inset:-60px;
-  background:url(assets/vista.webp) center 40%/cover no-repeat;
-  filter:blur(64px) brightness(.10) saturate(.5);
-  transform:translate3d(calc(var(--px) * -14px), calc(var(--py) * -8px), 0);
+.backdrop{ /* wallpaper: the same scene, zoomed to fill, blurred and dimmed */
+  position:absolute;inset:-96px;
+  background:url(assets/vista.webp) 53.4% 40%/cover no-repeat;
+  filter:blur(38px) brightness(.46) saturate(.9);
+  transform:translate3d(calc(var(--px) * -14px), calc(var(--py) * -8px), 0) scale(1.12);
+}
+.scene::after{ /* quiet vignette keeps the edges calm */
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 75% 70% at 50% 42%, transparent 40%, oklch(0.06 0.006 220 / .62) 100%);
 }
 .stage{
-  position:absolute;top:0;height:var(--H);width:var(--sw);
+  position:absolute;top:var(--gap);height:var(--SH);width:var(--sw);
   left:calc(50% - var(--sw) * 0.534);     /* window centre on viewport centre */
+  border-radius:var(--r-frame);overflow:hidden;isolation:isolate;z-index:1;
+  box-shadow:0 0 0 1px oklch(1 0 0 / .08), 0 40px 120px -24px oklch(0 0 0 / .85), 0 0 80px oklch(0.85 0.04 220 / .06);
 }
 .par{position:absolute;inset:0;transform:translate3d(calc(var(--px) * -8px), calc(var(--py) * -5px), 0)}
 .drift{position:absolute;inset:0;animation:drift 56s ease-in-out infinite alternate;transform-origin:53.4% 51.4%}
@@ -147,12 +158,12 @@ svg{display:block;flex-shrink:0}
   transition:opacity 1.6s var(--ease-out), transform 3.2s var(--ease-out), filter 3.2s var(--ease-out);
 }
 body.lit .vista{opacity:1;transform:scale(1);filter:brightness(1)}
-/* feather stage edges into the backdrop */
+/* floor shade + top specular edge */
 .stage::after{
   content:'';position:absolute;inset:0;pointer-events:none;
   background:
-    linear-gradient(90deg, oklch(0.06 0.004 160 / .9) 0%, transparent 10%, transparent 90%, oklch(0.06 0.004 160 / .9) 100%),
-    linear-gradient(180deg, transparent 92%, oklch(0.06 0.004 150 / .8) 100%);
+    linear-gradient(180deg, transparent 92%, oklch(0.06 0.004 150 / .7) 100%);
+  border-radius:inherit;box-shadow:inset 0 1px 0 oklch(1 0 0 / .10);
 }
 
 /* light responding to sound */
@@ -182,7 +193,7 @@ body.lit .vista{opacity:1;transform:scale(1);filter:brightness(1)}
 }
 .hero-hz{
   display:flex;align-items:baseline;gap:var(--s2);
-  font-size:calc(var(--H) * 0.074);line-height:1;letter-spacing:-0.035em;
+  font-size:calc(var(--SH) * 0.074);line-height:1;letter-spacing:-0.035em;
   font-weight:var(--hero-w,220);color:var(--tx-1);
   opacity:var(--hero-o,.42);
   text-shadow:0 0 calc(var(--energy) * 40px) oklch(0.9 0.05 220 / .45);
@@ -203,7 +214,7 @@ body.lit .ui.d1{transition-delay:.5s} body.lit .ui.d2{transition-delay:.8s} body
 
 header{
   position:fixed;top:0;left:0;right:0;z-index:20;height:var(--hd);
-  padding:env(safe-area-inset-top) max(var(--s6), env(safe-area-inset-right)) 0 max(var(--s6), env(safe-area-inset-left));
+  padding:env(safe-area-inset-top) max(calc(var(--gap) + var(--s5)), env(safe-area-inset-right)) 0 max(calc(var(--gap) + var(--s5)), env(safe-area-inset-left));
   display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:var(--s4);
 }
 .logo{display:flex;align-items:baseline;font-size:var(--fs-md);letter-spacing:.22em;line-height:1}
@@ -242,29 +253,31 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
 
 /* ── GLASS COLUMNS (library / outputs) — tiled glass as in the image ── */
 .column{
-  position:fixed;top:var(--hd);bottom:0;z-index:10;
+  position:fixed;top:var(--hd);bottom:var(--gap);z-index:10;
   display:flex;flex-direction:column;
+  border-radius:var(--r-col);overflow:hidden;
+  box-shadow:inset 0 1px 0 oklch(1 0 0 / .10), inset 0 0 0 1px oklch(1 0 0 / .07), 0 30px 80px -20px oklch(0 0 0 / .7);
   background:
     repeating-linear-gradient(90deg, var(--mullion) 0 1px, transparent 1px 14px),
     repeating-linear-gradient(0deg,  var(--mullion) 0 1px, transparent 1px 18px),
     linear-gradient(90deg, oklch(0 0 0 / .55), oklch(0 0 0 / .08) 22%, oklch(1 0 0 / .025) 50%, oklch(0 0 0 / .08) 78%, oklch(0 0 0 / .55)),
-    oklch(0.13 0.014 165 / .82);
-  backdrop-filter:blur(20px) saturate(1.1);-webkit-backdrop-filter:blur(20px) saturate(1.1);
+    oklch(0.13 0.014 165 / .66);
+  backdrop-filter:blur(24px) saturate(1.15);-webkit-backdrop-filter:blur(20px) saturate(1.1);
 }
 .column::before{ /* specular edge: light from the window side */
-  content:'';position:absolute;top:0;bottom:0;width:1px;pointer-events:none;
-  background:linear-gradient(180deg, oklch(0.95 0.02 220 / .32), oklch(0.95 0.02 220 / .06) 40%, transparent);
+  content:'';position:absolute;top:var(--r-col);bottom:var(--r-col);width:1px;pointer-events:none;
+  background:linear-gradient(180deg, oklch(0.95 0.02 220 / .30), oklch(0.95 0.02 220 / .05) 45%, transparent);
 }
 .column::after{content:'';position:absolute;inset:0;pointer-events:none}
-#panel-lib{left:0;width:304px}
+#panel-lib{left:var(--gap);width:308px}
 #panel-lib::before{right:0}
 #panel-lib::after{background:radial-gradient(ellipse 120% 34% at 30% 100%, var(--amber-g), transparent 70%)}  /* amber, low — as the left column */
-#panel-spk{right:0;width:272px}
+#panel-spk{right:var(--gap);width:308px}
 #panel-spk::before{left:0}
 #panel-spk::after{background:radial-gradient(ellipse 90% 30% at 0% 6%, var(--amber-g), transparent 70%)}     /* amber, high-left — as the right column */
 .column>*{position:relative;z-index:1}
 
-.col-hd{display:flex;align-items:center;justify-content:space-between;padding:var(--s5) var(--s5) var(--s3)}
+.col-hd{display:flex;align-items:center;justify-content:space-between;padding:var(--s4) var(--s4) var(--s3)}
 .col-hd .num{color:var(--tx-2);font-size:var(--fs-xs)}
 
 /* search */
@@ -277,7 +290,6 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
 /* library list */
 .flib{flex:1;min-height:0;overflow-y:auto;padding:0 var(--s2) var(--s4)}
 .catg-hd{display:flex;align-items:center;gap:var(--s2);padding:var(--s4) var(--s3) var(--s2)}
-.cdot{width:5px;height:5px;border-radius:50%}
 .frow{
   display:grid;grid-template-columns:56px 1fr auto 28px;align-items:center;gap:var(--s2);
   height:36px;padding:0 var(--s1) 0 var(--s3);border-radius:var(--r-pill);cursor:pointer;
@@ -318,7 +330,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
   position:fixed;z-index:10;
   left:calc(50% - var(--sw) * 0.342 + var(--s4));
   width:calc(var(--sw) * 0.684 - var(--s6));
-  top:calc(var(--H) * 0.55);height:calc(var(--H) * 0.26);
+  top:calc(var(--gap) + var(--SH) * 0.545);height:calc(var(--SH) * 0.27);
   display:flex;flex-direction:column;
 }
 .band-hd{display:flex;align-items:center;justify-content:space-between;height:28px;margin-bottom:var(--s2)}
@@ -332,7 +344,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
 .txtbtn{font-size:var(--fs-xs);letter-spacing:var(--track-caps);text-transform:uppercase;font-weight:500;color:var(--tx-2);padding:var(--s1) var(--s2);border-radius:var(--r-pill);transition:color var(--t-fast),background var(--t-fast)}
 .txtbtn:hover{color:var(--rose);background:var(--rose-a)}
 #tgrid{
-  flex:1;min-height:0;display:flex;gap:var(--s3);
+  flex:1;border-radius:var(--r-card);min-height:0;display:flex;gap:var(--s3);
   overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
   padding-bottom:var(--s2);
   justify-content:safe center;
@@ -403,6 +415,113 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
 .offline.ok i{background:oklch(0.82 0.11 160);box-shadow:0 0 8px oklch(0.82 0.11 160 / .7)}
 .hint{color:var(--tx-3);font-size:var(--fs-xs);line-height:1.7;margin-top:var(--s2)}
 
+
+/* ── COLUMN TABS ───────────────────────────────────────────── */
+.ctabs{display:flex;gap:2px;padding:3px;border-radius:var(--r-pill);background:oklch(0 0 0 / .28);box-shadow:inset 0 0 0 1px var(--line-1)}
+.ctab{height:28px;padding:0 var(--s4);border-radius:var(--r-pill);font-size:var(--fs-xs);letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:var(--tx-3);transition:color var(--t-fast),background var(--t-std) var(--ease-out)}
+.ctab:hover{color:var(--tx-1)}
+.ctab.on{background:oklch(1 0 0 / .12);color:var(--tx-1);box-shadow:inset 0 1px 0 oklch(1 0 0 / .08)}
+.sub{display:none;flex:1;min-height:0;flex-direction:column}
+.column[data-sub=lib] .sub-lib,.column[data-sub=int] .sub-int,
+.column[data-sub=ins] .sub-ins,.column[data-sub=spk] .sub-spk{display:flex}
+.lede{color:var(--tx-2);line-height:1.65;margin:var(--s1) 0 var(--s5)}
+
+/* category headers in the library: icon + evidence */
+.catg-hd .gico{color:var(--tx-2)}
+.catg-hd .ev{margin-left:auto}
+
+/* evidence tags — muted, text only */
+.ev{flex-shrink:0;font-size:9px;line-height:1;letter-spacing:.1em;text-transform:uppercase;font-weight:600;padding:4px 8px;border-radius:var(--r-pill);white-space:nowrap}
+.ev-doc  {color:oklch(0.84 0.07 160);background:oklch(0.84 0.07 160 / .12)}
+.ev-mix  {color:oklch(0.86 0.07 90); background:oklch(0.86 0.07 90 / .12)}
+.ev-claim{color:oklch(0.82 0.07 40); background:oklch(0.82 0.07 40 / .12)}
+.ev-em   {color:oklch(0.84 0.06 250);background:oklch(0.84 0.06 250 / .12)}
+.ev-haz  {color:var(--rose);background:var(--rose-a)}
+.ev-ref  {color:var(--tx-2);background:oklch(1 0 0 / .07)}
+
+/* ── INTERVALS ─────────────────────────────────────────────── */
+.int-scroll,.ins-scroll{flex:1;min-height:0;overflow-y:auto;padding:var(--s2) var(--s5) max(var(--s5), env(safe-area-inset-bottom))}
+.frm{display:flex;flex-direction:column;gap:var(--s2);margin-bottom:var(--s5)}
+.frm>.caps{padding-left:var(--s1)}
+.frm .sel{flex:none;width:100%;height:40px;padding-left:var(--s4);font-size:var(--fs-sm);letter-spacing:0;font-weight:400;color:var(--tx-1)}
+.unit-field{position:relative;display:block}
+.unit-field .field{width:100%;padding-right:52px}
+.unit-field em{position:absolute;right:var(--s4);top:50%;transform:translateY(-50%);font-style:normal;font-size:var(--fs-xs);letter-spacing:.12em;text-transform:uppercase;color:var(--tx-3);pointer-events:none}
+.seg-wide{display:flex}
+.seg-wide .sbtn{flex:1;height:32px;padding:0 var(--s1)}
+.chips{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--s1)}
+.chip{height:48px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-weight:450;font-variant-numeric:tabular-nums;color:var(--tx-1);background:oklch(0 0 0 / .24);box-shadow:inset 0 0 0 1px var(--line-1);transition:background var(--t-fast),box-shadow var(--t-fast),transform var(--t-spring) var(--spring)}
+.chip small{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-3)}
+.chip:hover{box-shadow:inset 0 0 0 1px var(--line-3)}
+.chip:active{transform:scale(.94)}
+.chip.on{background:var(--light-a);box-shadow:inset 0 0 0 1px oklch(0.9 0.045 215 / .35)}
+.chip.on small{color:var(--light)}
+.preview{display:flex;flex-wrap:wrap;gap:var(--s2);padding:var(--s4);border-radius:18px;min-height:64px;margin-bottom:var(--s3);background:oklch(0 0 0 / .22);box-shadow:inset 0 0 0 1px var(--line-1)}
+.pv{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 var(--s3);border-radius:var(--r-pill);background:oklch(1 0 0 / .07);color:var(--tx-1)}
+.pv small{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-3)}
+.pv em{font-style:normal;font-size:9px;font-weight:600;letter-spacing:.1em;color:var(--void);background:var(--light);border-radius:var(--r-pill);padding:2px 6px}
+.pv-note{width:100%;display:flex;align-items:center;gap:6px;color:var(--tx-3);font-size:var(--fs-xs)}
+.int-actions{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2)}
+
+/* ── INSIGHT ───────────────────────────────────────────────── */
+.ins-sec{display:flex;align-items:center;gap:var(--s2);margin:var(--s6) 0 var(--s3);padding-left:var(--s1)}
+.ins-sec:first-child{margin-top:var(--s1)}
+.ins-sec svg,.narea svg{color:var(--tx-2)}
+.ins-sec .num{color:var(--light)}
+.gchips{display:flex;flex-direction:column;gap:6px}
+.gchip{display:grid;grid-template-columns:32px 1fr;align-items:start;gap:var(--s3);padding:var(--s3) var(--s4) var(--s3) var(--s3);border-radius:16px;background:oklch(0 0 0 / .22);box-shadow:inset 0 0 0 1px var(--line-1);transition:opacity var(--t-std)}
+.gchip.dim{opacity:.45}
+.gi{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:var(--tx-1);background:oklch(1 0 0 / .06);box-shadow:inset 0 1px 0 oklch(1 0 0 / .06)}
+.gt{min-width:0;display:flex;flex-direction:column}
+.gl{color:var(--tx-1);line-height:1.35}
+.gl b{font-weight:500;color:var(--light);margin-left:4px}
+.gt small{color:var(--tx-3);font-size:var(--fs-xs);line-height:1.45;margin-top:1px}
+.gt .ev{align-self:flex-start;margin:6px 0 4px}
+.pair{padding:var(--s3) var(--s4);border-radius:16px;margin-bottom:6px;background:oklch(0 0 0 / .22);box-shadow:inset 0 0 0 1px var(--line-1)}
+.pair-hd{display:flex;align-items:baseline;gap:6px}
+.pair-hd b{font-weight:400;font-size:var(--fs-md);color:var(--tx-1);letter-spacing:-.01em}
+.pair-hd i{font-style:normal;color:var(--tx-4)}
+.pair-hd span{font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--tx-3)}
+.pair-hd em{margin-left:auto;font-style:normal;font-size:var(--fs-xs);color:var(--tx-3)}
+.pair-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:var(--s2)}
+.ptag{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 10px 0 8px;border-radius:var(--r-pill);font-size:11px;color:var(--tx-2);background:oklch(1 0 0 / .06)}
+.ptag svg{color:var(--tx-3)}
+.ptag.hi{color:var(--light);background:var(--light-a)}
+.ptag.hi svg{color:var(--light)}
+.pair-note{margin-top:var(--s2);color:var(--tx-3);font-size:var(--fs-xs);line-height:1.6}
+.ins-empty{color:var(--tx-3);line-height:1.7;padding:0 var(--s1)}
+.narea{display:flex;align-items:center;gap:var(--s2);margin:var(--s4) 0 var(--s2);padding-left:var(--s1);color:var(--tx-2)}
+.nt{display:grid;grid-template-columns:16px 1fr;gap:var(--s3);padding:var(--s3) var(--s4);border-radius:16px;margin-bottom:6px;background:oklch(0 0 0 / .22);box-shadow:inset 0 0 0 1px var(--line-1)}
+.nt>svg{color:var(--tx-2);margin-top:2px}
+.nt.now{background:oklch(0.86 0.07 90 / .05);box-shadow:inset 0 0 0 1px oklch(0.86 0.07 90 / .22)}
+.nt.now>svg{color:oklch(0.86 0.07 90)}
+.nt h4{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s2);font-size:var(--fs-sm);font-weight:500;color:var(--tx-1);line-height:1.4}
+.now-tag{font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:oklch(0.86 0.07 90);background:oklch(0.86 0.07 90 / .12);padding:3px 7px;border-radius:var(--r-pill)}
+.nt p{color:var(--tx-3);line-height:1.6;margin-top:3px}
+details.more{margin-top:var(--s5)}
+details.more summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:var(--s2);height:40px;padding:0 var(--s4);border-radius:var(--r-pill);background:oklch(1 0 0 / .05);box-shadow:inset 0 0 0 1px var(--line-1);transition:background var(--t-fast)}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary:hover{background:oklch(1 0 0 / .09)}
+details.more[open] summary{margin-bottom:var(--s2)}
+details.more summary .num{margin-left:auto;color:var(--tx-2)}
+details.more .gchips{margin-top:var(--s2)}
+
+/* tone card additions */
+.tc-cat .gico{color:var(--tx-3)}
+.tc-pulse{display:inline-flex;align-items:center;gap:4px;color:var(--light)}
+
+/* ── FIRST-LISTEN NOTICE ───────────────────────────────────── */
+.modal{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:var(--s5);background:oklch(0.05 0.005 230 / .5);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.modal[hidden]{display:none}
+.modal-card{width:min(440px,100%);max-height:calc(var(--H) - 48px);overflow-y:auto;padding:var(--s6) var(--s6) var(--s5);border-radius:28px;background:oklch(0.17 0.012 200 / .82);box-shadow:var(--pane-edge),0 40px 120px -20px oklch(0 0 0 / .8);backdrop-filter:blur(28px) saturate(1.2);-webkit-backdrop-filter:blur(28px) saturate(1.2);animation:cardIn var(--t-spring) var(--spring)}
+.modal-ic{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--light-a);color:var(--light);margin-bottom:var(--s4)}
+.modal h2{font-size:var(--fs-lg);font-weight:350;letter-spacing:-.01em;margin-bottom:var(--s4)}
+.ack-list{list-style:none;display:flex;flex-direction:column;gap:var(--s3);margin-bottom:var(--s5)}
+.ack-list li{display:grid;grid-template-columns:16px 1fr;gap:var(--s3);color:var(--tx-2);line-height:1.55}
+.ack-list li>i{color:var(--tx-2);margin-top:2px}
+.ack-list b{color:var(--tx-1);font-weight:500}
+.modal-actions{display:grid;grid-template-columns:auto 1fr;gap:var(--s2)}
+
 .mobtabs{display:none}
 
 /* ══ COMPACT — phones, tablets, narrow windows ═══════════════
@@ -411,27 +530,33 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
    the orbital horizon; "active" lowers it to the land horizon so
    the hero frequency stays in view.                             */
 @media (max-width:1099px), (max-height:559px), (max-aspect-ratio:5/4){
-  :root{--sheet:calc(var(--H) * 0.24)}
+  :root{--sheet:calc(var(--H) * 0.24);--gap:0px;--tabh:64px}
+  .stage{border-radius:0;box-shadow:none}
+  .stage::after{border-radius:0;box-shadow:none}
   body[data-tab=main]{--sheet:calc(var(--H) * 0.555)}
   header{padding-left:max(var(--s5), env(safe-area-inset-left));padding-right:max(var(--s5), env(safe-area-inset-right));grid-template-columns:1fr auto}
   #status,.master{display:none}
   .sheet-w{width:min(100%, 720px);left:50%;transform:translateX(-50%)}
   .mobtabs{
-    position:fixed;z-index:12;top:var(--sheet);height:52px;
-    display:flex;align-items:flex-end;padding:0 var(--s4);gap:var(--s1);
-    border-radius:24px 24px 0 0;
+    position:fixed;z-index:12;top:var(--sheet);height:var(--tabh);
+    display:flex;align-items:flex-end;padding:0 var(--s2);gap:0;
+    border-radius:28px 28px 0 0;
     background:oklch(0.13 0.014 165 / .78);
     box-shadow:inset 0 1px 0 oklch(1 0 0 / .10), 0 -24px 48px -12px oklch(0 0 0 / .5);
     backdrop-filter:blur(24px) saturate(1.1);-webkit-backdrop-filter:blur(24px) saturate(1.1);
     transition:top var(--t-spring) var(--spring);
   }
   .mobtabs::before{content:'';position:absolute;top:var(--s2);left:50%;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--line-3)}
-  .mobt{flex:1;height:40px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:var(--fs-xs);letter-spacing:var(--track-caps);text-transform:uppercase;font-weight:500;color:var(--tx-3);position:relative}
+  .mobt{flex:1;min-width:0;height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;color:var(--tx-3);position:relative;transition:color var(--t-fast)}
+  .mobt>i{display:block;height:16px}
+  .mobt>span{white-space:nowrap}
+  .mobt b{font-weight:600}
   .mobt.on{color:var(--tx-1)}
-  .mobt.on::after{content:'';position:absolute;bottom:0;left:30%;right:30%;height:1.5px;border-radius:1px;background:var(--light);box-shadow:0 0 8px var(--light)}
+  .mobt.on::after{content:'';position:absolute;bottom:0;left:28%;right:28%;height:1.5px;border-radius:1px;background:var(--light);box-shadow:0 0 8px var(--light)}
   .mobt .num{color:var(--light)}
   .column,#panel-main,#panel-lib,#panel-spk{
-    position:fixed;top:calc(var(--sheet) + 52px);bottom:0;height:auto;
+    position:fixed;top:calc(var(--sheet) + var(--tabh) - 1px);bottom:0;height:auto;
+    border-radius:0;box-shadow:none;
     width:min(100%, 720px);left:50%;transform:translateX(-50%);
     background:oklch(0.13 0.014 165 / .78);
     backdrop-filter:blur(24px) saturate(1.1);-webkit-backdrop-filter:blur(24px) saturate(1.1);
@@ -439,7 +564,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
     display:none;
   }
   .column::before{display:none}
-  body[data-tab=lib] #panel-lib,body[data-tab=spk] #panel-spk{display:flex}
+  body[data-tab=lib] #panel-lib,body[data-tab=int] #panel-lib,body[data-tab=ins] #panel-spk,body[data-tab=spk] #panel-spk{display:flex}
   body[data-tab=main] #panel-main{display:flex}
   .col-hd{display:none}
   .srch{margin-top:var(--s3)}
@@ -453,17 +578,19 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
     padding-bottom:max(var(--s5), env(safe-area-inset-bottom));
   }
   .tc{flex:none;align-self:stretch}
-  .spk-scroll{padding-top:var(--s4)}
+  .spk-scroll,.int-scroll,.ins-scroll{padding-top:var(--s4)}
+  .frm .sel{font-size:var(--fs-md)}
 }
 /* short landscape (phones on their side): sheet becomes a right-hand
    column, the window keeps the left half */
 @media (max-height:559px) and (min-aspect-ratio:5/4){
-  :root,body[data-tab=main]{--sheet:var(--hd);--side:min(52%, 440px)}
+  :root,body[data-tab=main]{--sheet:var(--hd);--side:min(52%, 440px);--tabh:56px}
   .stage{left:calc((100% - var(--side)) / 2 - var(--sw) * 0.534)}
   .sheet-w,.column,#panel-main,#panel-lib,#panel-spk{left:auto;right:0;transform:none;width:var(--side)}
-  .mobtabs{border-radius:20px 0 0 0;height:44px}
+  .mobtabs{border-radius:24px 0 0 0}
   .mobtabs::before{display:none}
-  .column,#panel-main,#panel-lib,#panel-spk{top:calc(var(--sheet) + 44px)}
+  .mobt{height:46px}
+  .column,#panel-main,#panel-lib,#panel-spk{top:calc(var(--sheet) + var(--tabh) - 1px)}
   .hero-hz{font-size:calc(var(--H) * 0.11)}
 }
 @media (max-width:420px){
@@ -513,25 +640,135 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
 
 <!-- ── MOBILE TABS ───────────────────────────────────── -->
 <nav class="mobtabs sheet-w ui d3" id="mobtabs" role="tablist">
-  <button class="mobt on" data-tab="lib" role="tab">library</button>
-  <button class="mobt" data-tab="main" role="tab">active <span class="num" id="tabct"></span></button>
-  <button class="mobt" data-tab="spk" role="tab">outputs</button>
+  <button class="mobt on" data-tab="lib" role="tab"><i data-ic="list"></i><span>library</span></button>
+  <button class="mobt" data-tab="int" role="tab"><i data-ic="intervals"></i><span>intervals</span></button>
+  <button class="mobt" data-tab="main" role="tab"><i data-ic="active"></i><span>active <b class="num" id="tabct"></b></span></button>
+  <button class="mobt" data-tab="ins" role="tab"><i data-ic="insight"></i><span>insight</span></button>
+  <button class="mobt" data-tab="spk" role="tab"><i data-ic="spk"></i><span>outputs</span></button>
 </nav>
 
-<!-- ── LIBRARY — left glass column ───────────────────── -->
-<aside id="panel-lib" class="column ui d3" aria-label="frequency library">
-  <div class="col-hd"><span class="caps">library</span><span class="num" id="libct"></span></div>
-  <label class="srch">
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5" stroke-linecap="round"/></svg>
-    <input id="srch" type="search" placeholder="search frequencies" autocomplete="off" spellcheck="false" aria-label="search frequencies">
-  </label>
-  <div class="flib scroll" id="flib"></div>
-  <div class="custom">
-    <span class="caps">custom frequency</span>
-    <div class="custom-row">
-      <input class="field num" id="chz" type="number" inputmode="decimal" placeholder="Hz" min="0.01" max="22000" step="0.01" aria-label="frequency in hertz">
-      <input class="field" id="cname" type="text" placeholder="label" maxlength="40" aria-label="label">
-      <button class="btn" id="caddbtn">add</button>
+<!-- ── LEFT GLASS COLUMN — library · intervals ───────── -->
+<aside id="panel-lib" class="column ui d3" data-sub="lib" aria-label="library and intervals">
+  <div class="col-hd">
+    <div class="ctabs" role="tablist">
+      <button class="ctab on" data-sub="lib" role="tab">library</button>
+      <button class="ctab" data-sub="int" role="tab">intervals</button>
+    </div>
+    <span class="num" id="libct"></span>
+  </div>
+
+  <div class="sub sub-lib">
+    <label class="srch">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5" stroke-linecap="round"/></svg>
+      <input id="srch" type="search" placeholder="search frequencies" autocomplete="off" spellcheck="false" aria-label="search frequencies">
+    </label>
+    <div class="flib scroll" id="flib"></div>
+    <div class="custom">
+      <span class="caps">custom frequency</span>
+      <div class="custom-row">
+        <input class="field num" id="chz" type="number" inputmode="decimal" placeholder="Hz" min="0.01" max="22000" step="0.01" aria-label="frequency in hertz">
+        <input class="field" id="cname" type="text" placeholder="label" maxlength="40" aria-label="label">
+        <button class="btn" id="caddbtn">add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub sub-int">
+    <div class="int-scroll scroll">
+      <p class="lede">build a set of tones placed at a fixed relationship to one base frequency.</p>
+
+      <label class="frm"><span class="caps">base</span>
+        <span class="unit-field"><input class="field num" id="ibase" type="number" inputmode="decimal" min="0.01" max="22000" step="0.01" value="200" aria-label="base frequency"><em>Hz</em></span>
+      </label>
+
+      <div class="frm"><span class="caps">pattern</span>
+        <div class="seg seg-wide" id="imode" role="group" aria-label="interval pattern">
+          <button class="sbtn on" data-m="beat">beat</button>
+          <button class="sbtn" data-m="harm">harmonic</button>
+          <button class="sbtn" data-m="ratio">ratio</button>
+          <button class="sbtn" data-m="step">step</button>
+        </div>
+      </div>
+
+      <div class="imode-pane" data-pane="beat">
+        <div class="frm"><span class="caps">beat rate</span>
+          <div class="chips" id="ibeatp">
+            <button class="chip" data-v="2">2<small>delta</small></button>
+            <button class="chip" data-v="6">6<small>theta</small></button>
+            <button class="chip on" data-v="10">10<small>alpha</small></button>
+            <button class="chip" data-v="18">18<small>beta</small></button>
+            <button class="chip" data-v="40">40<small>gamma</small></button>
+          </div>
+          <span class="unit-field"><input class="field num" id="ibeat" type="number" inputmode="decimal" min="0.1" max="100" step="0.1" value="10" aria-label="beat rate"><em>Hz</em></span>
+        </div>
+        <div class="frm"><span class="caps">delivery</span>
+          <div class="seg seg-wide" id="ibtype" role="group" aria-label="beat delivery">
+            <button class="sbtn on" data-v="binaural">binaural · L / R</button>
+            <button class="sbtn" data-v="monaural">monaural · both</button>
+          </div>
+          <p class="hint" id="ibhint">binaural beats form inside the brain — use headphones.</p>
+        </div>
+      </div>
+
+      <div class="imode-pane" data-pane="harm" hidden>
+        <div class="frm"><span class="caps">partials</span>
+          <select class="sel" id="iharm" aria-label="number of harmonics">
+            <option value="2">2 — base + octave</option><option value="3">3</option><option value="4" selected>4</option>
+            <option value="5">5</option><option value="6">6</option><option value="8">8</option>
+          </select>
+          <p class="hint">whole-number multiples: f, 2f, 3f … the natural overtone series.</p>
+        </div>
+      </div>
+
+      <div class="imode-pane" data-pane="ratio" hidden>
+        <div class="frm"><span class="caps">interval</span>
+          <select class="sel" id="iratio" aria-label="interval ratio">
+            <option value="2">octave · 2 : 1</option>
+            <option value="1.5" selected>perfect fifth · 3 : 2</option>
+            <option value="1.3333333">perfect fourth · 4 : 3</option>
+            <option value="1.25">major third · 5 : 4</option>
+            <option value="1.2">minor third · 6 : 5</option>
+            <option value="1.6666667">major sixth · 5 : 3</option>
+            <option value="1.125">whole tone · 9 : 8</option>
+            <option value="1.0594631">semitone · 12-TET</option>
+            <option value="1.6180340">golden ratio · φ</option>
+          </select>
+        </div>
+        <div class="frm"><span class="caps">stack</span>
+          <select class="sel" id="iratioN" aria-label="number of tones">
+            <option value="2">2 tones</option><option value="3" selected>3 tones</option><option value="4">4 tones</option><option value="5">5 tones</option><option value="6">6 tones</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="imode-pane" data-pane="step" hidden>
+        <div class="frm"><span class="caps">step</span>
+          <span class="unit-field"><input class="field num" id="istep" type="number" inputmode="decimal" min="-5000" max="5000" step="0.1" value="111" aria-label="step size"><em>Hz</em></span>
+        </div>
+        <div class="frm"><span class="caps">count</span>
+          <select class="sel" id="istepN" aria-label="number of tones">
+            <option value="2">2 tones</option><option value="3" selected>3 tones</option><option value="4">4 tones</option><option value="5">5 tones</option><option value="6">6 tones</option><option value="8">8 tones</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="frm"><span class="caps">pulse</span>
+        <select class="sel" id="ipulse" aria-label="isochronic pulse">
+          <option value="0" selected>steady — no pulse</option>
+          <option value="2">pulse 2 Hz · delta</option><option value="4">pulse 4 Hz · theta</option><option value="6">pulse 6 Hz · theta</option>
+          <option value="10">pulse 10 Hz · alpha</option><option value="14">pulse 14 Hz · beta</option><option value="20">pulse 20 Hz · beta</option><option value="40">pulse 40 Hz · gamma</option>
+        </select>
+        <p class="hint">isochronic: the tone switches softly on and off at this rate.</p>
+      </div>
+
+      <div class="preview" id="iprev" aria-live="polite"></div>
+      <div class="int-actions">
+        <button class="btn" id="iadd">add set</button>
+        <button class="btn light" id="iplay">
+          <svg width="12" height="12" viewBox="0 0 14 14"><path d="M3 1.8v10.4L12 7z" fill="currentColor"/></svg>
+          add &amp; play
+        </button>
+      </div>
     </div>
   </div>
 </aside>
@@ -545,34 +782,64 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
   <div id="tgrid" class="scroll"></div>
 </section>
 
-<!-- ── OUTPUTS — right glass column ──────────────────── -->
-<aside id="panel-spk" class="column ui d3" aria-label="outputs">
-  <div class="col-hd"><span class="caps">outputs</span></div>
-  <div class="spk-scroll scroll">
-    <div class="spk-count"><span class="big num" id="spk-big">1</span><span class="caps">output devices</span></div>
-    <button class="btn wide" id="scanbtn">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2v3h-3"/></svg>
-      <span id="scanlbl">scan devices</span>
-    </button>
-    <p class="note">pair bluetooth devices in system settings first. scanning briefly asks for microphone access only so the browser reveals device names — nothing is recorded.</p>
-    <p class="note" id="sinknote" hidden>this browser can't route to a specific device; every tone plays through the system default. chrome or edge support per-tone routing.</p>
-    <div id="devlist"></div>
-
-    <span class="caps sec">keep it offline</span>
-    <div class="stack">
-      <button class="btn light wide" id="installbtn" hidden>
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="1.5" width="10" height="13" rx="2"/><path d="M8 5v5m-2.2-2.2L8 10l2.2-2.2"/></svg>
-        install app
-      </button>
-      <button class="btn wide" id="dlbtn">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8m-3-3 3 3 3-3M3 13.5h10"/></svg>
-        <span id="dllbl">download single file</span>
-      </button>
+<!-- ── RIGHT GLASS COLUMN — insight · outputs ────────── -->
+<aside id="panel-spk" class="column ui d3" data-sub="ins" aria-label="insight and outputs">
+  <div class="col-hd">
+    <div class="ctabs" role="tablist">
+      <button class="ctab on" data-sub="ins" role="tab">insight</button>
+      <button class="ctab" data-sub="spk" role="tab">outputs</button>
     </div>
-    <p class="hint" id="installhint"></p>
-    <div class="offline" id="offline"><i></i><span>checking offline cache…</span></div>
+  </div>
+
+  <div class="sub sub-ins">
+    <div class="ins-scroll scroll" id="insight"></div>
+  </div>
+
+  <div class="sub sub-spk">
+    <div class="spk-scroll scroll">
+      <div class="spk-count"><span class="big num" id="spk-big">1</span><span class="caps">output devices</span></div>
+      <button class="btn wide" id="scanbtn">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2v3h-3"/></svg>
+        <span id="scanlbl">scan devices</span>
+      </button>
+      <p class="note">pair bluetooth devices in system settings first. scanning briefly asks for microphone access only so the browser reveals device names — nothing is recorded.</p>
+      <p class="note" id="sinknote" hidden>this browser can't route to a specific device; every tone plays through the system default. chrome or edge support per-tone routing.</p>
+      <div id="devlist"></div>
+
+      <span class="caps sec">keep it offline</span>
+      <div class="stack">
+        <button class="btn light wide" id="installbtn" hidden>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="1.5" width="10" height="13" rx="2"/><path d="M8 5v5m-2.2-2.2L8 10l2.2-2.2"/></svg>
+          install app
+        </button>
+        <button class="btn wide" id="dlbtn">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8m-3-3 3 3 3-3M3 13.5h10"/></svg>
+          <span id="dllbl">download single file</span>
+        </button>
+      </div>
+      <p class="hint" id="installhint"></p>
+      <div class="offline" id="offline"><i></i><span>checking offline cache…</span></div>
+    </div>
   </div>
 </aside>
+
+<!-- ── FIRST-LISTEN NOTICE ───────────────────────────── -->
+<div class="modal" id="ack" role="dialog" aria-modal="true" aria-labelledby="ackt" hidden>
+  <div class="modal-card">
+    <i data-ic="shield" class="modal-ic"></i>
+    <h2 id="ackt">before you listen</h2>
+    <ul class="ack-list">
+      <li><i data-ic="ear"></i><span><b>start quiet.</b> pure tones fatigue hearing faster than music. stop if you hear ringing or feel pressure.</span></li>
+      <li><i data-ic="pulse"></i><span><b>beats & pulses.</b> if you have epilepsy or a seizure disorder, ask a doctor before using rhythmic tones. never while driving.</span></li>
+      <li><i data-ic="leaf"></i><span><b>not medicine.</b> healing labels are traditional claims, not proven treatments.</span></li>
+      <li><i data-ic="glass"></i><span><b>matter.</b> high levels can stress speakers and rattle objects. high tones can hurt children's and pets' ears.</span></li>
+    </ul>
+    <div class="modal-actions">
+      <button class="btn" id="ackno">not now</button>
+      <button class="btn light" id="ackyes">I understand — play</button>
+    </div>
+  </div>
+</div>
 
 <script>
 'use strict';
@@ -590,7 +857,7 @@ const DB = [
   {hz:7,    name:'theta 7 Hz',             cat:'brainwave', desc:'creative and hypnagogic states; near Schumann 1 (7.83 Hz)'},
   {hz:8,    name:'alpha 8 Hz',             cat:'brainwave', desc:'alpha entry; 440-432=8 Hz difference; relaxed awareness'},
   {hz:9,    name:'alpha 9 Hz',             cat:'brainwave', desc:'alert relaxation; visualization'},
-  {hz:10,   name:'alpha 10 Hz ★',          cat:'brainwave', desc:'FDA-cleared PEMF; peak alpha; serotonin release; most researched PEMF frequency'},
+  {hz:10,   name:'alpha 10 Hz', star:1,          cat:'brainwave', desc:'FDA-cleared PEMF; peak alpha; serotonin release; most researched PEMF frequency'},
   {hz:11,   name:'alpha 11 Hz',            cat:'brainwave', desc:'upper alpha; improved cognition studies'},
   {hz:12,   name:'alpha 12 Hz / SMR',      cat:'brainwave', desc:'sensorimotor rhythm; focus, calm body'},
   {hz:13,   name:'beta 13 Hz',             cat:'brainwave', desc:'beta entry; alert concentration'},
@@ -601,57 +868,57 @@ const DB = [
   {hz:28,   name:'beta 28 Hz',             cat:'brainwave', desc:'upper beta; intense focus'},
   {hz:30,   name:'beta / gamma boundary',  cat:'brainwave', desc:'transition state between beta and gamma'},
   {hz:36,   name:'gamma 36 Hz',            cat:'brainwave', desc:'PEMF healing; gamma entry zone'},
-  {hz:40,   name:'gamma 40 Hz ★',          cat:'brainwave', desc:'MIT/Tsai: 40 Hz reduces amyloid in Alzheimer models; PEMF 25+15=40; cognitive binding'},
+  {hz:40,   name:'gamma 40 Hz', star:1,          cat:'brainwave', desc:'MIT/Tsai: 40 Hz reduces amyloid in Alzheimer models; PEMF 25+15=40; cognitive binding'},
   {hz:50,   name:'gamma 50 Hz / ATP',      cat:'brainwave', desc:'PEMF ATP synthesis; EU/UK mains frequency'},
   {hz:60,   name:'gamma 60 Hz',            cat:'brainwave', desc:'US mains frequency; upper gamma'},
   {hz:80,   name:'gamma 80 Hz',            cat:'brainwave', desc:'high gamma; enhanced memory encoding'},
   {hz:100,  name:'lambda 100 Hz',          cat:'brainwave', desc:'lambda waves; very high cognitive state correlate'},
   {hz:120,  name:'lambda 120 Hz',          cat:'brainwave', desc:'lambda range; proposed high cognition correlate'},
   // EARTH / SCHUMANN
-  {hz:7.83, name:'Schumann 1st ★',         cat:'earth',     desc:'Earth-ionosphere cavity fundamental; human alpha/theta boundary'},
+  {hz:7.83, name:'Schumann 1st', star:1,         cat:'earth',     desc:'Earth-ionosphere cavity fundamental; human alpha/theta boundary'},
   {hz:14.3, name:'Schumann 2nd',           cat:'earth',     desc:'Schumann 2nd harmonic; beta brainwave range'},
   {hz:20.8, name:'Schumann 3rd',           cat:'earth',     desc:'Schumann 3rd harmonic; upper beta'},
   {hz:27.3, name:'Schumann 4th',           cat:'earth',     desc:'Schumann 4th harmonic'},
   {hz:33.8, name:'Schumann 5th',           cat:'earth',     desc:'Schumann 5th harmonic'},
-  {hz:39.0, name:'Schumann 6th ★',         cat:'earth',     desc:'Schumann 6th; 7.83x5=39.15 Hz; converges with 40 Hz gamma'},
+  {hz:39.0, name:'Schumann 6th', star:1,         cat:'earth',     desc:'Schumann 6th; 7.83x5=39.15 Hz; converges with 40 Hz gamma'},
   {hz:46.98,name:'Schumann 7th',           cat:'earth',     desc:'7.83x6=46.98 Hz; gamma harmonic'},
   {hz:54.81,name:'Schumann 8th',           cat:'earth',     desc:'7.83x7=54.81 Hz; upper gamma'},
   // PEMF
-  {hz:2,    name:'PEMF nerve regen ★',     cat:'pemf',      desc:'FDA-cleared: nerve regeneration'},
-  {hz:4,    name:'PEMF bone healing ★',    cat:'pemf',      desc:'FDA-cleared: bone healing'},
-  {hz:10,   name:'PEMF gold standard ★',   cat:'pemf',      desc:'FDA-cleared: most researched; pain, inflammation, circulation'},
+  {hz:2,    name:'PEMF nerve regen', star:1,     cat:'pemf',      desc:'FDA-cleared: nerve regeneration'},
+  {hz:4,    name:'PEMF bone healing', star:1,    cat:'pemf',      desc:'FDA-cleared: bone healing'},
+  {hz:10,   name:'PEMF gold standard', star:1,   cat:'pemf',      desc:'FDA-cleared: most researched; pain, inflammation, circulation'},
   {hz:15,   name:'PEMF 15 Hz',             cat:'pemf',      desc:'muscle and tissue; 15+25=40 Hz (gamma)'},
-  {hz:16,   name:'PEMF cartilage ★',       cat:'pemf',      desc:'FDA-cleared: cartilage regeneration'},
-  {hz:25,   name:'PEMF pain ★',            cat:'pemf',      desc:'FDA-cleared: pain reduction; 25+15=40 Hz gamma'},
-  {hz:50,   name:'PEMF ATP ★',             cat:'pemf',      desc:'ATP (cellular energy) synthesis enhancement'},
+  {hz:16,   name:'PEMF cartilage', star:1,       cat:'pemf',      desc:'FDA-cleared: cartilage regeneration'},
+  {hz:25,   name:'PEMF pain', star:1,            cat:'pemf',      desc:'FDA-cleared: pain reduction; 25+15=40 Hz gamma'},
+  {hz:50,   name:'PEMF ATP', star:1,             cat:'pemf',      desc:'ATP (cellular energy) synthesis enhancement'},
   // INFRASOUND
   {hz:.5,   name:'infrasound 0.5 Hz',      cat:'infrasound',desc:'atmospheric pressure waves; geomagnetic pulsations'},
   {hz:2.5,  name:'infrasound 2.5 Hz',      cat:'infrasound',desc:'body cavity resonance candidate; felt as pressure'},
-  {hz:7,    name:'infrasound 7 Hz ★',      cat:'infrasound',desc:'animal anxiety response; building/bridge sway range'},
+  {hz:7,    name:'infrasound 7 Hz', star:1,      cat:'infrasound',desc:'animal anxiety response; building/bridge sway range'},
   {hz:9,    name:'infrasound 9 Hz',        cat:'infrasound',desc:'near alpha boundary; felt as chest pressure'},
   {hz:12,   name:'infrasound 12 Hz',       cat:'infrasound',desc:'thorax resonance candidate (10-12 Hz)'},
-  {hz:18.98,name:'Vic Tandy 18.98 Hz ★',   cat:'infrasound',desc:'Coventry lab (Vic Tandy, 1998): eyeball resonance, peripheral vision distortion, dread'},
+  {hz:18.98,name:'Vic Tandy 18.98 Hz', star:1,   cat:'infrasound',desc:'Coventry lab (Vic Tandy, 1998): eyeball resonance, peripheral vision distortion, dread'},
   // SOLFEGGIO
   {hz:174,  name:'solfeggio 174 Hz',       cat:'solfeggio', desc:'pain reduction, foundational grounding; lowest solfeggio'},
   {hz:285,  name:'solfeggio 285 Hz',       cat:'solfeggio', desc:'tissue restoration; 285-174=111 Hz (generative interval)'},
-  {hz:396,  name:'solfeggio 396 Hz ★',     cat:'solfeggio', desc:'liberation from guilt and fear; Ut in original solfeggio'},
+  {hz:396,  name:'solfeggio 396 Hz', star:1,     cat:'solfeggio', desc:'liberation from guilt and fear; Ut in original solfeggio'},
   {hz:417,  name:'solfeggio 417 Hz',       cat:'solfeggio', desc:'facilitating change; 528-417=111'},
-  {hz:528,  name:'solfeggio 528 Hz ★',     cat:'solfeggio', desc:'love frequency; MI; 528-417=111; 528/4=132'},
+  {hz:528,  name:'solfeggio 528 Hz', star:1,     cat:'solfeggio', desc:'love frequency; MI; 528-417=111; 528/4=132'},
   {hz:639,  name:'solfeggio 639 Hz',       cat:'solfeggio', desc:'connection, relationships; FA; 639-528=111'},
   {hz:741,  name:'solfeggio 741 Hz',       cat:'solfeggio', desc:'problem solving, self-expression; SOL'},
   {hz:852,  name:'solfeggio 852 Hz',       cat:'solfeggio', desc:'returning to spiritual order; LA; 852-741=111'},
-  {hz:963,  name:'solfeggio 963 Hz ★',     cat:'solfeggio', desc:'pineal activation; SI; highest original solfeggio'},
+  {hz:963,  name:'solfeggio 963 Hz', star:1,     cat:'solfeggio', desc:'pineal activation; SI; highest original solfeggio'},
   // SACRED
   {hz:108,  name:'sacred 108 Hz',          cat:'sacred',    desc:'Vedic sacred constant; 432/4=108; subharmonic of Verdi A'},
   {hz:216,  name:'A3 Verdi (216 Hz)',       cat:'sacred',    desc:'432/2=216 Hz; A3 in Verdi tuning'},
-  {hz:432,  name:'Verdi A (432 Hz) ★',     cat:'sacred',    desc:'Verdi tuning; 432=108x4; 440-432=8 Hz (alpha-theta boundary)'},
+  {hz:432,  name:'Verdi A (432 Hz)', star:1,     cat:'sacred',    desc:'Verdi tuning; 432=108x4; 440-432=8 Hz (alpha-theta boundary)'},
   // COMPOUND / SYNTHESIZED
   {hz:1.566,name:'Schumann / 5',           cat:'compound',  desc:'7.83/5=1.566 Hz; delta-range Schumann subharmonic'},
   {hz:3.915,name:'Schumann / 2',           cat:'compound',  desc:'7.83/2=3.915 Hz; theta Schumann subharmonic'},
   {hz:15.66,name:'Schumann x 2',           cat:'compound',  desc:'7.83x2=15.66 Hz; beta Schumann harmonic'},
   {hz:23.49,name:'Schumann x 3',           cat:'compound',  desc:'7.83x3=23.49 Hz; upper beta harmonic'},
   {hz:31.32,name:'Schumann x 4',           cat:'compound',  desc:'7.83x4=31.32 Hz; gamma harmonic'},
-  {hz:111,  name:'solfeggio interval ★',   cat:'compound',  desc:'generative interval: ALL adjacent solfeggio pairs differ by 111 Hz'},
+  {hz:111,  name:'solfeggio interval', star:1,   cat:'compound',  desc:'generative interval: ALL adjacent solfeggio pairs differ by 111 Hz'},
   {hz:132,  name:'compound 132 Hz',        cat:'compound',  desc:'528/4=132; independent solfeggio difference'},
   {hz:222,  name:'compound 222 Hz',        cat:'compound',  desc:'111x2; double solfeggio interval'},
   {hz:264,  name:'compound 264 Hz',        cat:'compound',  desc:'528/2=264 Hz; half of love frequency'},
@@ -663,45 +930,45 @@ const DB = [
   {hz:888,  name:'compound 888 Hz',        cat:'compound',  desc:'111x8; eighth multiple'},
   {hz:999,  name:'compound 999 Hz',        cat:'compound',  desc:'111x9; near 1000 Hz reference'},
   {hz:750,  name:'cross-domain mid 750',   cat:'compound',  desc:'1500/2; midpoint of LRAD band attractor'},
-  {hz:1500, name:'cross-domain 1500 ★',    cat:'compound',  desc:'LRAD 3600-2100=1500 Hz; Mosquito 18500-17000=1500 Hz; same number at 10^6 scale difference'},
+  {hz:1500, name:'cross-domain 1500', star:1,    cat:'compound',  desc:'LRAD 3600-2100=1500 Hz; Mosquito 18500-17000=1500 Hz; same number at 10^6 scale difference'},
   // RESEARCH
-  {hz:110,  name:'cave resonance 110 Hz ★',cat:'research',  desc:'Maltese hypogea and Stonehenge; fMRI: prefrontal deactivation, limbic activation; 440=110x4'},
+  {hz:110,  name:'cave resonance 110 Hz', star:1,cat:'research',  desc:'Maltese hypogea and Stonehenge; fMRI: prefrontal deactivation, limbic activation; 440=110x4'},
   // MEDICAL
   {hz:128,  name:'tuning fork C (128 Hz)', cat:'medical',   desc:'medical tuning fork; bone conduction; Rinne and Weber hearing tests'},
   {hz:256,  name:'tuning fork C4 (256 Hz)',cat:'medical',   desc:'C256 medical tuning fork; scientific pitch; hearing tests'},
   {hz:512,  name:'tuning fork C5 (512 Hz)',cat:'medical',   desc:'C512; otoscopy; hearing assessment'},
   {hz:1000, name:'audiometry 1 kHz',       cat:'medical',   desc:'standard audiometric test frequency'},
   {hz:2000, name:'audiometry 2 kHz',       cat:'medical',   desc:'speech discrimination; audiometric standard'},
-  {hz:4000, name:'audiometry 4 kHz ★',     cat:'medical',   desc:'noise-induced hearing loss notch; most audiograms flag 4 kHz first'},
+  {hz:4000, name:'audiometry 4 kHz', star:1,     cat:'medical',   desc:'noise-induced hearing loss notch; most audiograms flag 4 kHz first'},
   {hz:8000, name:'audiometry 8 kHz',       cat:'medical',   desc:'upper audiometric standard'},
   // LRAD
   {hz:2100, name:'LRAD lower edge',        cat:'lrad',      desc:'Long Range Acoustic Device lower band; 2100-3600 Hz operational; directed crowd control'},
   {hz:2500, name:'LRAD midpoint',          cat:'lrad',      desc:'approximate center of LRAD operational band'},
   {hz:3600, name:'LRAD upper edge',        cat:'lrad',      desc:'LRAD upper edge; max directed-acoustic output in this range'},
   // MOSQUITO
-  {hz:17000,name:'mosquito device low ★',  cat:'mosquito',  desc:'lower edge; audible to teens/young adults; age-related dispersal device'},
+  {hz:17000,name:'mosquito device low', star:1,  cat:'mosquito',  desc:'lower edge; audible to teens/young adults; age-related dispersal device'},
   {hz:17500,name:'mosquito mid',           cat:'mosquito',  desc:'mid-range; decreasing audibility with age'},
-  {hz:18500,name:'mosquito device high ★', cat:'mosquito',  desc:'upper edge; 18500-17000=1500 Hz (same diff as LRAD band)'},
+  {hz:18500,name:'mosquito device high', star:1, cat:'mosquito',  desc:'upper edge; 18500-17000=1500 Hz (same diff as LRAD band)'},
   // ELF SUBMARINE
-  {hz:76,   name:'US Navy ELF 76 Hz ★',    cat:'submarine', desc:'Project ELF; 76 Hz submarine comms; penetrates ocean and bedrock'},
-  {hz:82,   name:'Russian ZEVS 82 Hz ★',   cat:'submarine', desc:'Russian ELF submarine comms; ZEVS transmitter; global reach through seawater'},
+  {hz:76,   name:'US Navy ELF 76 Hz', star:1,    cat:'submarine', desc:'Project ELF; 76 Hz submarine comms; penetrates ocean and bedrock'},
+  {hz:82,   name:'Russian ZEVS 82 Hz', star:1,   cat:'submarine', desc:'Russian ELF submarine comms; ZEVS transmitter; global reach through seawater'},
   // DRONE RF (audio-rep)
   {hz:433,  name:'drone 433 MHz band',     cat:'drone',     desc:'433 MHz drone control band (audio representation)'},
   {hz:900,  name:'drone 900 MHz band',     cat:'drone',     desc:'900 MHz drone/RC control band'},
   {hz:1200, name:'drone 1.2 GHz band',     cat:'drone',     desc:'1.2-1.3 GHz drone video feed (audio representation)'},
-  {hz:2400, name:'drone 2.4 GHz ★',        cat:'drone',     desc:'2.4 GHz primary drone control; WiFi/BT overlap; GPS L2+L5=2404 MHz'},
+  {hz:2400, name:'drone 2.4 GHz', star:1,        cat:'drone',     desc:'2.4 GHz primary drone control; WiFi/BT overlap; GPS L2+L5=2404 MHz'},
   {hz:5800, name:'drone 5.8 GHz video',    cat:'drone',     desc:'5.8 GHz FPV video feed; shorter range than 2.4 GHz'},
   // GNSS / GPS
   {hz:1176, name:'GPS L5 ref',             cat:'gnss',      desc:'GPS L5=1176.45 MHz; safety-of-life civilian'},
   {hz:1227, name:'GPS L2 ref',             cat:'gnss',      desc:'GPS L2=1227.60 MHz; military and enhanced civilian'},
-  {hz:1575, name:'GPS L1 ref ★',           cat:'gnss',      desc:'GPS L1=1575.42 MHz; primary civilian GPS signal'},
+  {hz:1575, name:'GPS L1 ref', star:1,           cat:'gnss',      desc:'GPS L1=1575.42 MHz; primary civilian GPS signal'},
   {hz:348,  name:'GPS L1-L2 difference',   cat:'gnss',      desc:'GPS L1-L2=347.82 MHz; cross-band difference (audio representation)'},
   // REFERENCE
   {hz:10.23,name:'GPS master clock',       cat:'reference', desc:'GPS atomic master clock (10.23 MHz); all GPS carriers are integer multiples of this'},
   {hz:55,   name:'A1 (55 Hz)',             cat:'reference', desc:'A1 in concert pitch; 7th Schumann harmonic (54.81 Hz); 5 octaves below A4'},
   {hz:220,  name:'A3 concert (220 Hz)',    cat:'reference', desc:'concert pitch A3=220 Hz'},
   {hz:261.63,name:'middle C concert',      cat:'reference', desc:'concert pitch C4=261.63 Hz based on A4=440 Hz'},
-  {hz:440,  name:'concert A 440 Hz ★',    cat:'reference', desc:'ISO 16 standard; 440=110x4; 440-432=8 Hz (alpha-theta boundary)'},
+  {hz:440,  name:'concert A 440 Hz', star:1,    cat:'reference', desc:'ISO 16 standard; 440=110x4; 440-432=8 Hz (alpha-theta boundary)'},
   {hz:1000, name:'1 kHz reference',        cat:'reference', desc:'standard audio test tone; equal-loudness reference'},
   {hz:3000, name:'speech clarity peak',   cat:'reference', desc:'peak speech intelligibility; human ear most sensitive 2k-5 kHz'},
 ];
@@ -723,7 +990,6 @@ const CAT_LABEL = {
   drone:'drone RF (rep)',gnss:'GNSS / GPS (rep)',reference:'reference'
 };
 // perceptually even: equal L and C, hue rotated (oklch)
-const CAT_COLOR = Object.fromEntries(CATS.map((c,i)=>[c,`oklch(0.80 0.075 ${(i*137.5+200)%360})`]));
 
 // ── AUDIO ENGINE ────────────────────────────────────────────
 const AC = window.AudioContext||window.webkitAudioContext;
@@ -770,14 +1036,29 @@ class Engine {
     osc.type=t.waveform||'sine'; osc.frequency.value=t.hz;
     gn.gain.setValueAtTime(0,now);
     gn.gain.linearRampToValueAtTime(t.volume??0.5,now+FADE);
-    let pan=null;
+    let pan=null, am=null, lfo=null, lg=null, out=gn;
     osc.connect(gn);
+    if(t.pulse>0){ // isochronic: soft-square amplitude gate at t.pulse Hz
+      am=ctx.createGain(); am.gain.value=.5;
+      lfo=ctx.createOscillator(); lfo.setPeriodicWave(this.softSquare(ctx)); lfo.frequency.value=t.pulse;
+      lg=ctx.createGain(); lg.gain.value=.5;
+      lfo.connect(lg); lg.connect(am.gain); gn.connect(am); out=am;
+      lfo.start(now);
+    }
     if(ctx.createStereoPanner){
       pan=ctx.createStereoPanner(); pan.pan.value=panVal(t.channel);
-      gn.connect(pan); pan.connect(g);
-    } else gn.connect(g);
+      out.connect(pan); pan.connect(g);
+    } else out.connect(g);
     osc.start(now);
-    this.nodes.set(t.id,{osc,gn,pan,ctx});
+    this.nodes.set(t.id,{osc,gn,pan,ctx,am,lfo,lg});
+  }
+  // odd harmonics with a Lanczos taper: on/off gating without hard clicks
+  softSquare(ctx){
+    this.sq=this.sq||new WeakMap();
+    if(this.sq.has(ctx)) return this.sq.get(ctx);
+    const N=16, re=new Float32Array(N), im=new Float32Array(N);
+    for(let k=1;k<N;k+=2){ const x=Math.PI*k/N; im[k]=(4/(Math.PI*k))*(Math.sin(x)/x); }
+    const w=ctx.createPeriodicWave(re,im); this.sq.set(ctx,w); return w;
   }
   stop(id){
     const n=this.nodes.get(id); if(!n) return;
@@ -788,8 +1069,9 @@ class Engine {
       n.gn.gain.setValueAtTime(n.gn.gain.value,now);
       n.gn.gain.linearRampToValueAtTime(0,now+FADE);
       n.osc.stop(now+FADE+.01);
-    }catch(_){ try{n.osc.stop()}catch(_){} }
-    n.osc.onended=()=>[n.osc,n.gn,n.pan].forEach(x=>{try{if(x)x.disconnect()}catch(_){}});
+      if(n.lfo) n.lfo.stop(now+FADE+.01);
+    }catch(_){ try{n.osc.stop()}catch(_){} try{n.lfo&&n.lfo.stop()}catch(_){} }
+    n.osc.onended=()=>[n.osc,n.gn,n.pan,n.am,n.lfo,n.lg].forEach(x=>{try{if(x)x.disconnect()}catch(_){}});
   }
   setPan(id,ch){ const n=this.nodes.get(id); if(n?.pan) n.pan.pan.setTargetAtTime(panVal(ch),n.ctx.currentTime,.01); }
   setVol(id,v){ const n=this.nodes.get(id); if(n) n.gn.gain.setTargetAtTime(v,n.ctx.currentTime,.015); }
@@ -809,16 +1091,190 @@ let tones=[], devs=[DEFAULT_DEV], srchQ='', nid=1, globalOn=false, enterIds=new 
 const $ = id => document.getElementById(id);
 const ROOT = document.documentElement;
 
-// ── ICONS ───────────────────────────────────────────────────
-const IC = {
-  play:'<svg width="12" height="12" viewBox="0 0 14 14"><path d="M3 1.8v10.4L12 7z" fill="currentColor"/></svg>',
-  stop:'<svg width="12" height="12" viewBox="0 0 14 14"><rect x="2.5" y="2.5" width="9" height="9" rx="1.5" fill="currentColor"/></svg>',
-  x:'<svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="m2 2 6 6M8 2 2 8"/></svg>',
-  plus:'<svg width="12" height="12" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M6 1.5v9M1.5 6h9"/></svg>',
-  check:'<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2 6.2 2.6 2.6L10 3.4"/></svg>',
-  spk:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M2.5 6h2.5l3.5-3v10L5 10H2.5z"/><path d="M11 5.5a3.5 3.5 0 0 1 0 5" stroke-linecap="round"/></svg>',
-  bt:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M3 10V8a5 5 0 0 1 10 0v2"/><rect x="2" y="9.5" width="3" height="4.5" rx="1.2"/><rect x="11" y="9.5" width="3" height="4.5" rx="1.2"/></svg>',
+// ── ICONS — one monochrome line set, 16 px grid, 1.3 stroke ──
+const ICON_PATHS = {
+  play:'<path d="M4.5 2.6v10.8L13 8z" fill="currentColor" stroke="none"/>',
+  stop:'<rect x="3.5" y="3.5" width="9" height="9" rx="2" fill="currentColor" stroke="none"/>',
+  x:'<path d="m4.5 4.5 7 7m0-7-7 7"/>',
+  plus:'<path d="M8 3v10M3 8h10"/>',
+  check:'<path d="m3.2 8.4 3 3L12.8 4.8"/>',
+  list:'<path d="M3 4h10M3 8h10M3 12h6"/>',
+  intervals:'<path d="M3 13V9.5M6.3 13V6.5M9.7 13V4M13 13V7.5"/>',
+  active:'<circle cx="8" cy="8" r="6"/><path d="M6.9 5.6v4.8L10.6 8z" fill="currentColor" stroke="none"/>',
+  insight:'<circle cx="6" cy="8" r="4"/><circle cx="10" cy="8" r="4"/>',
+  spk:'<path d="M2.5 6h2.5l3.5-3v10L5 10H2.5z"/><path d="M11 5.5a3.5 3.5 0 0 1 0 5"/>',
+  bt:'<path d="M3 10V8a5 5 0 0 1 10 0v2"/><rect x="2" y="9.5" width="3" height="4.5" rx="1.2"/><rect x="11" y="9.5" width="3" height="4.5" rx="1.2"/>',
+  shield:'<path d="M8 1.8 13 3.6v4c0 3-2.2 5.2-5 6.6-2.8-1.4-5-3.6-5-6.6v-4z"/><path d="m5.8 8 1.6 1.6L10.4 6.6"/>',
+  ear:'<path d="M4.5 6.2a3.5 3.5 0 1 1 6.4 2c-.8 1-1.4 1.5-1.4 2.8a2.1 2.1 0 0 1-3.7 1.4"/><path d="M6.6 6.4a1.5 1.5 0 0 1 2.7.6"/>',
+  pulse:'<path d="M1.5 9.5h2.5V5h3v6h3V5h3v4.5h1.5"/>',
+  leaf:'<path d="M3 13c0-6 4-9.5 10-10-.4 6-4 10-10 10z"/><path d="m3 13 5-5"/>',
+  glass:'<path d="M5 2h6c0 3.6-1.2 5.6-3 5.6S5 5.6 5 2zM8 7.6V13.5M5.5 13.5h5"/>',
+  wave:'<path d="M1.5 8c1.6-3.6 3.1-3.6 4.6 0s3.1 3.6 4.6 0 2.6-3 3.8-1.5"/>',
+  globe:'<circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c1.9 1.8 2.6 3.9 2.6 6S9.9 12.2 8 14C6.1 12.2 5.4 10.1 5.4 8S6.1 3.8 8 2z"/>',
+  coil:'<circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="3.4"/><circle cx="8" cy="8" r=".9" fill="currentColor"/>',
+  flask:'<path d="M6 2h4M7 2v4.2L3.6 12.4A1.1 1.1 0 0 0 4.6 14h6.8a1.1 1.1 0 0 0 1-1.6L9 6.2V2M5 10.5h6"/>',
+  alert:'<path d="M8 2.3 14.2 13.2H1.8z"/><path d="M8 6.6v3.2M8 11.4v.1"/>',
+  antenna:'<circle cx="8" cy="7" r="1.1" fill="currentColor"/><path d="M8 8.2V14M5.6 4.6a3.4 3.4 0 0 0 0 4.8M10.4 4.6a3.4 3.4 0 0 1 0 4.8M3.6 2.6a6.2 6.2 0 0 0 0 8.8M12.4 2.6a6.2 6.2 0 0 1 0 8.8"/>',
+  ruler:'<rect x="1.5" y="5" width="13" height="6" rx="1.6"/><path d="M4.5 5v2.4M7.5 5v3.4M10.5 5v2.4"/>',
+  body:'<circle cx="8" cy="3.4" r="1.7"/><path d="M3.8 6.8h8.4M8 6.8v4.2m0 0-2.6 3.4M8 11l2.6 3.4"/>',
+  matter:'<path d="M8 1.8 13.5 5v6L8 14.2 2.5 11V5z"/><path d="M2.5 5 8 8.1 13.5 5M8 8.1v6.1"/>',
+  claim:'<path d="M3 2.8h10a1 1 0 0 1 1 1v6.4a1 1 0 0 1-1 1H7.2L4 13.6v-2.4H3a1 1 0 0 1-1-1V3.8a1 1 0 0 1 1-1z"/>',
+  beat:'<path d="M1.5 6.2c1.6-2.2 3-2.2 4.5 0s3 2.2 4.5 0 2.8-2 4-1M1.5 10.5c2-2.6 4.2-2.6 6.5 0s4.5 2.6 6.5 0"/>',
+  ratio:'<circle cx="4.6" cy="4.6" r="1.6"/><circle cx="11.4" cy="11.4" r="1.6"/><path d="m12.6 3.4-9.2 9.2"/>',
+  rough:'<path d="m1.5 8 1.8-3 1.8 6 1.8-6 1.8 6 1.8-6 1.8 6 1.8-3"/>',
+  info:'<circle cx="8" cy="8" r="6"/><path d="M8 7.2v4M8 4.9v.1"/>',
 };
+const icon = (n,s=16) => `<svg width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[n]||''}</svg>`;
+const IC = new Proxy({},{get:(_,n)=>icon(n,n==='play'||n==='stop'?12:n==='x'?12:n==='plus'||n==='check'?13:16)});
+
+// ── CATEGORY GROUPS — what each kind of frequency is, and how solid the claim is ──
+const GROUPS = {
+  wellness:{label:'wellness & healing',   ev:'traditional claim',   cls:'claim', icon:'leaf',
+            line:'spiritual and traditional numbers — no reliable evidence of physical effect'},
+  entrain: {label:'brainwave entrainment', ev:'mixed evidence',      cls:'mix',   icon:'wave',
+            line:'tones matched to EEG bands; small, inconsistent effects in studies'},
+  natural: {label:'natural phenomena',     ev:'EM · not sound',      cls:'em',    icon:'globe',
+            line:'real electromagnetic resonances, reproduced here as sound'},
+  therapy: {label:'PEMF device settings',  ev:'EM device · not sound', cls:'em',  icon:'coil',
+            line:'pulse rates of magnetic-field therapy devices; sound is not PEMF'},
+  research:{label:'research & anomalies',  ev:'documented · anecdotal', cls:'doc', icon:'flask',
+            line:'measured phenomena and single reports — read the note on each'},
+  hazard:  {label:'deterrents & hazards',  ev:'use responsibly',     cls:'haz',   icon:'alert',
+            line:'bands used to repel people or animals — never aim them at anyone'},
+  signal:  {label:'radio & signal bands',  ev:'audio stand-in',      cls:'em',    icon:'antenna',
+            line:'MHz–GHz radio named by number; sound cannot touch radio'},
+  measure: {label:'measurement & reference', ev:'reference standard', cls:'ref',  icon:'ruler',
+            line:'tuning, audiometry and test tones'},
+};
+const CAT_GROUP = {brainwave:'entrain',earth:'natural',pemf:'therapy',infrasound:'research',solfeggio:'wellness',
+  sacred:'wellness',compound:'wellness',research:'research',medical:'measure',lrad:'hazard',mosquito:'hazard',
+  submarine:'signal',drone:'signal',gnss:'signal',reference:'measure'};
+const groupOf = cat => GROUPS[CAT_GROUP[cat]||'measure'];
+const evTag = g => `<span class="ev ev-${g.cls}">${esc(g.ev)}</span>`;
+
+// ── NOTES — what tones (and combinations) can do to bodies and matter ──
+// `when(m)` decides whether a note applies to the current mix.
+const AREAS = {body:{label:'body & hearing',icon:'body'}, matter:{label:'matter & objects',icon:'matter'}, claims:{label:'claims & context',icon:'claim'}};
+const NOTES = [
+  {area:'body', icon:'ear', title:'hearing safety', always:true,
+   text:'Pure, sustained tones fatigue the ear faster than music. Start quiet, keep sessions short, and stop if you notice ringing, pressure or muffled hearing. Long exposure above roughly 85 dB can cause permanent damage.'},
+  {area:'body', icon:'plus', title:'stacked tones add up',
+   when:m=>m.sumVol>1,
+   text:'Every tone adds energy. Several tones at 50 % can be louder than one at 100 %; the built-in limiter stops distortion, not loudness. Lower the master when layering.'},
+  {area:'body', icon:'alert', title:'high frequencies · above ~15 kHz',
+   when:m=>m.max>=15000,
+   text:'You may not hear them, but children, teenagers, dogs and cats often do — sometimes painfully. Can cause headache, nausea or tinnitus. Never use them to repel or annoy people or animals.'},
+  {area:'body', icon:'wave', title:'infrasound · below 20 Hz',
+   when:m=>m.min<20,
+   text:'Largely inaudible and barely reproduced by phones, laptops or headphones. The unease, pressure and nausea reported for infrasound occur at sound levels far beyond consumer equipment.'},
+  {area:'body', icon:'pulse', title:'beats & pulses',
+   when:m=>m.beatsLow||m.pulsed||m.groups.has('entrain'),
+   text:'Beats and pulses between 1 and 40 Hz are used for relaxation and focus. Research shows small, inconsistent effects; they are not a treatment. With epilepsy or a seizure disorder, ask a doctor before using rhythmic tones. Never use while driving or operating machinery.'},
+  {area:'body', icon:'rough', title:'roughness & dissonance',
+   when:m=>m.rough,
+   text:'Two tones a little apart (roughly 15–150 Hz) produce a buzzy, rough sensation. It is harmless but tiring; widen the gap or lower the volume if it feels grating.'},
+  {area:'matter', icon:'glass', title:'glass & resonance',
+   when:m=>m.tones.some(t=>t.hz>=300&&t.hz<=1500),
+   text:'Every glass rings at its own frequencies — a wine glass typically somewhere between 400 and 1,200 Hz. Breaking one needs its exact frequency (within about 1 Hz) at roughly 100 dB or more right at the glass, held for seconds. Phone, laptop and most home speakers distort long before that. If you experiment, wear eye protection and keep people clear.'},
+  {area:'matter', icon:'matter', title:'sympathetic vibration',
+   when:m=>m.tones.some(t=>t.hz>=20&&t.hz<=250),
+   text:'Windows, panels, shelves and loose objects buzz or rattle when a tone matches their resonance. Harmless, but vibration can walk objects off edges.'},
+  {area:'matter', icon:'spk', title:'protect your speakers',
+   when:m=>m.min<40||m.harsh,
+   text:'Loud, sustained tones below about 40 Hz push woofers past their travel; loud square and sawtooth waves overheat tweeters. Sub-20 Hz output is close to DC — keep it quiet.'},
+  {area:'matter', icon:'beat', title:'water & cymatics',
+   when:m=>m.tones.some(t=>t.hz>=10&&t.hz<=120),
+   text:'A shallow dish of water on or near a speaker forms standing-wave patterns (Faraday waves) at low tones — a safe way to see a frequency. Keep liquids away from electronics.'},
+  {area:'claims', icon:'leaf', title:'healing claims',
+   when:m=>m.groups.has('wellness'),
+   text:'Solfeggio, 432 Hz, the 528 Hz “love frequency” and similar labels come from spiritual and traditional sources. There is no reliable evidence that listening to them heals tissue or repairs DNA. Enjoy them as sound.'},
+  {area:'claims', icon:'coil', title:'PEMF numbers are not PEMF',
+   when:m=>m.groups.has('therapy'),
+   text:'PEMF therapy uses pulsed electromagnetic fields from a coil placed on the body. Playing the same number through a speaker creates no magnetic field and none of those effects.'},
+  {area:'claims', icon:'globe', title:'electromagnetic, not acoustic',
+   when:m=>m.groups.has('natural')||m.cats.has('submarine'),
+   text:'Schumann resonances and ELF submarine transmissions are electromagnetic waves. As sound they share the number, not the physics.'},
+  {area:'claims', icon:'antenna', title:'radio bands are stand-ins',
+   when:m=>m.cats.has('drone')||m.cats.has('gnss'),
+   text:'Drone and GNSS entries are MHz–GHz radio bands labelled as audio stand-ins. Sound cannot reach, jam or affect drones, GPS, Wi-Fi or Bluetooth.'},
+  {area:'claims', icon:'flask', title:'40 Hz research',
+   when:m=>m.tones.some(t=>Math.abs(t.hz-40)<1),
+   text:'40 Hz light-and-sound stimulation reduced amyloid in mouse studies and is in early human trials. It is not an established treatment, and a single audio tone is not the protocol that was studied.'},
+  {area:'claims', icon:'flask', title:'the 18.98 Hz “ghost” tone',
+   when:m=>m.tones.some(t=>Math.abs(t.hz-18.98)<.5),
+   text:'Comes from one engineer’s 1998 report of a resonating fan in a lab. It has not been reliably reproduced, and speakers barely output 19 Hz at audible levels.'},
+  {area:'claims', icon:'alert', title:'deterrent devices',
+   when:m=>m.groups.has('hazard'),
+   text:'Real LRAD and “mosquito” devices use specialised, very loud or highly directional hardware. Home playback is not equivalent — and using such tones to target people or animals may be unlawful.'},
+  {area:'claims', icon:'shield', title:'not medical advice', always:true,
+   text:'Nothing here diagnoses, treats or cures anything. With a hearing or neurological condition, or during pregnancy, check with a professional before using intense or rhythmic tones.'},
+];
+
+// ── COMBINATION ANALYSIS ─────────────────────────────────────
+const BANDS = [[.5,'epsilon'],[4,'delta'],[8,'theta'],[13,'alpha'],[30,'beta'],[100,'gamma']];
+const bandOf = hz => { for(const [lim,n] of BANDS) if(hz<lim) return n; return null; };
+const INTERVALS = [[0,'unison','consonant'],[112,'minor second','dissonant'],[204,'whole tone','dissonant'],[316,'minor third','sweet'],
+  [386,'major third','sweet'],[498,'perfect fourth','consonant'],[590,'tritone','dissonant'],[702,'perfect fifth','consonant'],
+  [814,'minor sixth','sweet'],[884,'major sixth','sweet'],[996,'minor seventh','dissonant'],[1088,'major seventh','dissonant'],[1200,'octave','consonant']];
+function intervalOf(lo,hi){
+  const cents=1200*Math.log2(hi/lo);
+  let oct=Math.floor(cents/1200), rem=cents-oct*1200;
+  let best=null,d=1e9;
+  for(const iv of INTERVALS){ const dd=Math.abs(rem-iv[0]); if(dd<d){d=dd;best=iv;} }
+  if(d>25) return null;
+  if(best[1]==='octave'){ oct+=1; best=INTERVALS[0]; }
+  let name=best[1];
+  if(name==='unison') name = oct===0?'unison':oct===1?'octave':`${oct} octaves`;
+  else if(oct>0) name+=` + ${oct} oct`;
+  return {name, feel:best[2], cents:Math.round(rem>600&&best[0]===0?rem-1200:rem-best[0])};
+}
+function analyzePair(a,b){
+  const [lo,hi]=a.hz<=b.hz?[a,b]:[b,a];
+  const beat=+(hi.hz-lo.hz).toFixed(3), tags=[], notes=[];
+  const opposite=(a.channel==='left'&&b.channel==='right')||(a.channel==='right'&&b.channel==='left');
+  const audible=lo.hz>=20;
+  let low=false, rough=false;
+  if(beat===0){ tags.push(['beat','same frequency','']); notes.push('identical tones simply add — louder, no beat.'); }
+  else if(!audible){
+    tags.push(['wave','sub-audio','']);
+    notes.push(`${fHz(lo.hz)} Hz is below hearing, so the pair won't beat audibly — the difference shows only in the visual.`);
+  } else if(opposite && hi.hz<=1500 && beat<=40){
+    low=true;
+    tags.push(['bt',`binaural ${fHz(beat)} Hz`,'hi']);
+    const bd=bandOf(beat); if(bd) tags.push(['wave',bd,'']);
+    notes.push(`one tone per ear: the brain perceives a ${fHz(beat)} Hz beat that isn't in the air. headphones only.`);
+  } else if(!opposite && beat<=15){
+    low=true;
+    tags.push(['beat',`beating ${fHz(beat)} Hz`,'hi']);
+    const bd=bandOf(beat); if(bd) tags.push(['wave',bd,'']);
+    notes.push(`the waves interfere — loudness swells and fades ${fHz(beat)} times a second (a monaural beat). works on speakers.`);
+  } else if(!opposite && beat<=Math.min(150,lo.hz*.35)){
+    rough=true;
+    tags.push(['rough',`rough ${fHz(beat)} Hz`,'']);
+    notes.push('too close to blend, too far to pulse: heard as a buzzy roughness.');
+  }
+  if(audible && beat>0){
+    const iv=intervalOf(lo.hz,hi.hz);
+    if(iv) tags.push(['ratio',iv.name+(Math.abs(iv.cents)>3?` ${iv.cents>0?'+':''}${iv.cents}¢`:''),'']),tags.push(['info',iv.feel,'']);
+    if(!opposite && lo.hz>=200 && beat>=20 && beat<=1000) tags.push(['plus',`difference tone ${fHz(beat)} Hz`,'']);
+  }
+  return {lo,hi,beat,tags,notes,low,rough};
+}
+function mixModel(){
+  const ts=tones, hz=ts.map(t=>t.hz);
+  const pairs=[];
+  for(let i=0;i<ts.length;i++) for(let j=i+1;j<ts.length;j++) pairs.push(analyzePair(ts[i],ts[j]));
+  return {
+    tones:ts, pairs,
+    min:hz.length?Math.min(...hz):Infinity, max:hz.length?Math.max(...hz):0,
+    sumVol:ts.reduce((s,t)=>s+t.volume,0),
+    groups:new Set(ts.map(t=>CAT_GROUP[t.cat]||'measure')),
+    cats:new Set(ts.map(t=>t.cat)),
+    pulsed:ts.some(t=>t.pulse>0),
+    harsh:ts.some(t=>(t.waveform==='square'||t.waveform==='sawtooth')&&t.volume>.5),
+    beatsLow:pairs.some(p=>p.low), rough:pairs.some(p=>p.rough),
+  };
+}
 
 // ── PERSISTENCE (per-browser; never required) ───────────────
 const STORE_KEY='shepherd.freq.v1';
@@ -826,7 +1282,7 @@ function save(){
   try{
     localStorage.setItem(STORE_KEY,JSON.stringify({
       vol:ENG.vol,
-      tones:tones.map(({id,hz,name,cat,desc,channel,waveform,volume,deviceId})=>({id,hz,name,cat,desc,channel,waveform,volume,deviceId}))
+      tones:tones.map(({id,hz,name,cat,desc,channel,waveform,volume,deviceId,pulse})=>({id,hz,name,cat,desc,channel,waveform,volume,deviceId,pulse}))
     }));
   }catch(_){}
 }
@@ -840,6 +1296,7 @@ function load(){
         channel:['left','both','right'].includes(t.channel)?t.channel:'both',
         waveform:['sine','triangle','square','sawtooth'].includes(t.waveform)?t.waveform:'sine',
         volume:isFinite(t.volume)?Math.min(1,Math.max(0,+t.volume)):.5,
+        pulse:isFinite(t.pulse)?Math.min(40,Math.max(0,+t.pulse)):0,
         deviceId:String(t.deviceId||'default'),playing:false}));
     nid=tones.reduce((m,t)=>Math.max(m,+t.id||0),0)+1;
     tones.forEach(t=>{ t.id=Number.isInteger(+t.id)&&+t.id>0?+t.id:nid++; });
@@ -854,8 +1311,8 @@ function fHz(hz){
   if(hz<100) return hz%1===0?String(hz):String(+hz.toFixed(2));
   return hz%1===0?String(hz):String(+hz.toFixed(2));
 }
-const cleanName = n => n.replace('★','').trim();
-const isStar = n => n.includes('★');
+const cleanName = n => n.trim();
+const isStar = f => !!f.star;
 function isBT(l){ return /bluetooth|airpod|buds|headset|headphone|wireless|bose|jbl|jabra|beats|soundcore|sony.*wh|galaxy.*bud/i.test(l||'') }
 function setRangeFill(el){ el.style.setProperty('--p',(el.value/el.max*100)+'%'); }
 // cross-modal mapping: 0 for 0.1 Hz … 1 for 20 kHz (log)
@@ -999,13 +1456,13 @@ function renderLib(){
   $('libct').textContent=fil.length;
   const html=CATS.filter(c=>grp[c].length).map(cat=>`
     <div class="catg">
-      <div class="catg-hd caps"><span class="cdot" style="background:${CAT_COLOR[cat]}"></span>${esc(CAT_LABEL[cat]||cat)}</div>
+      <div class="catg-hd caps"><span class="gico">${icon(groupOf(cat).icon,14)}</span>${esc(CAT_LABEL[cat]||cat)}${evTag(groupOf(cat))}</div>
       ${grp[cat].map(f=>{
         const u=used.has(f.hz+'|'+f.cat);
         return `<div class="frow${u?' used':''}" data-idx="${FREQ.indexOf(f)}" title="${esc(f.desc||'')}" role="button" tabindex="0">
           <span class="fhz num">${fHz(f.hz)}</span>
           <span class="fname">${esc(cleanName(f.name))}</span>
-          ${isStar(f.name)?'<span class="fstar" title="notable"></span>':'<span></span>'}
+          ${isStar(f)?'<span class="fstar" title="notable"></span>':'<span></span>'}
           <span class="fadd" aria-hidden="true">${u?IC.check:IC.plus}</span>
         </div>`;
       }).join('')}
@@ -1020,7 +1477,7 @@ $('flib').addEventListener('keydown',e=>{
 });
 
 function newTone(o){
-  const t={id:nid++,channel:'both',waveform:'sine',volume:.5,deviceId:devs[0]?.deviceId||'default',playing:false,...o};
+  const t={id:nid++,channel:'both',waveform:'sine',volume:.5,pulse:0,deviceId:devs[0]?.deviceId||'default',playing:false,...o};
   tones.push(t); enterIds.add(t.id); heroId=t.id;
   renderTones(); renderLib(); updateStatus();
   if(isCompact()) switchTab('main');
@@ -1043,7 +1500,7 @@ function renderTones(){
   $('stopallbtn').hidden=!tones.length;
   if(!tones.length){
     grid.innerHTML='<div class="empty"><span class="caps">silence</span>choose a frequency from the library<br>or enter your own</div>';
-    updateHero(); updateEnergy(); return;
+    updateHero(); updateEnergy(); renderInsight(); return;
   }
   let i=0;
   grid.innerHTML=tones.map(t=>{
@@ -1057,7 +1514,7 @@ function renderTones(){
       </div>
       <div class="tc-meta">
         <div class="tc-name" title="${esc(t.desc)}">${esc(t.name)}</div>
-        <div class="tc-cat caps"><span class="cdot" style="background:${CAT_COLOR[t.cat]||CAT_COLOR.reference}"></span>${esc(CAT_LABEL[t.cat]||t.cat)}</div>
+        <div class="tc-cat caps"><span class="gico">${icon(groupOf(t.cat).icon,12)}</span>${esc(CAT_LABEL[t.cat]||t.cat)}${t.pulse?`<span class="tc-pulse">· ${icon('pulse',12)}${t.pulse}</span>`:''}</div>
       </div>
       <div class="tc-row">
         <div class="seg" role="group" aria-label="channel">
@@ -1071,11 +1528,16 @@ function renderTones(){
         <input type="range" class="vol" min="0" max="1" step="0.01" value="${t.volume}" style="--p:${t.volume*100}%" data-a="vol" data-id="${t.id}" aria-label="volume">
         <span class="vpct num" id="vp${t.id}">${Math.round(t.volume*100)}</span>
       </div>
-      ${devs.length>1?`<div class="tc-row"><select class="sel" data-a="dev" data-id="${t.id}" aria-label="output device">${devOpts}</select></div>`:''}
+      <div class="tc-row">
+        <select class="sel" data-a="pulse" data-id="${t.id}" aria-label="isochronic pulse">
+          ${[0,2,4,6,8,10,12,14,20,40].map(r=>`<option value="${r}"${(t.pulse||0)===r?' selected':''}>${r?'pulse '+r+' Hz':'steady'}</option>`).join('')}
+        </select>
+        ${devs.length>1?`<select class="sel" data-a="dev" data-id="${t.id}" aria-label="output device">${devOpts}</select>`:''}
+      </div>
     </article>`;
   }).join('');
   enterIds.clear();
-  updateHero(); updateEnergy();
+  updateHero(); updateEnergy(); renderInsight();
 }
 
 const pm=$('panel-main');
@@ -1086,7 +1548,7 @@ pm.addEventListener('click',e=>{
   if(el.dataset.a==='remove'){ removeTone(id); return; }
   if(el.dataset.a==='ch'){
     const t=tones.find(x=>x.id===id); if(!t) return;
-    t.channel=el.dataset.ch; ENG.setPan(t.id,t.channel); save();
+    t.channel=el.dataset.ch; ENG.setPan(t.id,t.channel); save(); renderInsight();
     el.parentNode.querySelectorAll('.sbtn').forEach(b=>{ const on=b===el; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); });
   }
 });
@@ -1094,11 +1556,15 @@ pm.addEventListener('change',e=>{
   const el=e.target; if(!el.dataset.a) return;
   const t=tones.find(x=>x.id===+el.dataset.id); if(!t) return;
   if(el.dataset.a==='wave'){ t.waveform=el.value; ENG.setWave(t.id,el.value); }
+  if(el.dataset.a==='pulse'){
+    t.pulse=+el.value; if(t.playing) ENG.play(t).catch(audioErr);
+    const c=$('tc'+t.id)?.querySelector('.tc-cat'); if(c){ const old=c.querySelector('.tc-pulse'); old&&old.remove(); if(t.pulse) c.insertAdjacentHTML('beforeend',`<span class="tc-pulse">· ${icon('pulse',12)}${t.pulse}</span>`); }
+  }
   if(el.dataset.a==='dev'){
     const was=t.playing; ENG.stop(t.id); t.deviceId=el.value;
     if(was) ENG.play(t).catch(audioErr);
   }
-  save();
+  save(); renderInsight();
 });
 pm.addEventListener('input',e=>{
   const el=e.target; if(el.dataset.a!=='vol') return;
@@ -1107,6 +1573,7 @@ pm.addEventListener('input',e=>{
   const vp=$('vp'+t.id); if(vp) vp.textContent=Math.round(t.volume*100);
   updateEnergy();
 });
+pm.addEventListener('change',e=>{ if(e.target.dataset.a==='vol') renderInsight(); });
 
 function audioErr(err){
   console.error(err);
@@ -1117,6 +1584,7 @@ async function toggleTone(id){
   const t=tones.find(x=>x.id===id); if(!t) return;
   if(t.playing){ ENG.stop(id); t.playing=false; }
   else {
+    if(!acked()) return requireAck(()=>toggleTone(id));
     try{ ENG.init(); await ENG.play(t); t.playing=true; heroId=t.id; }
     catch(err){ audioErr(err); return; }
   }
@@ -1136,6 +1604,7 @@ async function toggleAll(){
     ENG.stopAll(); tones.forEach(t=>t.playing=false); globalOn=false;
   } else {
     if(!tones.length){ updateStatus('add a frequency first'); if(isCompact()) switchTab('lib'); return; }
+    if(!acked()) return requireAck(toggleAll);
     try{
       ENG.init();
       for(const t of tones){ await ENG.play(t); t.playing=true; }
@@ -1165,8 +1634,14 @@ function updateStatus(msg){
 }
 
 // ── TABS (compact layout) ────────────────────────────────────
+function setSub(col,sub){
+  col.dataset.sub=sub;
+  col.querySelectorAll('.ctab').forEach(b=>{ const on=b.dataset.sub===sub; b.classList.toggle('on',on); b.setAttribute('aria-selected',on); });
+}
 function switchTab(name){
   document.body.dataset.tab=name;
+  if(name==='lib'||name==='int') setSub($('panel-lib'),name);
+  if(name==='ins'||name==='spk') setSub($('panel-spk'),name);
   document.querySelectorAll('.mobt').forEach(t=>{ const on=t.dataset.tab===name; t.classList.toggle('on',on); t.setAttribute('aria-selected',on); });
 }
 
@@ -1227,6 +1702,154 @@ async function doDownload(){
   setTimeout(()=>{ lbl.textContent='download single file'; },3200);
 }
 
+// ── INSIGHT — categories, combinations and the notes that apply ──
+function noteHTML(n,now){
+  return `<div class="nt${now?' now':''}">${icon(n.icon)}<div><h4>${esc(n.title)}${now?'<span class="now-tag">applies now</span>':''}</h4><p>${esc(n.text)}</p></div></div>`;
+}
+function notesByArea(list,now){
+  return Object.entries(AREAS).map(([k,a])=>{
+    const ns=list.filter(n=>n.area===k); if(!ns.length) return '';
+    return `<div class="narea caps">${icon(a.icon)}${a.label}</div>${ns.map(n=>noteHTML(n,now)).join('')}`;
+  }).join('');
+}
+function guideHTML(present){
+  return Object.entries(GROUPS).map(([k,g])=>`
+    <div class="gchip${present&&!present.has(k)?' dim':''}">
+      <span class="gi">${icon(g.icon)}</span>
+      <span class="gt"><span class="gl">${esc(g.label)}</span>${evTag(g)}<small>${esc(g.line)}</small></span>
+    </div>`).join('');
+}
+function renderInsight(){
+  const el=$('insight'); if(!el) return;
+  const m=mixModel();
+  if(!tones.length){
+    el.innerHTML=`
+      <p class="lede">add tones to see what kind of frequencies they are, how they combine, and what to be careful of.</p>
+      <div class="ins-sec caps">${icon('insight')}category guide</div>
+      <div class="gchips">${guideHTML(null)}</div>
+      <div class="ins-sec caps">${icon('shield')}always</div>
+      ${notesByArea(NOTES.filter(n=>n.always),false)}`;
+    return;
+  }
+  const counts={}; for(const t of tones){ const g=CAT_GROUP[t.cat]||'measure'; counts[g]=(counts[g]||0)+1; }
+  const mixChips=Object.entries(counts).map(([k,c])=>{
+    const g=GROUPS[k];
+    return `<div class="gchip"><span class="gi">${icon(g.icon)}</span><span class="gt"><span class="gl">${esc(g.label)} <b class="num">${c}</b></span>${evTag(g)}<small>${esc(g.line)}</small></span></div>`;
+  }).join('');
+  const MAXP=12, ps=m.pairs.slice(0,MAXP);
+  const pairsHTML = m.pairs.length ? ps.map(p=>`
+    <div class="pair">
+      <div class="pair-hd num"><b>${fHz(p.lo.hz)}</b><i>+</i><b>${fHz(p.hi.hz)}</b><span>Hz</span><em>${p.beat>0?'Δ '+fHz(p.beat):''}</em></div>
+      ${p.tags.length?`<div class="pair-tags">${p.tags.map(([ic,l,c])=>`<span class="ptag ${c}">${icon(ic,12)}${esc(l)}</span>`).join('')}</div>`:''}
+      ${p.notes.map(n=>`<p class="pair-note">${esc(n)}</p>`).join('')}
+    </div>`).join('') + (m.pairs.length>MAXP?`<p class="hint">+ ${m.pairs.length-MAXP} more pairs</p>`:'')
+    : '<p class="ins-empty">add a second tone to see how they interact — beats, intervals, binaural effects.</p>';
+  const applies=NOTES.filter(n=>n.always||(n.when&&n.when(m)));
+  const rest=NOTES.filter(n=>!applies.includes(n));
+  el.innerHTML=`
+    <div class="ins-sec caps">${icon('insight')}this mix</div>
+    <div class="gchips">${mixChips}</div>
+    <div class="ins-sec caps">${icon('beat')}combinations <span class="num">${m.pairs.length||''}</span></div>
+    ${pairsHTML}
+    <div class="ins-sec caps">${icon('shield')}applies to this mix</div>
+    ${notesByArea(applies,true)}
+    <details class="more"><summary class="caps">${icon('info')}other notes <span class="num">${rest.length}</span></summary>${notesByArea(rest,false)}</details>
+    <details class="more"><summary class="caps">${icon('list')}category guide</summary><div class="gchips">${guideHTML(m.groups)}</div></details>`;
+}
+
+// ── INTERVALS — tone sets at fixed relationships ─────────────
+const iv={mode:'beat',btype:'binaural'};
+const r2=x=>Math.round(x*100)/100;
+function buildSet(){
+  const base=parseFloat($('ibase').value), out=[]; let dropped=0;
+  if(!isFinite(base)||base<=0) return {set:[],err:'enter a base frequency'};
+  const push=(hz,channel,name,cat)=>{ hz=r2(hz); if(hz>0&&hz<=22000) out.push({hz,channel,name,cat}); else dropped++; };
+  if(iv.mode==='beat'){
+    const b=parseFloat($('ibeat').value);
+    if(!isFinite(b)||b<=0) return {set:[],err:'enter a beat rate'};
+    const bn=iv.btype==='binaural';
+    push(base, bn?'left':'both', `${bn?'binaural':'monaural'} ${fHz(b)} Hz · ${bn?'L':'a'}`,'brainwave');
+    push(base+b, bn?'right':'both', `${bn?'binaural':'monaural'} ${fHz(b)} Hz · ${bn?'R':'b'}`,'brainwave');
+  } else if(iv.mode==='harm'){
+    const n=+$('iharm').value;
+    for(let k=1;k<=n;k++) push(base*k,'both',k===1?'fundamental':`harmonic ${k}`,'reference');
+  } else if(iv.mode==='ratio'){
+    const r=+$('iratio').value, n=+$('iratioN').value, lbl=$('iratio').selectedOptions[0].text.split(' · ')[0];
+    for(let k=0;k<n;k++) push(base*Math.pow(r,k),'both',k?`${lbl} ×${k}`:`${lbl} root`,'reference');
+  } else {
+    const s=parseFloat($('istep').value), n=+$('istepN').value;
+    if(!isFinite(s)||s===0) return {set:[],err:'enter a step size'};
+    for(let k=0;k<n;k++) push(base+s*k,'both',k?`step ${s>0?'+':''}${fHz(s)} ×${k}`:'step root','reference');
+  }
+  const pulse=+$('ipulse').value;
+  out.forEach(t=>t.pulse=pulse);
+  return {set:out,dropped};
+}
+function renderPreview(){
+  const {set,err,dropped}=buildSet(), el=$('iprev');
+  if(err){ el.innerHTML=`<p class="pv-note">${err}</p>`; return; }
+  el.innerHTML=set.map(t=>`<span class="pv num">${fHz(t.hz)}<small>Hz</small>${t.channel!=='both'?`<em>${t.channel==='left'?'L':'R'}</em>`:''}</span>`).join('')
+    +(set[0]?.pulse?`<p class="pv-note">${icon('pulse',12)} pulsing at ${set[0].pulse} Hz</p>`:'')
+    +(dropped?`<p class="pv-note">${dropped} tone${dropped>1?'s':''} outside 0.01–22 000 Hz left out</p>`:'');
+  $('ibhint').textContent = iv.btype==='binaural'
+    ? 'binaural beats form inside the brain — use headphones.'
+    : 'monaural beats are real interference in the air — they work on speakers.';
+}
+function addSet(play){
+  const {set}=buildSet(); if(!set.length) return;
+  const go=async()=>{
+    const ids=set.map(s=>{ const t={id:nid++,waveform:'sine',volume:.4,deviceId:devs[0]?.deviceId||'default',playing:false,desc:'interval set',...s}; tones.push(t); enterIds.add(t.id); return t.id; });
+    heroId=ids[0];
+    if(play){
+      try{ ENG.init(); for(const id of ids){ const t=tones.find(x=>x.id===id); await ENG.play(t); t.playing=true; } }
+      catch(err){ audioErr(err); }
+    }
+    renderTones(); renderLib(); updateGlobalBtn(); updateStatus();
+    if(isCompact()) switchTab('main');
+  };
+  if(play) requireAck(go); else go();
+}
+function initIntervals(){
+  const seg=(id,key,cb)=>$(id).addEventListener('click',e=>{
+    const b=e.target.closest('.sbtn'); if(!b) return;
+    $(id).querySelectorAll('.sbtn').forEach(x=>x.classList.toggle('on',x===b));
+    iv[key]=b.dataset.m||b.dataset.v; cb&&cb(); renderPreview();
+  });
+  seg('imode','mode',()=>document.querySelectorAll('.imode-pane').forEach(p=>p.hidden=p.dataset.pane!==iv.mode));
+  seg('ibtype','btype');
+  $('ibeatp').addEventListener('click',e=>{
+    const c=e.target.closest('.chip'); if(!c) return;
+    $('ibeat').value=c.dataset.v; syncBeatChips(); renderPreview();
+  });
+  const syncBeatChips=()=>$('ibeatp').querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',+c.dataset.v===+$('ibeat').value));
+  $('ibeat').addEventListener('input',syncBeatChips);
+  for(const id of ['ibase','ibeat','iharm','iratio','iratioN','istep','istepN','ipulse']){
+    $(id).addEventListener('input',renderPreview); $(id).addEventListener('change',renderPreview);
+  }
+  $('iadd').addEventListener('click',()=>addSet(false));
+  $('iplay').addEventListener('click',()=>addSet(true));
+  renderPreview();
+}
+
+// ── FIRST-LISTEN NOTICE ──────────────────────────────────────
+const ACK_KEY='shepherd.freq.ack';
+let ackPending=null;
+const acked=()=>{ try{ return localStorage.getItem(ACK_KEY)==='1'; }catch(_){ return sessionStorage._ack==='1'; } };
+function requireAck(fn){
+  if(acked()) return fn();
+  ackPending=fn; $('ack').hidden=false; setTimeout(()=>$('ackyes').focus(),50);
+}
+function closeAck(){ $('ack').hidden=true; ackPending=null; }
+function initAck(){
+  $('ackyes').addEventListener('click',()=>{
+    try{ localStorage.setItem(ACK_KEY,'1'); }catch(_){ sessionStorage._ack='1'; }
+    const fn=ackPending; closeAck(); fn&&fn();   // still inside the click → audio may start
+  });
+  $('ackno').addEventListener('click',closeAck);
+  $('ack').addEventListener('click',e=>{ if(e.target.id==='ack') closeAck(); });
+  addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('ack').hidden) closeAck(); });
+}
+
 // ── INIT ─────────────────────────────────────────────────────
 function init(){
   load();
@@ -1255,12 +1878,14 @@ function init(){
   // space = play / stop all (when not typing)
   addEventListener('keydown',e=>{
     if(e.code!=='Space'||e.repeat) return;
-    if(e.target.closest('input,select,textarea,button,[role=button]')) return;
+    if(e.target.closest('input,select,textarea,button,[role=button],summary')||!$('ack').hidden) return;
     e.preventDefault(); toggleAll();
   });
   if(navigator.mediaDevices?.addEventListener) navigator.mediaDevices.addEventListener('devicechange',()=>scanDevs(false));
   scanDevs(false);
-  initOffline();
+  initOffline(); initIntervals(); initAck(); renderInsight();
+  document.querySelectorAll('[data-ic]').forEach(el=>el.innerHTML=icon(el.dataset.ic));
+  document.querySelectorAll('.ctab').forEach(b=>b.addEventListener('click',()=>setSub(b.closest('.column'),b.dataset.sub)));
 
   // the reveal: light arrives first, then the instruments
   const img=document.querySelector('.vista');

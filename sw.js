@@ -1,7 +1,7 @@
 // shepherd.freq — offline service worker
 // Precaches the whole app on first visit; afterwards it runs with no network.
 // Bump VERSION whenever any precached file changes.
-const VERSION = 'shepherd-v2';
+const VERSION = 'shepherd-v3';
 const ASSETS = [
   './',
   'manifest.webmanifest',

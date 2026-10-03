@@ -17,6 +17,22 @@ icons/                 app + favicon icons
 vercel.json            headers (security, service worker, manifest)
 ```
 
+## What's inside
+
+- **Library** — 111 frequencies in categories, each tagged with how solid its
+  claim is: *traditional claim*, *mixed evidence*, *documented · anecdotal*,
+  *EM · not sound*, *audio stand-in*, *use responsibly*, *reference standard*.
+- **Intervals** — build sets from one base frequency: binaural or monaural
+  **beats** (delta → gamma presets), **harmonic** series, musical **ratios**
+  (octave, fifth, fourth, thirds, φ …) and fixed **steps**, optionally with an
+  isochronic **pulse**.
+- **Insight** — live analysis of the current mix: which categories it draws
+  on, every pair's beat frequency, binaural vs. monaural beating, roughness,
+  musical interval and difference tones, plus the body / matter / claims notes
+  that apply right now (hearing, high and infrasonic ranges, seizures, glass
+  resonance, rattling objects, speaker damage, healing and PEMF claims …).
+- A one-time safety notice appears before the first sound.
+
 ## Use it offline
 
 - **Install it:** open the site once, then use **install app** in the outputs
