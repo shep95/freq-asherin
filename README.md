@@ -46,6 +46,11 @@ vercel.json            headers (security, service worker, manifest)
 - Beat-rate and pulse choices are **colour-coded by caution**: green low
   (alpha), yellow mild (beta — can feel restless), amber caution (delta /
   theta — drowsiness, never while driving), rose high (gamma — seizure caution).
+- **Connect bluetooth** (outputs tab) — shows where sound is going, gives
+  pairing steps for the detected device (with an *open Bluetooth settings*
+  button on Windows, Mac and Android), notices the speaker the moment it
+  connects and offers to use it. Each output has **test** (soft chime) and
+  **use**; the choice is remembered and restored when the device reconnects.
 - A one-time safety notice appears before the first sound.
 - **Colour filters** under the search box narrow the library by evidence
   colour; combine several. The **skull** filter shows extreme-caution tones
@@ -73,7 +78,7 @@ When you change a file that the service worker caches, bump `VERSION` in
 ## Tests
 
 `tests/run.mjs` drives a real Chromium through every feature, safety gate and
-a set of attacks (180 checks), served with the production headers:
+a set of attacks (199 checks), served with the production headers:
 
 ```sh
 npm i --no-save playwright && npx playwright install chromium

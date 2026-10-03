@@ -8,7 +8,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'none'; script-src 'sha256-LoB3uPrAJUwUsa8Bl178yu2UVeteECmUzQij6crufvQ='; style-src 'sha256-rzpglZZwS0bIQTQWzuqOYpn/XL3+IMoey34n1nTdrHo='; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types default; frame-ancestors 'none'; upgrade-insecure-requests"
+          "value": "default-src 'none'; script-src 'sha256-LoB3uPrAJUwUsa8Bl178yu2UVeteECmUzQij6crufvQ='; style-src 'sha256-LjeOQhiQJ1L3x4nQhWgo4+FwG7pxhKdTo96l9VKXCRA='; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types default; frame-ancestors 'none'; upgrade-insecure-requests"
         },
         {
           "key": "Strict-Transport-Security",
