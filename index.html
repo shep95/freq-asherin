@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-KU7yDybXzNA/2009K16E/AN3kSfpZQq0IOIvFjdxL/A='; style-src 'sha256-09fQ7Sr6xLBQtKMl3E863qJoRcJ0+iWD7qIYU1ic7p8='; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types default">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-LoB3uPrAJUwUsa8Bl178yu2UVeteECmUzQij6crufvQ='; style-src 'sha256-rzpglZZwS0bIQTQWzuqOYpn/XL3+IMoey34n1nTdrHo='; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types default">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>shepherd.freq</title>
@@ -641,6 +641,43 @@ details.more .gchips{margin-top:var(--s2)}
 .toast #toastmsg{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .toast .txtbtn{color:var(--light);height:32px}
 .toast .txtbtn:hover{background:var(--light-a);color:var(--light)}
+/* ── CONNECTION / BLUETOOTH GUIDE ──────────────────────────── */
+.conn{padding:var(--s4);border-radius:20px;margin:var(--s1) 0 var(--s5);background:oklch(0 0 0 / .24);box-shadow:inset 0 0 0 1px var(--line-1)}
+.conn-now{display:grid;grid-template-columns:40px 1fr;gap:var(--s3);align-items:center}
+.conn-now .gi{width:40px;height:40px;color:var(--light);background:var(--light-a)}
+.conn-txt{display:flex;flex-direction:column;min-width:0}
+.conn-txt b{font-weight:500;font-size:var(--fs-md);color:var(--tx-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conn-cap{color:var(--tx-3);font-size:var(--fs-xs);line-height:1.6;margin:var(--s3) 0}
+.btn i{display:inline-flex}
+.btn[hidden]{display:none}
+.guide{margin-top:var(--s2);animation:subIn 360ms var(--ease-out)}
+.steps{list-style:none;display:flex;flex-direction:column;gap:var(--s4);margin:var(--s3) 0 var(--s2)}
+.step{display:grid;grid-template-columns:24px 1fr;gap:var(--s3)}
+.sn{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:600;color:var(--tx-1);background:oklch(1 0 0 / .08);box-shadow:inset 0 0 0 1px var(--line-2)}
+.step b{display:block;font-weight:500;color:var(--tx-1);margin-bottom:2px}
+.step p{color:var(--tx-3);font-size:var(--fs-xs);line-height:1.65}
+.step .btn{height:34px;margin-top:var(--s2);font-size:12px}
+.step.done .sn{background:oklch(0.82 0.11 160);color:var(--void);box-shadow:none}
+.listen{display:flex;align-items:center;gap:var(--s2);margin-top:var(--s2);font-size:var(--fs-xs);color:var(--tx-2)}
+.listen[hidden]{display:none}
+.listen i{width:8px;height:8px;border-radius:50%;background:var(--light);animation:listen 2.4s ease-in-out infinite}
+.step.done .listen i{background:oklch(0.82 0.11 160);animation:none;box-shadow:0 0 8px oklch(0.82 0.11 160)}
+.step.done .listen{color:oklch(0.86 0.09 160)}
+@keyframes listen{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1.1)}}
+.g3-act{display:flex;gap:var(--s2);flex-wrap:wrap}
+.guide-x{margin-top:var(--s1)}
+.dev-hd{display:flex;align-items:center;justify-content:space-between;margin:0 0 var(--s2);padding-left:var(--s1)}
+.dev-hd .caps b{color:var(--light);font-weight:500;margin-left:4px}
+.dev-hd .txtbtn{display:inline-flex;align-items:center;gap:6px}
+.dev-hd .txtbtn i{display:inline-flex}
+.dev.using{box-shadow:inset 0 0 0 1px oklch(0.9 0.045 215 / .3);background:var(--light-a)}
+.dev.using>svg{color:var(--light)}
+.dev-id{display:flex;gap:4px;margin-top:3px}
+.dev-id:empty{display:none}
+.tag.in{color:var(--light);background:var(--light-a)}
+.dev-act{display:flex;gap:2px}
+.dev-act .txtbtn{height:28px;padding:0 10px}
+.dev-act .use{color:var(--light)} .dev-act .use:hover{background:var(--light-a);color:var(--light)}
 /* colour filters */
 .evf{display:flex;flex-wrap:wrap;gap:6px;margin:0 var(--s4) var(--s3)}
 .evc{--c:var(--tx-3);display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 9px;border-radius:var(--r-pill);
@@ -1019,14 +1056,32 @@ details.more .gchips{margin-top:var(--s2)}
 
   <div class="sub sub-spk">
     <div class="spk-scroll scroll">
-      <div class="spk-count"><span class="big num" id="spk-big">1</span><span class="caps">output devices</span></div>
-      <button class="btn wide" id="scanbtn">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2v3h-3"/></svg>
-        <span id="scanlbl">scan devices</span>
-      </button>
-      <p class="note">pair bluetooth devices in system settings first. scanning briefly asks for microphone access only so the browser reveals device names — nothing is recorded.</p>
-      <p class="note" id="sinknote" hidden>this browser can't route to a specific device; every tone plays through the system default. chrome or edge support per-tone routing.</p>
+      <!-- where sound is going + one-tap bluetooth guide -->
+      <div class="conn">
+        <div class="conn-now">
+          <span class="gi" id="connico"><i data-ic="spk"></i></span>
+          <div class="conn-txt"><small class="caps">sound goes to</small><b id="connname">system default</b></div>
+        </div>
+        <p class="conn-cap" id="conncap"></p>
+        <button class="btn light wide" id="connbtn"><i data-ic="bt"></i>connect bluetooth</button>
+
+        <div class="guide" id="guide" hidden>
+          <ol class="steps">
+            <li class="step"><span class="sn">1</span><div><b>turn on pairing mode</b><p>switch your speaker or headphones on and hold the bluetooth button until the light flashes.</p></div></li>
+            <li class="step"><span class="sn">2</span><div><b id="g2t">pair it</b><p id="g2p"></p><a class="btn" id="g2open" rel="noopener noreferrer" hidden><i data-ic="share"></i>open bluetooth settings</a></div></li>
+            <li class="step" id="g3"><span class="sn">3</span><div><b>come back here</b><p id="g3p">we'll spot it automatically.</p>
+              <div class="listen" id="listen"><i></i><span id="listentxt">listening for new devices…</span></div>
+              <div class="g3-act"><button class="btn" id="findbtn">find it now</button><button class="btn" id="g3test"><i data-ic="spk"></i>test sound</button></div></div></li>
+          </ol>
+          <button class="txtbtn guide-x" id="guideclose">close guide</button>
+        </div>
+      </div>
+
+      <div class="dev-hd"><span class="caps">output devices <b class="num" id="spk-big">1</b></span>
+        <button class="txtbtn" id="scanbtn"><i data-ic="reset"></i><span id="scanlbl">scan</span></button></div>
       <div id="devlist"></div>
+      <p class="note">scanning asks for microphone access once, only so the browser shows device names — nothing is recorded.</p>
+      <p class="note" id="sinknote" hidden></p>
 
       <span class="caps sec">keep it offline</span>
       <div class="stack">
@@ -1379,6 +1434,20 @@ class Engine {
     for(const e of all) e.g.gain.setTargetAtTime(v,e.ctx.currentTime,.015);
   }
   stopAll(){ for(const id of [...this.nodes.keys()]) this.stop(id); }
+  // short, quiet two-note chime to confirm which device is playing
+  async chime(devId){
+    this.init();
+    const {ctx,g}=await this.getCtx(devId);
+    if(ctx.state!=='running') await ctx.resume().catch(()=>{});
+    const now=ctx.currentTime+.02;
+    for(const [f,d] of [[660,0],[880,.18]]){
+      const o=ctx.createOscillator(), a=ctx.createGain();
+      o.frequency.value=f; a.gain.setValueAtTime(0,now+d);
+      a.gain.linearRampToValueAtTime(.14,now+d+.02); a.gain.exponentialRampToValueAtTime(.0001,now+d+.5);
+      o.connect(a); a.connect(g); o.start(now+d); o.stop(now+d+.55);
+      o.onended=()=>{ try{ o.disconnect(); a.disconnect(); }catch(_){} };
+    }
+  }
 }
 
 // ── APP STATE ───────────────────────────────────────────────
@@ -1769,8 +1838,68 @@ function updateHero(){
 // ── DEVICES ─────────────────────────────────────────────────
 // withLabels: briefly request mic access so the browser reveals device names,
 // then release it immediately. Only done on an explicit "scan" click.
+// ── EASY OUTPUT CONNECTION ───────────────────────────────────
+const OUT_KEY='shepherd.freq.out';
+let prefOut=(()=>{ try{ return cleanText(localStorage.getItem(OUT_KEY),256)||'default'; }catch(_){ return 'default'; } })();
+const outId=()=>devs.some(d=>d.deviceId===prefOut)?prefOut:'default';
+const devName=id=>{ const d=devs.find(x=>x.deviceId===id); return d?(d.label||(id==='default'?'system default':'audio device')):'system default'; };
+function platformInfo(){
+  const ua=navigator.userAgent, iOS=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  const os=iOS?'ios':/android/i.test(ua)?'android':/cros/i.test(ua)?'chromeos':/windows/i.test(ua)?'windows':/mac os x|macintosh/i.test(ua)?'mac':'linux';
+  const browser=/edg\//i.test(ua)?'Edge':/samsungbrowser/i.test(ua)?'Samsung Internet':/firefox|fxios/i.test(ua)?'Firefox':/chrome|crios|chromium/i.test(ua)?'Chrome':/safari/i.test(ua)?'Safari':'your browser';
+  return {os,browser,canRoute:!!(AC&&AC.prototype.setSinkId)&&!iOS};
+}
+const OS_NAME={ios:'iPhone / iPad',android:'Android',chromeos:'ChromeOS',windows:'Windows',mac:'Mac',linux:'Linux'};
+const PAIR={
+  windows:{t:'pair it in windows', p:'Settings → Bluetooth & devices → Add device → Bluetooth, then choose it.', link:'ms-settings:bluetooth'},
+  mac:{t:'pair it on your mac', p:'System Settings → Bluetooth, then click Connect next to it.', link:'x-apple.systempreferences:com.apple.preferences.Bluetooth'},
+  android:{t:'pair it on android', p:'Settings → Connected devices → Pair new device, then tap it.', link:'intent:#Intent;action=android.settings.BLUETOOTH_SETTINGS;end'},
+  ios:{t:'pair it on your iphone / ipad', p:'Settings → Bluetooth, tap it. if sound still plays from the phone: open Control Center, long-press the music card, tap the AirPlay icon and pick it.'},
+  chromeos:{t:'pair it on your chromebook', p:'click the clock (bottom right) → Bluetooth, then pick it.'},
+  linux:{t:'pair it on your computer', p:'open Settings → Bluetooth (or the Bluetooth menu in your system tray) and pick it.'},
+};
+function renderConn(){
+  const pi=platformInfo(), id=outId();
+  $('connname').textContent=pi.canRoute?devName(id):'whatever your '+(OS_NAME[pi.os]||'device')+' is using';
+  $('connico').innerHTML=icon(isBT(devName(id))?'bt':'spk');
+  $('conncap').textContent=pi.canRoute
+    ? `${pi.browser} on ${OS_NAME[pi.os]} can send tones to any connected device — even different tones to different devices.`
+    : `${pi.browser} on ${OS_NAME[pi.os]} plays through your system's current output. connect the speaker or headphones and sound follows it.`;
+  $('sinknote').hidden=pi.canRoute;
+  $('sinknote').textContent=pi.canRoute?'':'for per-tone routing use Chrome or Edge on a computer.';
+}
+let guideBaseline=null;
+function openGuide(){
+  const pi=platformInfo(), st=PAIR[pi.os]||PAIR.linux;
+  $('g2t').textContent=st.t; $('g2p').textContent=st.p;
+  const a=$('g2open');
+  if(st.link){ a.setAttribute('href',st.link); a.hidden=false; } else { a.removeAttribute('href'); a.hidden=true; }
+  $('g3p').textContent=pi.canRoute
+    ? 'we\'ll spot it automatically and ask if you want to use it.'
+    : 'once it says “connected” in settings, sound plays through it. tap test sound to check.';
+  $('listen').hidden=!pi.canRoute; $('findbtn').hidden=!pi.canRoute;
+  $('g3').classList.remove('done'); $('listentxt').textContent='listening for new devices…';
+  $('guide').hidden=false; $('connbtn').hidden=true;
+  guideBaseline=new Set(devs.map(d=>d.deviceId));
+}
+function closeGuide(){ $('guide').hidden=true; $('connbtn').hidden=false; guideBaseline=null; }
+function routeAll(id){
+  prefOut=id; try{ localStorage.setItem(OUT_KEY,id); }catch(_){}
+  for(const t of tones){ if(t.deviceId===id) continue; const was=t.playing; t.deviceId=id; if(was){ ENG.stop(t.id); ENG.play(t).catch(audioErr); } }
+  renderTones(); renderDevs(); renderConn();
+  toast(`sound now goes to ${devName(id)}`);
+}
+// a new output appeared (bluetooth connected, headphones plugged in…)
+function announceNew(before){
+  const fresh=devs.filter(d=>d.deviceId!=='default'&&d.deviceId!=='communications'&&!before.has(d.deviceId));
+  if(!fresh.length) return;
+  const d=fresh.find(x=>isBT(x.label))||fresh[0], name=d.label||'a new audio device';
+  if(!$('guide').hidden){ $('g3').classList.add('done'); $('listentxt').textContent=`found ${name}`; }
+  if(platformInfo().canRoute) toast(`${name} connected`,'use it',()=>{ routeAll(d.deviceId); if(!$('guide').hidden) closeGuide(); },9000);
+}
+
 async function scanDevs(withLabels){
-  const lbl=$('scanlbl');
+  const lbl=$('scanlbl'), before=new Set(devs.map(d=>d.deviceId));
   try{
     const md=navigator.mediaDevices;
     if(!md?.enumerateDevices) throw 0;
@@ -1787,9 +1916,18 @@ async function scanDevs(withLabels){
   }catch(_){ devs=[]; }
   // Firefox/Safari often hide output devices — always offer the system default
   if(!devs.some(d=>d.deviceId==='default')) devs.unshift(DEFAULT_DEV);
-  for(const t of tones) if(!devs.some(d=>d.deviceId===t.deviceId)) t.deviceId='default';
-  lbl.textContent='scan devices';
-  renderDevs(); renderTones(); updateStatus();
+  // missing device → fall back; preferred device back → tones on the fallback return to it
+  const prefBack=prefOut!=='default'&&!before.has(prefOut)&&devs.some(d=>d.deviceId===prefOut);
+  for(const t of tones){
+    const gone=!devs.some(d=>d.deviceId===t.deviceId);
+    if(gone||(prefBack&&t.deviceId==='default')){
+      const was=t.playing; t.deviceId=outId();
+      if(was){ ENG.stop(t.id); ENG.play(t).catch(audioErr); }
+    }
+  }
+  lbl.textContent='scan';
+  renderDevs(); renderTones(); updateStatus(); renderConn();
+  if(before.size) announceNew(guideBaseline||before);
 }
 function renderDevs(){
   $('spk-big').textContent=devs.length;
@@ -1798,7 +1936,9 @@ function renderDevs(){
     const bt=isBT(d.label), def=d.deviceId==='default';
     const lbl=d.label||(def?'Default Output':'Audio Device');
     const tag=bt?'<span class="tag bt">bt</span>':def?'<span class="tag">default</span>':'';
-    return `<div class="dev">${bt?IC.bt:IC.spk}<div class="dev-txt"><div class="dev-name">${esc(lbl)}</div><div class="dev-id">${esc(d.deviceId)}</div></div>${tag}</div>`;
+    const using=outId()===d.deviceId, routable=platformInfo().canRoute;
+    return `<div class="dev${using?' using':''}">${bt?IC.bt:IC.spk}<div class="dev-txt"><div class="dev-name">${esc(lbl)}</div><div class="dev-id">${tag}${using?'<span class="tag in">in use</span>':''}</div></div>
+      <div class="dev-act"><button class="txtbtn" data-test="${esc(d.deviceId)}" aria-label="test sound on ${esc(lbl)}">test</button>${routable&&!using?`<button class="txtbtn use" data-use="${esc(d.deviceId)}" aria-label="use ${esc(lbl)} for all tones">use</button>`:''}</div></div>`;
   }).join('');
 }
 
@@ -1853,7 +1993,7 @@ function newTone(o){
   const t={id:nid++,hz,name:cleanText(o.name,LIMITS.name)||'custom',cat:CATS.includes(o.cat)?o.cat:'reference',
     desc:cleanText(o.desc,LIMITS.desc),channel:'both',waveform:'sine',pulse:0,
     volume:isDanger({hz,cat:o.cat})?.2:.5,          // extreme-caution tones start quiet
-    deviceId:devs[0]?.deviceId||'default',playing:false};
+    deviceId:outId(),playing:false};
   tones.push(t); enterIds.add(t.id); heroId=t.id;
   renderTones(); renderLib(); updateStatus();
   if(isCompact()) switchTab('main');
@@ -2206,7 +2346,7 @@ function addTones(set,play,desc){
     if(room<=0){ updateStatus(`limit reached — ${LIMITS.tones} tones max`); return; }
     const ids=set.slice(0,room).map(s=>{ const t={id:nid++,hz:clampNum(s.hz,LIMITS.hzMin,LIMITS.hzMax,440),name:cleanText(s.name,LIMITS.name),
       cat:CATS.includes(s.cat)?s.cat:'reference',channel:s.channel||'both',pulse:s.pulse||0,sweepTo:s.sweepTo||0,sweepSec:s.sweepSec||20,
-      waveform:'sine',volume:isDanger(s)?.2:.4,deviceId:devs[0]?.deviceId||'default',playing:false,desc:cleanText(s.desc||desc,LIMITS.desc)};
+      waveform:'sine',volume:isDanger(s)?.2:.4,deviceId:outId(),playing:false,desc:cleanText(s.desc||desc,LIMITS.desc)};
       tones.push(t); enterIds.add(t.id); return t.id; });
     if(set.length>room) updateStatus(`added ${room} of ${set.length} — ${LIMITS.tones} tones max`);
     heroId=ids[0];
@@ -2313,7 +2453,7 @@ function useCombo(id,mode){ // mode: 'load' (replace) | 'add' | 'play' (replace 
   const go=async()=>{
     if(mode!=='add'){ ENG.stopAll(); tones=[]; }
     const room=LIMITS.tones-tones.length, add=c.tones.slice(0,room);
-    for(const s of add){ const t={...comboTone(s),id:nid++,deviceId:devs[0]?.deviceId||'default',playing:false}; tones.push(t); enterIds.add(t.id); }
+    for(const s of add){ const t={...comboTone(s),id:nid++,deviceId:outId(),playing:false}; tones.push(t); enterIds.add(t.id); }
     if(add.length<c.tones.length) toast(`added ${add.length} of ${c.tones.length} — ${LIMITS.tones} tones max`);
     heroId=tones.at(-1)?.id??null;
     if(mode==='play'){ try{ ENG.init(); for(const t of tones){ await ENG.play(t); t.playing=true; } }catch(err){ audioErr(err); } }
@@ -2513,6 +2653,17 @@ function init(){
   $('gbtn').addEventListener('click',toggleAll);
   $('stopallbtn').addEventListener('click',stopAll);
   $('scanbtn').addEventListener('click',()=>scanDevs(true));
+  $('connbtn').addEventListener('click',openGuide);
+  $('guideclose').addEventListener('click',closeGuide);
+  $('findbtn').addEventListener('click',()=>scanDevs(true));
+  $('g3test').addEventListener('click',()=>ENG.chime(outId()).catch(audioErr));
+  $('devlist').addEventListener('click',e=>{
+    const t=e.target.closest('[data-test]'), u=e.target.closest('[data-use]');
+    if(t) ENG.chime(t.dataset.test).catch(audioErr);
+    if(u) routeAll(u.dataset.use);
+  });
+  // back from system settings → look again (names only appear once mic access was granted)
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') scanDevs(false); });
   $('dlbtn').addEventListener('click',doDownload);
   $('mvol').addEventListener('input',e=>{ ENG.setMaster(+e.target.value); setRangeFill(e.target); updateEnergy(); });
   $('mvol').addEventListener('change',save);
@@ -2533,7 +2684,7 @@ function init(){
     e.preventDefault(); toggleAll();
   });
   if(navigator.mediaDevices?.addEventListener) navigator.mediaDevices.addEventListener('devicechange',()=>scanDevs(false));
-  scanDevs(false);
+  renderConn(); scanDevs(false);
   initOffline(); initIntervals(); initMute(); initCombos(); initAck(); initDanger(); renderInsight();
   document.querySelectorAll('[data-ic]').forEach(el=>el.innerHTML=icon(el.dataset.ic));
   document.querySelectorAll('.ctab').forEach(b=>b.addEventListener('click',()=>setSub(b.closest('.column'),b.dataset.sub)));

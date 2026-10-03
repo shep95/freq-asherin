@@ -391,6 +391,66 @@ try {
     await c2.close();
   }
 
+  // ── 8c · EASY BLUETOOTH / OUTPUT CONNECTION ───────────────
+  {
+    const fakeOuts = () => {
+      window.__outs = [{ kind: 'audiooutput', deviceId: 'default', label: 'Default - Speakers' }, { kind: 'audiooutput', deviceId: 'spk1', label: 'Built-in Speakers' }];
+      navigator.mediaDevices.enumerateDevices = async () => window.__outs.map(d => ({ ...d }));
+      navigator.mediaDevices.getUserMedia = async () => ({ getTracks: () => [] });
+    };
+    const { ctx, p } = await page({ init: fakeOuts });
+    await p.goto(U); await wait(1200);
+    await p.click('.ctab[data-sub=spk]'); await wait(150);
+    check('connect', 'status shows where sound goes', (await p.textContent('#connname')).length > 0 && (await p.textContent('#conncap')).includes('can send tones'));
+    await p.click('#connbtn'); await wait(200);
+    check('connect', 'guide opens with 3 steps for this platform (linux)', (await p.$$('.step')).length === 3 && (await p.textContent('#g2t')) === 'pair it on your computer' && await p.isHidden('#g2open'));
+    check('connect', 'listening indicator shown', await p.isVisible('#listen'));
+    await addLib(p, 'Verdi A (432 Hz)'); await p.click('.ctab[data-sub=spk]');
+    await ev(p, () => { window.__outs.push({ kind: 'audiooutput', deviceId: 'bt-jbl', label: 'JBL Flip 5 (Bluetooth)' }); navigator.mediaDevices.dispatchEvent(new Event('devicechange')); });
+    await wait(400);
+    check('connect', 'new bluetooth device detected automatically', (await p.textContent('#toastmsg')).includes('JBL Flip 5') && await ev(p, () => document.getElementById('g3').classList.contains('done')));
+    check('connect', 'device listed with BT tag', await ev(p, () => [...document.querySelectorAll('.dev')].some(d => d.textContent.includes('JBL') && d.querySelector('.tag.bt'))));
+    await p.click('#toastact'); await wait(300);
+    check('connect', '"use it" routes every tone + remembers', await ev(p, () => tones.every(t => t.deviceId === 'bt-jbl') && localStorage.getItem('shepherd.freq.out') === 'bt-jbl'));
+    check('connect', 'status now names the speaker, guide closed', (await p.textContent('#connname')).includes('JBL') && await p.isHidden('#guide'));
+    check('connect', 'device marked "in use"', await ev(p, () => !!document.querySelector('.dev.using .tag.in')));
+    await addLib(p, 'solfeggio 528 Hz');
+    check('connect', 'new tones go to the chosen device', await ev(p, () => tones.at(-1).deviceId === 'bt-jbl'));
+    await p.click('.ctab[data-sub=spk]');
+    await p.click('.dev:has-text("JBL") [data-test]'); await wait(300);
+    check('connect', 'test chime plays without errors', await ev(p, () => ENG.ctx && ENG.ctx.state === 'running') && p.errors.length === 0, p.errors.join(' | '));
+    await p.click('.dev:has-text("Built-in") [data-use]'); await wait(200);
+    check('connect', 'per-device "use" button switches output', await ev(p, () => tones.every(t => t.deviceId === 'spk1')));
+    await p.click('.dev:has-text("JBL") [data-use]'); await wait(200);
+    await p.reload(); await wait(1200); await p.click('.ctab[data-sub=spk]');
+    check('connect', 'preference remembered; falls back while the speaker is away', await ev(p, () => localStorage.getItem('shepherd.freq.out') === 'bt-jbl' && tones.every(t => t.deviceId === 'default')));
+    await ev(p, () => { window.__outs.push({ kind: 'audiooutput', deviceId: 'bt-jbl', label: 'JBL Flip 5 (Bluetooth)' }); navigator.mediaDevices.dispatchEvent(new Event('devicechange')); });
+    await wait(400);
+    check('connect', 'speaker reconnects → tones return to it automatically', await ev(p, () => tones.every(t => t.deviceId === 'bt-jbl')) && (await p.textContent('#connname')).includes('JBL'));
+    await ev(p, () => { window.__outs = window.__outs.filter(d => d.deviceId !== 'bt-jbl'); navigator.mediaDevices.dispatchEvent(new Event('devicechange')); });
+    await wait(300);
+    check('connect', 'device disconnects → tones fall back to default', await ev(p, () => tones.every(t => t.deviceId === 'default')) && !(await p.textContent('#connname')).includes('JBL'));
+    await p.click('#connbtn'); await p.click('#g3test'); await wait(200);
+    check('connect', 'guide test-sound button works', p.errors.length === 0);
+    await ctx.close();
+
+    for (const [ua, os, linkPrefix, routes] of [
+      ['Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36', 'windows', 'ms-settings:bluetooth', true],
+      ['Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36', 'mac', 'x-apple.systempreferences:', true],
+      ['Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36', 'android', 'intent:', true],
+      ['Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1', 'ios', null, false],
+    ]) {
+      const c = await browser.newContext({ userAgent: ua, viewport: { width: 1440, height: 900 } });
+      await c.addInitScript(() => { try { localStorage.setItem('shepherd.freq.ack', '1'); } catch (_) {} });
+      const q = await c.newPage(); await q.goto(U); await wait(1000);
+      await q.click('.ctab[data-sub=spk]'); await q.click('#connbtn'); await wait(150);
+      const g = await ev(q, () => ({ t: document.getElementById('g2t').textContent, href: document.getElementById('g2open').hidden ? null : document.getElementById('g2open').getAttribute('href'), listen: !document.getElementById('listen').hidden, cap: document.getElementById('conncap').textContent }));
+      const linkOk = linkPrefix ? (g.href || '').startsWith(linkPrefix) : g.href === null;
+      check('connect', `${os}: tailored steps${linkPrefix ? ' + open-settings button' : ''}${routes ? '' : ' + "sound follows system" wording'}`, g.t.includes(os === 'ios' ? 'iphone' : os === 'mac' ? 'mac' : os) && linkOk && g.listen === routes && (routes || g.cap.includes('follows')), JSON.stringify(g));
+      await c.close();
+    }
+  }
+
   // ── 9 · RESPONSIVE ───────────────────────────────────────
   for (const [w, h, mobile] of [[1920, 947, 0], [1440, 900, 0], [1100, 640, 0], [820, 1180, 1], [390, 844, 1], [844, 390, 1], [360, 640, 1]]) {
     const { ctx, p } = await page({ vp: { width: w, height: h }, mobile: !!mobile });
