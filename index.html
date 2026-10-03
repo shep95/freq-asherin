@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>shepherd.freq</title>
+<meta name="description" content="Multi-tone frequency generator — layer sine, square, triangle and sawtooth tones and route each to left, right or both channels and to separate output devices.">
+<meta name="theme-color" content="#03050A">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@200;300;400;500&family=Space+Mono:wght@400;700&display=swap">
+<style>
+/* ── TOKENS — orbital observation chamber ────────────────────── */
+:root {
+  /* The interior — near-total darkness */
+  --bg:       #03050A;
+
+  /* Glass column panels — dark obsidian forest */
+  --col:      #060C09;
+  --col2:     #0A1410;
+  --col-seg:  rgba(40,90,58,0.10);
+  --col-glow: rgba(30,75,50,0.14);
+
+  /* Planetary atmosphere */
+  --atm-base: #090F1C;
+  --atm-dust: #141E2C;
+  --atm-mid:  #1A2836;
+
+  /* Horizon — the brilliant silver edge */
+  --hglow:    rgba(200,222,245,0.80);
+  --hglow2:   rgba(165,198,228,0.15);
+
+  /* Amber — warm interior light on right column */
+  --amb:      #C07A32;
+  --amb-g:    rgba(192,122,50,0.10);
+
+  /* Text — cool planetary */
+  --tx:       #C2D6E8;
+  --tx2:      #546878;
+  --tx3:      #2C3E4C;
+
+  /* Borders — subtle blue-haze */
+  --bord:     rgba(76,128,168,0.07);
+  --bord2:    rgba(76,128,168,0.13);
+  --bord3:    rgba(76,128,168,0.26);
+
+  /* Active / playing — teal-atmospheric */
+  --act:      #387A6A;
+  --act-hi:   #4AA898;
+  --act-g:    rgba(56,122,106,0.12);
+  --act-b:    rgba(56,122,106,0.06);
+
+  /* Red */
+  --red:      #BE3E5C;
+  --red-g:    rgba(190,62,92,0.10);
+
+  --mono: 'Space Mono','Courier New',monospace;
+  --sans: 'Space Grotesk',system-ui,sans-serif;
+  --r:    8px;
+  --r2:   16px;
+  --rpill:100px;
+  color-scheme: dark;
+}
+
+/* ── RESET ──────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  background:var(--bg);color:var(--tx);
+  font-family:var(--sans);font-size:13px;line-height:1.5;
+}
+button{cursor:pointer;font-family:var(--sans)}
+input,select{font-family:var(--sans)}
+:focus-visible{outline:2px solid var(--act);outline-offset:2px;border-radius:3px}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-thumb{background:rgba(40,90,58,0.22);border-radius:2px}
+
+/* ── APP SHELL ──────────────────────────────────────────────── */
+#app{
+  display:grid;
+  grid-template-rows:70px 1fr;
+  grid-template-columns:286px 1fr 254px;
+  grid-template-areas:"hd hd hd""lib main spk";
+  height:100%;
+  overflow:hidden;
+}
+
+/* ── HEADER — observation room ceiling; horizon glow bleeds in ─ */
+header{
+  grid-area:hd;
+  display:flex;align-items:center;gap:18px;
+  padding:0 22px;
+  position:relative;z-index:100;
+  background:linear-gradient(to bottom, #050810 0%, #040609 100%);
+  border-bottom:1px solid rgba(76,128,168,0.10);
+  overflow:hidden;
+}
+/* brilliant silver horizon line at the top edge */
+header::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(180,210,245,0.30) 20%,
+    rgba(215,235,255,0.85) 42%,
+    rgba(230,245,255,1.00) 50%,
+    rgba(215,235,255,0.85) 58%,
+    rgba(180,210,245,0.30) 80%,
+    transparent 100%
+  );
+  pointer-events:none;
+}
+/* atmosphere seeping through the horizon */
+header::after{
+  content:'';
+  position:absolute;top:0;left:20%;right:20%;height:40px;
+  background:radial-gradient(ellipse at 50% 0%, rgba(190,218,248,0.08) 0%, transparent 100%);
+  pointer-events:none;
+}
+
+.logo{display:flex;align-items:baseline;gap:0;flex-shrink:0;z-index:1}
+.logo-n{
+  font-family:var(--sans);font-size:17px;font-weight:200;
+  color:rgba(185,215,238,0.60);letter-spacing:.10em;
+}
+.logo-e{
+  font-family:var(--mono);font-size:12px;font-weight:400;
+  color:var(--act-hi);letter-spacing:.04em;
+}
+
+#waveCanvas{flex:1;min-width:0;height:36px;display:block;z-index:1}
+.hd-status{
+  font-family:var(--mono);font-size:8.5px;color:var(--tx3);
+  letter-spacing:.07em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:1;
+}
+.hd-r{display:flex;align-items:center;gap:14px;flex-shrink:0;z-index:1}
+.vol-wrap{
+  display:flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:8.5px;color:var(--tx3);
+  letter-spacing:.10em;text-transform:uppercase;
+}
+input[type=range].mvol{
+  width:68px;cursor:pointer;
+  -webkit-appearance:none;appearance:none;
+  height:2px;background:var(--bord2);border-radius:1px;outline:none;
+}
+input[type=range].mvol::-webkit-slider-thumb{
+  -webkit-appearance:none;width:11px;height:11px;
+  border-radius:50%;background:var(--act-hi);cursor:pointer;
+  box-shadow:0 0 8px rgba(74,168,152,0.50);
+}
+
+/* ── GLOBAL ORB BUTTON ──────────────────────────────────────── */
+.gbtn{
+  width:52px;height:52px;border-radius:50%;flex-shrink:0;
+  border:1px solid rgba(58,122,106,0.24);
+  background:
+    radial-gradient(ellipse at 40% 30%, rgba(56,122,106,0.20), transparent 62%),
+    #090E0C;
+  color:var(--act-hi);font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.28s;
+  box-shadow:0 0 18px rgba(56,122,106,0.10),
+             inset 0 1px 0 rgba(140,220,200,0.06);
+}
+.gbtn:hover{
+  border-color:var(--act);
+  box-shadow:0 0 32px rgba(56,122,106,0.24),
+             inset 0 1px 0 rgba(140,220,200,0.12);
+  color:var(--tx);
+}
+.gbtn.on{
+  border-color:var(--act-hi);color:var(--act-hi);
+  background:
+    radial-gradient(ellipse at 40% 30%, rgba(56,122,106,0.34), rgba(56,122,106,0.04) 70%),
+    #090E0C;
+  box-shadow:0 0 52px rgba(56,122,106,0.44),
+             0 0 108px rgba(56,122,106,0.14),
+             inset 0 1px 0 rgba(140,220,200,0.20);
+  animation:orbpulse 2.4s ease-in-out infinite;
+}
+@keyframes orbpulse{
+  0%,100%{box-shadow:0 0 52px rgba(56,122,106,0.44),0 0 108px rgba(56,122,106,0.14),inset 0 1px 0 rgba(140,220,200,0.20)}
+  50%    {box-shadow:0 0 80px rgba(56,122,106,0.62),0 0 160px rgba(56,122,106,0.24),inset 0 1px 0 rgba(140,220,200,0.26)}
+}
+
+/* ── GLASS COLUMN BACKGROUND — shared by lib + spk ──────────── */
+/* Applied via inline style on each panel to avoid class conflicts */
+
+/* ── LIBRARY PANEL — left glass column ──────────────────────── */
+#panel-lib{
+  grid-area:lib;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  position:relative;
+  /* The column: horizontal tile seams + curved glass luminosity */
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 79px,
+      var(--col-seg) 79px,
+      var(--col-seg) 80px
+    ),
+    linear-gradient(
+      to right,
+      rgba(0,0,0,0.55) 0%,
+      rgba(0,0,0,0.10) 16%,
+      var(--col-glow) 50%,
+      rgba(0,0,0,0.10) 84%,
+      rgba(0,0,0,0.55) 100%
+    ),
+    radial-gradient(ellipse 90% 55% at 50% 5%, rgba(28,68,50,0.12), transparent 62%),
+    var(--col);
+  border-right:1px solid rgba(40,90,58,0.12);
+  box-shadow:inset -8px 0 18px rgba(0,0,0,0.30);
+}
+
+/* search */
+.srch-wrap{
+  padding:12px 12px 10px;
+  border-bottom:1px solid var(--col-seg);
+  position:sticky;top:0;z-index:10;
+  background:var(--col);flex-shrink:0;
+}
+.srch-box{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(8,16,12,0.80);
+  border:1px solid rgba(40,85,60,0.20);
+  border-radius:var(--rpill);
+  padding:7px 14px;transition:border-color .15s;
+}
+.srch-box:focus-within{border-color:rgba(58,122,106,0.44)}
+.srch-box svg{flex-shrink:0;opacity:.28;color:var(--act-hi)}
+.srch-box input{
+  flex:1;background:none;border:none;outline:none;
+  color:var(--tx);font-size:11.5px;font-family:var(--sans);
+}
+.srch-box input::placeholder{color:var(--tx3)}
+
+/* scrollable freq list */
+.flib-scroll{flex:1;overflow-y:auto;min-height:0}
+
+/* category groups */
+.catg{padding-bottom:4px}
+.catg-hd{
+  display:flex;align-items:center;gap:7px;
+  padding:9px 14px 3px;
+  font-size:7.5px;letter-spacing:.20em;text-transform:uppercase;
+  color:var(--tx3);font-weight:500;
+}
+.cdot{width:4px;height:4px;border-radius:50%;flex-shrink:0;opacity:.85}
+
+.frow{
+  display:flex;align-items:center;
+  padding:5px 8px 5px 14px;
+  margin:1px 8px;
+  border-radius:var(--rpill);
+  border:1px solid transparent;
+  cursor:pointer;
+  transition:background .10s,border-color .10s;
+}
+.frow:hover{background:rgba(28,62,44,0.35);border-color:rgba(40,90,58,0.22)}
+.frow.used{background:rgba(56,122,106,0.10);border-color:rgba(56,122,106,0.24)}
+.fhz{
+  font-family:var(--mono);font-size:10.5px;font-weight:700;
+  color:var(--act-hi);min-width:58px;flex-shrink:0;
+  font-variant-numeric:tabular-nums;
+}
+.fname{
+  flex:1;font-size:11px;color:var(--tx2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  padding-right:4px;font-weight:400;
+}
+.fstar{font-size:8px;color:var(--amb);flex-shrink:0;margin-right:3px;opacity:.90}
+.frow:hover .fname{color:var(--tx)}
+.fadd{
+  width:24px;height:24px;border:none;background:none;
+  color:var(--tx3);font-size:18px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;flex-shrink:0;
+  transition:color .12s,background .12s;padding:0;
+}
+.fadd:hover{color:var(--act-hi);background:var(--act-g)}
+
+/* custom freq input */
+.custom-wrap{
+  padding:12px;border-top:1px solid var(--col-seg);
+  background:var(--col);flex-shrink:0;
+}
+.custom-lbl{
+  font-size:7.5px;letter-spacing:.20em;text-transform:uppercase;
+  color:var(--tx3);font-weight:500;margin-bottom:8px;
+}
+.custom-row{display:flex;gap:5px}
+.finp{
+  flex:1;background:rgba(8,16,12,0.80);border:1px solid rgba(40,85,60,0.20);
+  border-radius:var(--rpill);padding:7px 11px;color:var(--tx);
+  font-family:var(--mono);font-size:11.5px;outline:none;
+  transition:border-color .15s;
+}
+.finp::placeholder{color:var(--tx3);font-family:var(--sans);font-size:10.5px}
+.finp:focus{border-color:var(--act)}
+.finp-name{max-width:80px}
+.btn-ca{
+  padding:7px 12px;
+  background:var(--act-g);border:1px solid rgba(56,122,106,0.28);
+  border-radius:var(--rpill);
+  color:var(--act-hi);font-size:10.5px;font-weight:500;
+  white-space:nowrap;transition:all .15s;
+}
+.btn-ca:hover{background:var(--act);color:var(--bg);border-color:var(--act)}
+
+/* ── ACTIVE PANEL — the observation window / planetary vista ─── */
+#panel-main{
+  grid-area:main;
+  position:relative;overflow:hidden;
+  background:var(--atm-base);
+}
+#atmCanvas{
+  position:absolute;inset:0;width:100%;height:100%;
+  pointer-events:none;z-index:0;display:block;
+}
+/* subtle horizon line at top of center panel */
+#panel-main::before{
+  content:'';
+  position:absolute;top:0;left:8%;right:8%;height:1px;
+  background:linear-gradient(90deg,
+    transparent,
+    rgba(195,220,248,0.28) 35%,
+    rgba(215,238,255,0.50) 50%,
+    rgba(195,220,248,0.28) 65%,
+    transparent);
+  pointer-events:none;z-index:2;
+}
+.main-scroll{
+  position:relative;z-index:1;
+  overflow-y:auto;height:100%;
+  padding:22px 18px;
+}
+
+.pane-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;
+}
+.pane-t{
+  font-size:7.5px;letter-spacing:.20em;text-transform:uppercase;
+  color:var(--tx3);font-weight:500;
+}
+.pane-ct{
+  font-family:var(--mono);color:var(--act-hi);
+  margin-left:8px;font-size:11.5px;font-variant-numeric:tabular-nums;
+}
+.btn-stopall{
+  font-size:10.5px;color:var(--red);background:none;
+  border:1px solid var(--bord);border-radius:var(--rpill);
+  padding:4px 12px;transition:all .15s;font-weight:400;
+}
+.btn-stopall:hover{border-color:var(--red);background:var(--red-g)}
+
+.empty-st{
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;padding:80px 24px;color:var(--tx3);
+}
+.empty-ring{
+  width:60px;height:60px;border-radius:50%;
+  border:1px solid var(--bord2);
+  background:
+    radial-gradient(ellipse at 40% 35%, rgba(56,122,106,0.08), transparent 65%),
+    var(--atm-dust);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:20px;color:var(--tx3);
+  margin-bottom:20px;opacity:.42;
+  box-shadow:0 0 28px rgba(56,122,106,0.06);
+}
+.empty-l1{font-size:11.5px;color:var(--tx3);line-height:2.1;font-weight:300}
+.empty-l2{font-size:10.5px;color:var(--tx3);opacity:.42;margin-top:8px;font-weight:300;letter-spacing:.02em}
+
+#tgrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(268px,1fr));
+  gap:11px;
+}
+
+/* ── TONE CARD — floating above the planetary vista ──────────── */
+.tcard{
+  background:rgba(8,14,24,0.74);
+  border:1px solid var(--bord2);
+  border-radius:18px;
+  padding:18px 17px 15px;
+  position:relative;overflow:hidden;
+  transition:border-color .25s,box-shadow .25s;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.tcard::before{
+  content:'';position:absolute;top:0;left:12%;right:12%;height:1px;
+  background:linear-gradient(90deg,
+    transparent,
+    rgba(120,185,220,0.16),
+    transparent);
+  opacity:.55;transition:opacity .25s;
+}
+.tcard.on{
+  border-color:rgba(56,122,106,0.38);
+  box-shadow:
+    0 0 28px rgba(56,122,106,0.10),
+    0 0 70px rgba(56,122,106,0.04),
+    inset 0 0 40px rgba(56,122,106,0.03);
+}
+.tcard.on::before{opacity:1}
+
+.tc-top{display:flex;align-items:flex-start;gap:13px;margin-bottom:14px}
+
+/* card play orb */
+.tc-play{
+  width:44px;height:44px;border-radius:50%;flex-shrink:0;
+  border:1px solid var(--bord2);
+  background:
+    radial-gradient(ellipse at 40% 32%, rgba(56,122,106,0.14), transparent 62%),
+    var(--atm-dust);
+  color:var(--tx2);font-size:13px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .22s;
+}
+.tc-play:hover{
+  border-color:var(--act);color:var(--act-hi);
+  box-shadow:0 0 20px rgba(56,122,106,0.24);
+}
+.tc-play.on{
+  border-color:var(--act-hi);color:var(--act-hi);
+  background:
+    radial-gradient(ellipse at 40% 32%, rgba(56,122,106,0.30), rgba(56,122,106,0.04) 70%),
+    var(--atm-dust);
+  box-shadow:0 0 28px rgba(56,122,106,0.44);
+  animation:cardpulse 2.5s ease-in-out infinite;
+}
+@keyframes cardpulse{
+  0%,100%{box-shadow:0 0 28px rgba(56,122,106,0.44)}
+  50%    {box-shadow:0 0 48px rgba(56,122,106,0.64),0 0 90px rgba(56,122,106,0.18)}
+}
+
+.tc-info{flex:1;min-width:0}
+.tc-hz{
+  font-family:var(--mono);font-size:34px;font-weight:700;
+  color:var(--tx);line-height:1.02;
+  letter-spacing:-.04em;font-variant-numeric:tabular-nums;
+}
+.tc-hz-u{
+  font-size:11px;font-weight:400;color:var(--tx3);
+  margin-left:4px;letter-spacing:.03em;font-family:var(--sans);
+}
+.tc-name{
+  font-size:11px;color:var(--tx2);margin-top:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:400;
+}
+.tc-cat{
+  font-size:7.5px;color:var(--tx3);margin-top:2px;
+  text-transform:uppercase;letter-spacing:.15em;font-weight:500;
+}
+.tc-rm{
+  width:22px;height:22px;border:none;background:none;
+  color:var(--tx3);font-size:13px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;transition:all .12s;
+}
+.tc-rm:hover{color:var(--red);background:var(--red-g)}
+
+.tc-divider{height:1px;background:var(--bord);margin:12px 0 10px}
+
+.tc-ctrls{display:flex;flex-direction:column;gap:8px}
+.ctrl{display:flex;align-items:center;gap:8px}
+.clbl{
+  font-size:7.5px;color:var(--tx3);width:44px;flex-shrink:0;
+  text-transform:uppercase;letter-spacing:.15em;font-weight:500;
+}
+
+.seg{
+  display:flex;border:1px solid var(--bord2);border-radius:var(--rpill);overflow:hidden;
+}
+.sbtn{
+  padding:4px 11px;font-size:10.5px;border:none;background:transparent;
+  color:var(--tx3);border-right:1px solid var(--bord2);
+  font-family:var(--mono);transition:all .12s;
+}
+.sbtn:last-child{border-right:none}
+.sbtn:hover{background:var(--atm-dust);color:var(--tx)}
+.sbtn.on{background:var(--act);color:var(--tx);font-weight:700}
+
+.csel{
+  background:var(--atm-dust);border:1px solid var(--bord2);
+  border-radius:var(--rpill);
+  color:var(--tx2);font-family:var(--sans);font-size:10.5px;
+  padding:4px 10px;outline:none;cursor:pointer;transition:border-color .15s;
+}
+.csel:focus{border-color:var(--act)}
+
+.volrow{display:flex;align-items:center;gap:8px;flex:1}
+input[type=range].volr{
+  flex:1;cursor:pointer;
+  -webkit-appearance:none;appearance:none;
+  height:2px;background:var(--bord2);border-radius:1px;outline:none;
+}
+input[type=range].volr::-webkit-slider-thumb{
+  -webkit-appearance:none;width:11px;height:11px;border-radius:50%;
+  background:var(--act-hi);cursor:pointer;
+  box-shadow:0 0 6px rgba(74,168,152,0.42);
+}
+.vpct{
+  font-family:var(--mono);font-size:9.5px;color:var(--tx3);
+  width:28px;text-align:right;font-variant-numeric:tabular-nums;
+}
+.dsel{
+  flex:1;max-width:100%;background:var(--atm-dust);border:1px solid var(--bord2);
+  border-radius:var(--rpill);color:var(--tx2);font-family:var(--sans);
+  font-size:10.5px;padding:4px 10px;outline:none;cursor:pointer;
+}
+.dsel:focus{border-color:var(--act)}
+
+/* ── SPEAKERS PANEL — right glass column, warm amber interior ── */
+#panel-spk{
+  grid-area:spk;
+  overflow-y:auto;
+  padding:18px 15px;
+  position:relative;
+  /* Column: seams + curved surface + amber warm light on right */
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 79px,
+      var(--col-seg) 79px,
+      var(--col-seg) 80px
+    ),
+    linear-gradient(
+      to right,
+      rgba(0,0,0,0.55) 0%,
+      rgba(0,0,0,0.10) 16%,
+      var(--col-glow) 50%,
+      rgba(0,0,0,0.10) 80%,
+      rgba(192,122,50,0.06) 90%,
+      rgba(192,122,50,0.12) 100%
+    ),
+    radial-gradient(ellipse 90% 55% at 50% 5%, rgba(28,68,50,0.12), transparent 62%),
+    var(--col);
+  border-left:1px solid rgba(40,90,58,0.12);
+  /* Inner left shadow + subtle amber right warmth */
+  box-shadow:
+    inset 8px 0 18px rgba(0,0,0,0.30),
+    inset -18px 0 36px rgba(192,122,50,0.05);
+}
+
+.spk-num{
+  text-align:center;padding:14px 0 10px;
+  border-bottom:1px solid var(--col-seg);margin-bottom:15px;
+}
+.spk-big{
+  font-family:var(--mono);font-size:38px;font-weight:700;
+  color:var(--act-hi);line-height:1;
+  text-shadow:0 0 28px rgba(74,168,152,0.52);
+}
+.spk-bigl{
+  font-size:7.5px;letter-spacing:.20em;text-transform:uppercase;
+  color:var(--tx3);margin-top:5px;font-weight:500;
+}
+.spk-ptitle{
+  font-size:7.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--tx3);font-weight:500;margin-bottom:9px;
+}
+.btn-scan{
+  width:100%;padding:8px;font-size:10.5px;color:var(--tx2);
+  background:rgba(8,16,12,0.65);border:1px solid rgba(40,85,60,0.22);
+  border-radius:var(--rpill);margin-bottom:11px;transition:all .15s;
+  font-family:var(--mono);letter-spacing:.06em;font-weight:400;
+}
+.btn-scan:hover{border-color:var(--act);color:var(--act-hi)}
+.spk-note{
+  font-size:10px;color:var(--tx3);line-height:1.75;margin-bottom:14px;
+  padding:8px 11px;
+  background:rgba(8,16,12,0.55);border-radius:var(--r);
+  border-left:2px solid rgba(40,85,60,0.26);font-weight:300;
+}
+.dcard{
+  background:rgba(8,15,12,0.70);border:1px solid rgba(40,85,60,0.18);
+  border-radius:10px;padding:9px 11px;margin-bottom:6px;
+}
+.dcard-top{display:flex;align-items:center;gap:7px}
+.dicon{font-size:13px}
+.dname{font-size:10.5px;color:var(--tx);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:400}
+.badge{
+  font-size:7px;padding:2px 5px;border-radius:var(--rpill);
+  font-weight:700;letter-spacing:.08em;text-transform:uppercase;flex-shrink:0;
+}
+.b-bt{background:rgba(56,122,106,0.16);color:var(--act-hi)}
+.b-def{background:var(--act-g);color:var(--act-hi)}
+.b-sys{background:rgba(76,128,168,0.10);color:var(--tx3)}
+.did{font-size:8.5px;color:var(--tx3);font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+
+.spk-sec{
+  font-size:7.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--tx3);font-weight:500;
+  margin:16px 0 8px;padding-bottom:7px;border-bottom:1px solid var(--col-seg);
+}
+.btn-dl{
+  width:100%;padding:9px;font-size:10.5px;color:var(--tx3);
+  background:transparent;border:1px dashed rgba(40,85,60,0.22);
+  border-radius:var(--rpill);transition:all .15s;
+  font-family:var(--mono);letter-spacing:.06em;
+}
+.btn-dl:hover{border-color:var(--act);color:var(--act-hi);border-style:solid}
+
+/* ── MOBILE ─────────────────────────────────────────────────── */
+.mobtabs{display:none}
+@media (max-width:900px){
+  #app{
+    display:flex;flex-direction:column;
+    height:100%;height:100dvh;overflow:hidden;
+  }
+  header{flex-shrink:0;height:62px;gap:12px;padding:0 16px}
+  #waveCanvas{max-width:none}
+  .mobtabs{
+    display:flex;flex-shrink:0;
+    background:var(--col);
+    border-bottom:1px solid var(--col-seg);
+  }
+  .mobt{
+    background:none;border:none;border-bottom:2px solid transparent;
+    flex:1;padding:12px 0;text-align:center;font-size:8.5px;
+    color:var(--tx3);cursor:pointer;
+    letter-spacing:.17em;text-transform:uppercase;font-weight:500;
+    transition:all .15s;
+  }
+  .mobt.on{color:var(--act-hi);border-bottom-color:var(--act-hi)}
+  #panel-lib,#panel-main,#panel-spk{display:none;flex:1;min-height:0}
+  .tab-shown{display:block!important}
+  #panel-lib.tab-shown{display:flex!important}
+  #panel-spk{overflow-y:auto;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+  .custom-wrap{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+  .main-scroll{padding-bottom:calc(22px + env(safe-area-inset-bottom))}
+  .vol-wrap,.hd-status{display:none}
+  .frow{padding-top:8px;padding-bottom:8px}
+  .finp,.srch-box input{font-size:16px} /* prevents iOS zoom-on-focus */
+}
+@media (max-width:520px){
+  header{padding:0 14px}
+  .gbtn{width:46px;height:46px}
+  .main-scroll{padding:14px}
+  #tgrid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <span class="logo-n">shepherd</span><span class="logo-e">.freq</span>
+    </div>
+    <canvas id="waveCanvas"></canvas>
+    <span class="hd-status" id="hd-status">select frequencies → play</span>
+    <div class="hd-r">
+      <div class="vol-wrap">
+        vol
+        <input type="range" class="mvol" id="mvol" min="0" max="1" step="0.01" value="0.7">
+      </div>
+      <button class="gbtn" id="gbtn" aria-label="play / stop all">▶</button>
+    </div>
+  </header>
+
+  <!-- MOBILE TABS -->
+  <div class="mobtabs" id="mobtabs">
+    <button class="mobt on" data-tab="lib">library</button>
+    <button class="mobt" data-tab="main">active</button>
+    <button class="mobt" data-tab="spk">speakers</button>
+  </div>
+
+  <!-- LIBRARY — left glass column -->
+  <div id="panel-lib" class="tab-shown">
+    <div class="srch-wrap">
+      <div class="srch-box">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/></svg>
+        <input id="srch" type="text" placeholder="search frequencies…" autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+    <div class="flib-scroll">
+      <div id="flib"></div>
+    </div>
+    <div class="custom-wrap">
+      <div class="custom-lbl">custom frequency</div>
+      <div class="custom-row">
+        <input class="finp" id="chz" type="number" placeholder="Hz" min="0.01" max="22000" step="0.01">
+        <input class="finp finp-name" id="cname" type="text" placeholder="label">
+        <button class="btn-ca" id="caddbtn">+ add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVE TONES — planetary vista window -->
+  <div id="panel-main">
+    <canvas id="atmCanvas"></canvas>
+    <div class="main-scroll">
+      <div class="pane-hd">
+        <div>
+          <span class="pane-t">active tones</span>
+          <span class="pane-ct" id="pct">0</span>
+        </div>
+        <button class="btn-stopall" id="stopallbtn">✕ stop all</button>
+      </div>
+      <div class="empty-st" id="empty">
+        <div class="empty-ring">◎</div>
+        <div class="empty-l1">select frequencies from the library<br>or enter a custom Hz value</div>
+        <div class="empty-l2">route each tone to L / L+R / R per channel</div>
+      </div>
+      <div id="tgrid"></div>
+    </div>
+  </div>
+
+  <!-- SPEAKERS — right glass column with amber -->
+  <div id="panel-spk">
+    <div class="spk-num">
+      <div class="spk-big" id="spk-big">—</div>
+      <div class="spk-bigl">detected devices</div>
+    </div>
+    <button class="btn-scan" id="scanbtn">↻ scan devices</button>
+    <div class="spk-note">bluetooth devices must be paired in system settings first, then appear here after scanning. scanning asks for mic permission only so the browser reveals device names — nothing is recorded.</div>
+    <div class="spk-note" id="sinknote" style="display:none">this browser can't route audio to a specific device — all tones play through the system default. use chrome or edge for per-tone output routing.</div>
+    <div class="spk-ptitle">output devices</div>
+    <div id="devlist"></div>
+    <div class="spk-sec">save offline</div>
+    <button class="btn-dl" id="dlbtn">↓ download shepherd.freq.html</button>
+  </div>
+
+</div><!-- #app -->
+<script>
+// ── FREQ DATABASE ────────────────────────────────────────────
+const DB = [
+  // BRAINWAVE
+  {hz:.1,   name:'epsilon low',            cat:'brainwave', desc:'deepest meditative states; very slow neural oscillations'},
+  {hz:.5,   name:'epsilon / delta edge',   cat:'brainwave', desc:'boundary of measurable slow-wave activity'},
+  {hz:1,    name:'delta 1 Hz',             cat:'brainwave', desc:'deep dreamless sleep; growth hormone release'},
+  {hz:2,    name:'delta 2 Hz',             cat:'brainwave', desc:'deep sleep; PEMF nerve regeneration frequency'},
+  {hz:3,    name:'delta 3 Hz',             cat:'brainwave', desc:'deep sleep; associated with immune function'},
+  {hz:4,    name:'theta 4 Hz',             cat:'brainwave', desc:'theta entry; PEMF bone healing; creative insight boundary'},
+  {hz:5,    name:'theta 5 Hz',             cat:'brainwave', desc:'learning, memory consolidation'},
+  {hz:6,    name:'theta 6 Hz',             cat:'brainwave', desc:'REM sleep; emotional processing'},
+  {hz:7,    name:'theta 7 Hz',             cat:'brainwave', desc:'creative and hypnagogic states; near Schumann 1 (7.83 Hz)'},
+  {hz:8,    name:'alpha 8 Hz',             cat:'brainwave', desc:'alpha entry; 440-432=8 Hz difference; relaxed awareness'},
+  {hz:9,    name:'alpha 9 Hz',             cat:'brainwave', desc:'alert relaxation; visualization'},
+  {hz:10,   name:'alpha 10 Hz ★',          cat:'brainwave', desc:'FDA-cleared PEMF; peak alpha; serotonin release; most researched PEMF frequency'},
+  {hz:11,   name:'alpha 11 Hz',            cat:'brainwave', desc:'upper alpha; improved cognition studies'},
+  {hz:12,   name:'alpha 12 Hz / SMR',      cat:'brainwave', desc:'sensorimotor rhythm; focus, calm body'},
+  {hz:13,   name:'beta 13 Hz',             cat:'brainwave', desc:'beta entry; alert concentration'},
+  {hz:14,   name:'beta 14 Hz',             cat:'brainwave', desc:'focused concentration'},
+  {hz:16,   name:'beta 16 Hz',             cat:'brainwave', desc:'PEMF cartilage regeneration; clear thinking'},
+  {hz:20,   name:'beta 20 Hz',             cat:'brainwave', desc:'active thinking, problem solving'},
+  {hz:25,   name:'beta 25 Hz',             cat:'brainwave', desc:'PEMF pain reduction; upper beta; high arousal'},
+  {hz:28,   name:'beta 28 Hz',             cat:'brainwave', desc:'upper beta; intense focus'},
+  {hz:30,   name:'beta / gamma boundary',  cat:'brainwave', desc:'transition state between beta and gamma'},
+  {hz:36,   name:'gamma 36 Hz',            cat:'brainwave', desc:'PEMF healing; gamma entry zone'},
+  {hz:40,   name:'gamma 40 Hz ★',          cat:'brainwave', desc:'MIT/Tsai: 40 Hz reduces amyloid in Alzheimer models; PEMF 25+15=40; cognitive binding'},
+  {hz:50,   name:'gamma 50 Hz / ATP',      cat:'brainwave', desc:'PEMF ATP synthesis; EU/UK mains frequency'},
+  {hz:60,   name:'gamma 60 Hz',            cat:'brainwave', desc:'US mains frequency; upper gamma'},
+  {hz:80,   name:'gamma 80 Hz',            cat:'brainwave', desc:'high gamma; enhanced memory encoding'},
+  {hz:100,  name:'lambda 100 Hz',          cat:'brainwave', desc:'lambda waves; very high cognitive state correlate'},
+  {hz:120,  name:'lambda 120 Hz',          cat:'brainwave', desc:'lambda range; proposed high cognition correlate'},
+  // EARTH / SCHUMANN
+  {hz:7.83, name:'Schumann 1st ★',         cat:'earth',     desc:'Earth-ionosphere cavity fundamental; human alpha/theta boundary'},
+  {hz:14.3, name:'Schumann 2nd',           cat:'earth',     desc:'Schumann 2nd harmonic; beta brainwave range'},
+  {hz:20.8, name:'Schumann 3rd',           cat:'earth',     desc:'Schumann 3rd harmonic; upper beta'},
+  {hz:27.3, name:'Schumann 4th',           cat:'earth',     desc:'Schumann 4th harmonic'},
+  {hz:33.8, name:'Schumann 5th',           cat:'earth',     desc:'Schumann 5th harmonic'},
+  {hz:39.0, name:'Schumann 6th ★',         cat:'earth',     desc:'Schumann 6th; 7.83x5=39.15 Hz; converges with 40 Hz gamma'},
+  {hz:46.98,name:'Schumann 7th',           cat:'earth',     desc:'7.83x6=46.98 Hz; gamma harmonic'},
+  {hz:54.81,name:'Schumann 8th',           cat:'earth',     desc:'7.83x7=54.81 Hz; upper gamma'},
+  // PEMF
+  {hz:2,    name:'PEMF nerve regen ★',     cat:'pemf',      desc:'FDA-cleared: nerve regeneration'},
+  {hz:4,    name:'PEMF bone healing ★',    cat:'pemf',      desc:'FDA-cleared: bone healing'},
+  {hz:10,   name:'PEMF gold standard ★',   cat:'pemf',      desc:'FDA-cleared: most researched; pain, inflammation, circulation'},
+  {hz:15,   name:'PEMF 15 Hz',             cat:'pemf',      desc:'muscle and tissue; 15+25=40 Hz (gamma)'},
+  {hz:16,   name:'PEMF cartilage ★',       cat:'pemf',      desc:'FDA-cleared: cartilage regeneration'},
+  {hz:25,   name:'PEMF pain ★',            cat:'pemf',      desc:'FDA-cleared: pain reduction; 25+15=40 Hz gamma'},
+  {hz:50,   name:'PEMF ATP ★',             cat:'pemf',      desc:'ATP (cellular energy) synthesis enhancement'},
+  // INFRASOUND
+  {hz:.5,   name:'infrasound 0.5 Hz',      cat:'infrasound',desc:'atmospheric pressure waves; geomagnetic pulsations'},
+  {hz:2.5,  name:'infrasound 2.5 Hz',      cat:'infrasound',desc:'body cavity resonance candidate; felt as pressure'},
+  {hz:7,    name:'infrasound 7 Hz ★',      cat:'infrasound',desc:'animal anxiety response; building/bridge sway range'},
+  {hz:9,    name:'infrasound 9 Hz',        cat:'infrasound',desc:'near alpha boundary; felt as chest pressure'},
+  {hz:12,   name:'infrasound 12 Hz',       cat:'infrasound',desc:'thorax resonance candidate (10-12 Hz)'},
+  {hz:18.98,name:'Vic Tandy 18.98 Hz ★',   cat:'infrasound',desc:'Coventry lab (Vic Tandy, 1998): eyeball resonance, peripheral vision distortion, dread'},
+  // SOLFEGGIO
+  {hz:174,  name:'solfeggio 174 Hz',       cat:'solfeggio', desc:'pain reduction, foundational grounding; lowest solfeggio'},
+  {hz:285,  name:'solfeggio 285 Hz',       cat:'solfeggio', desc:'tissue restoration; 285-174=111 Hz (generative interval)'},
+  {hz:396,  name:'solfeggio 396 Hz ★',     cat:'solfeggio', desc:'liberation from guilt and fear; Ut in original solfeggio'},
+  {hz:417,  name:'solfeggio 417 Hz',       cat:'solfeggio', desc:'facilitating change; 528-417=111'},
+  {hz:528,  name:'solfeggio 528 Hz ★',     cat:'solfeggio', desc:'love frequency; MI; 528-417=111; 528/4=132'},
+  {hz:639,  name:'solfeggio 639 Hz',       cat:'solfeggio', desc:'connection, relationships; FA; 639-528=111'},
+  {hz:741,  name:'solfeggio 741 Hz',       cat:'solfeggio', desc:'problem solving, self-expression; SOL'},
+  {hz:852,  name:'solfeggio 852 Hz',       cat:'solfeggio', desc:'returning to spiritual order; LA; 852-741=111'},
+  {hz:963,  name:'solfeggio 963 Hz ★',     cat:'solfeggio', desc:'pineal activation; SI; highest original solfeggio'},
+  // SACRED
+  {hz:108,  name:'sacred 108 Hz',          cat:'sacred',    desc:'Vedic sacred constant; 432/4=108; subharmonic of Verdi A'},
+  {hz:216,  name:'A3 Verdi (216 Hz)',       cat:'sacred',    desc:'432/2=216 Hz; A3 in Verdi tuning'},
+  {hz:432,  name:'Verdi A (432 Hz) ★',     cat:'sacred',    desc:'Verdi tuning; 432=108x4; 440-432=8 Hz (alpha-theta boundary)'},
+  // COMPOUND / SYNTHESIZED
+  {hz:1.566,name:'Schumann / 5',           cat:'compound',  desc:'7.83/5=1.566 Hz; delta-range Schumann subharmonic'},
+  {hz:3.915,name:'Schumann / 2',           cat:'compound',  desc:'7.83/2=3.915 Hz; theta Schumann subharmonic'},
+  {hz:15.66,name:'Schumann x 2',           cat:'compound',  desc:'7.83x2=15.66 Hz; beta Schumann harmonic'},
+  {hz:23.49,name:'Schumann x 3',           cat:'compound',  desc:'7.83x3=23.49 Hz; upper beta harmonic'},
+  {hz:31.32,name:'Schumann x 4',           cat:'compound',  desc:'7.83x4=31.32 Hz; gamma harmonic'},
+  {hz:111,  name:'solfeggio interval ★',   cat:'compound',  desc:'generative interval: ALL adjacent solfeggio pairs differ by 111 Hz'},
+  {hz:132,  name:'compound 132 Hz',        cat:'compound',  desc:'528/4=132; independent solfeggio difference'},
+  {hz:222,  name:'compound 222 Hz',        cat:'compound',  desc:'111x2; double solfeggio interval'},
+  {hz:264,  name:'compound 264 Hz',        cat:'compound',  desc:'528/2=264 Hz; half of love frequency'},
+  {hz:333,  name:'compound 333 Hz',        cat:'compound',  desc:'111x3; triple solfeggio interval harmonic'},
+  {hz:444,  name:'compound 444 Hz',        cat:'compound',  desc:'111x4; converges with A=444 Hz tuning'},
+  {hz:555,  name:'compound 555 Hz',        cat:'compound',  desc:'111x5; fifth multiple of solfeggio interval'},
+  {hz:666,  name:'compound 666 Hz',        cat:'compound',  desc:'111x6; between solfeggio 639 and 741'},
+  {hz:777,  name:'compound 777 Hz',        cat:'compound',  desc:'111x7; seventh multiple'},
+  {hz:888,  name:'compound 888 Hz',        cat:'compound',  desc:'111x8; eighth multiple'},
+  {hz:999,  name:'compound 999 Hz',        cat:'compound',  desc:'111x9; near 1000 Hz reference'},
+  {hz:750,  name:'cross-domain mid 750',   cat:'compound',  desc:'1500/2; midpoint of LRAD band attractor'},
+  {hz:1500, name:'cross-domain 1500 ★',    cat:'compound',  desc:'LRAD 3600-2100=1500 Hz; Mosquito 18500-17000=1500 Hz; same number at 10^6 scale difference'},
+  // RESEARCH
+  {hz:110,  name:'cave resonance 110 Hz ★',cat:'research',  desc:'Maltese hypogea and Stonehenge; fMRI: prefrontal deactivation, limbic activation; 440=110x4'},
+  // MEDICAL
+  {hz:128,  name:'tuning fork C (128 Hz)', cat:'medical',   desc:'medical tuning fork; bone conduction; Rinne and Weber hearing tests'},
+  {hz:256,  name:'tuning fork C4 (256 Hz)',cat:'medical',   desc:'C256 medical tuning fork; scientific pitch; hearing tests'},
+  {hz:512,  name:'tuning fork C5 (512 Hz)',cat:'medical',   desc:'C512; otoscopy; hearing assessment'},
+  {hz:1000, name:'audiometry 1 kHz',       cat:'medical',   desc:'standard audiometric test frequency'},
+  {hz:2000, name:'audiometry 2 kHz',       cat:'medical',   desc:'speech discrimination; audiometric standard'},
+  {hz:4000, name:'audiometry 4 kHz ★',     cat:'medical',   desc:'noise-induced hearing loss notch; most audiograms flag 4 kHz first'},
+  {hz:8000, name:'audiometry 8 kHz',       cat:'medical',   desc:'upper audiometric standard'},
+  // LRAD
+  {hz:2100, name:'LRAD lower edge',        cat:'lrad',      desc:'Long Range Acoustic Device lower band; 2100-3600 Hz operational; directed crowd control'},
+  {hz:2500, name:'LRAD midpoint',          cat:'lrad',      desc:'approximate center of LRAD operational band'},
+  {hz:3600, name:'LRAD upper edge',        cat:'lrad',      desc:'LRAD upper edge; max directed-acoustic output in this range'},
+  // MOSQUITO
+  {hz:17000,name:'mosquito device low ★',  cat:'mosquito',  desc:'lower edge; audible to teens/young adults; age-related dispersal device'},
+  {hz:17500,name:'mosquito mid',           cat:'mosquito',  desc:'mid-range; decreasing audibility with age'},
+  {hz:18500,name:'mosquito device high ★', cat:'mosquito',  desc:'upper edge; 18500-17000=1500 Hz (same diff as LRAD band)'},
+  // ELF SUBMARINE
+  {hz:76,   name:'US Navy ELF 76 Hz ★',    cat:'submarine', desc:'Project ELF; 76 Hz submarine comms; penetrates ocean and bedrock'},
+  {hz:82,   name:'Russian ZEVS 82 Hz ★',   cat:'submarine', desc:'Russian ELF submarine comms; ZEVS transmitter; global reach through seawater'},
+  // DRONE RF (audio-rep)
+  {hz:433,  name:'drone 433 MHz band',     cat:'drone',     desc:'433 MHz drone control band (audio representation)'},
+  {hz:900,  name:'drone 900 MHz band',     cat:'drone',     desc:'900 MHz drone/RC control band'},
+  {hz:1200, name:'drone 1.2 GHz band',     cat:'drone',     desc:'1.2-1.3 GHz drone video feed (audio representation)'},
+  {hz:2400, name:'drone 2.4 GHz ★',        cat:'drone',     desc:'2.4 GHz primary drone control; WiFi/BT overlap; GPS L2+L5=2404 MHz'},
+  {hz:5800, name:'drone 5.8 GHz video',    cat:'drone',     desc:'5.8 GHz FPV video feed; shorter range than 2.4 GHz'},
+  // GNSS / GPS
+  {hz:1176, name:'GPS L5 ref',             cat:'gnss',      desc:'GPS L5=1176.45 MHz; safety-of-life civilian'},
+  {hz:1227, name:'GPS L2 ref',             cat:'gnss',      desc:'GPS L2=1227.60 MHz; military and enhanced civilian'},
+  {hz:1575, name:'GPS L1 ref ★',           cat:'gnss',      desc:'GPS L1=1575.42 MHz; primary civilian GPS signal'},
+  {hz:348,  name:'GPS L1-L2 difference',   cat:'gnss',      desc:'GPS L1-L2=347.82 MHz; cross-band difference (audio representation)'},
+  // REFERENCE
+  {hz:10.23,name:'GPS master clock',       cat:'reference', desc:'GPS atomic master clock (10.23 MHz); all GPS carriers are integer multiples of this'},
+  {hz:55,   name:'A1 (55 Hz)',             cat:'reference', desc:'A1 in concert pitch; 7th Schumann harmonic (54.81 Hz); 5 octaves below A4'},
+  {hz:220,  name:'A3 concert (220 Hz)',    cat:'reference', desc:'concert pitch A3=220 Hz'},
+  {hz:261.63,name:'middle C concert',      cat:'reference', desc:'concert pitch C4=261.63 Hz based on A4=440 Hz'},
+  {hz:440,  name:'concert A 440 Hz ★',    cat:'reference', desc:'ISO 16 standard; 440=110x4; 440-432=8 Hz (alpha-theta boundary)'},
+  {hz:1000, name:'1 kHz reference',        cat:'reference', desc:'standard audio test tone; equal-loudness reference'},
+  {hz:3000, name:'speech clarity peak',   cat:'reference', desc:'peak speech intelligibility; human ear most sensitive 2k-5 kHz'},
+];
+
+// Deduplicate by hz+cat
+const seen = new Set();
+const FREQ = DB.filter(f => {
+  const k = f.hz + '|' + f.cat;
+  if (seen.has(k)) return false;
+  seen.add(k); return true;
+}).sort((a,b) => a.hz - b.hz);
+
+const CATS = ['brainwave','earth','pemf','infrasound','solfeggio','sacred','compound','research','medical','lrad','mosquito','submarine','drone','gnss','reference'];
+const CAT_LABEL = {
+  brainwave:'brainwave',earth:'earth / schumann',pemf:'PEMF therapeutic',
+  infrasound:'infrasound',solfeggio:'solfeggio',sacred:'sacred / tuning',
+  compound:'synthesized compound',research:'research anomalous',medical:'medical reference',
+  lrad:'LRAD acoustic',mosquito:'mosquito device',submarine:'ELF submarine',
+  drone:'drone RF (rep)',gnss:'GNSS / GPS (rep)',reference:'reference'
+};
+const CAT_COLOR = {
+  brainwave:'#7C6AF0',earth:'#4AA898',pemf:'#4AE87A',infrasound:'#A04AF0',
+  solfeggio:'#F0904A',sacred:'#F5A421',compound:'#F04A6A',research:'#F0D04A',
+  medical:'#4AF0C0',lrad:'#F04A9A',mosquito:'#8AF04A',submarine:'#4A8AF0',
+  drone:'#F07040',gnss:'#4A6AF0',reference:'#607878'
+};
+
+// ── AUDIO ENGINE ────────────────────────────────────────────
+const AC = window.AudioContext||window.webkitAudioContext;
+const FADE = 0.03; // seconds — short ramps avoid clicks on start/stop/volume changes
+const panVal = ch => ch==='left'?-1:ch==='right'?1:0;
+
+class Engine {
+  constructor(){ this.ctx=null; this.mg=null; this.nodes=new Map(); this.dctx=new Map(); this.vol=.7 }
+  // master chain: gain → limiter → destination (stacking tones would otherwise clip)
+  chain(c){
+    const g=c.createGain(); g.gain.value=this.vol;
+    const lim=c.createDynamicsCompressor();
+    lim.threshold.value=-6; lim.knee.value=4; lim.ratio.value=20;
+    lim.attack.value=.003; lim.release.value=.25;
+    g.connect(lim); lim.connect(c.destination);
+    return g;
+  }
+  // synchronous so it runs inside the click gesture (required on iOS Safari)
+  init(){
+    if(!AC) throw new Error('Web Audio is not supported in this browser');
+    if(!this.ctx){ this.ctx=new AC(); this.mg=this.chain(this.ctx); }
+    if(this.ctx.state!=='running') this.ctx.resume().catch(()=>{});
+  }
+  async getCtx(devId){
+    if(!devId||devId==='default') return {ctx:this.ctx,g:this.mg};
+    if(this.dctx.has(devId)) return this.dctx.get(devId);
+    let c=null;
+    try{
+      if(!AC.prototype.setSinkId) throw 0;
+      c=new AC();
+      await c.setSinkId(devId);
+      const e={ctx:c,g:this.chain(c)}; this.dctx.set(devId,e); return e;
+    }catch(_){
+      if(c) c.close().catch(()=>{});
+      return {ctx:this.ctx,g:this.mg};
+    }
+  }
+  async play(t){
+    this.init(); this.stop(t.id);
+    const {ctx,g} = await this.getCtx(t.deviceId);
+    if(ctx.state!=='running') await ctx.resume().catch(()=>{});
+    const now=ctx.currentTime;
+    const osc=ctx.createOscillator(), gn=ctx.createGain();
+    osc.type=t.waveform||'sine'; osc.frequency.value=t.hz;
+    gn.gain.setValueAtTime(0,now);
+    gn.gain.linearRampToValueAtTime(t.volume??0.5,now+FADE);
+    let pan=null;
+    osc.connect(gn);
+    if(ctx.createStereoPanner){
+      pan=ctx.createStereoPanner(); pan.pan.value=panVal(t.channel);
+      gn.connect(pan); pan.connect(g);
+    } else gn.connect(g);
+    osc.start(now);
+    this.nodes.set(t.id,{osc,gn,pan,ctx});
+  }
+  stop(id){
+    const n=this.nodes.get(id); if(!n) return;
+    this.nodes.delete(id);
+    const now=n.ctx.currentTime;
+    try{
+      n.gn.gain.cancelScheduledValues(now);
+      n.gn.gain.setValueAtTime(n.gn.gain.value,now);
+      n.gn.gain.linearRampToValueAtTime(0,now+FADE);
+      n.osc.stop(now+FADE+.01);
+    }catch(_){ try{n.osc.stop()}catch(_){} }
+    n.osc.onended=()=>[n.osc,n.gn,n.pan].forEach(x=>{try{if(x)x.disconnect()}catch(_){}});
+  }
+  setPan(id,ch){ const n=this.nodes.get(id); if(n?.pan) n.pan.pan.setTargetAtTime(panVal(ch),n.ctx.currentTime,.01); }
+  setVol(id,v){ const n=this.nodes.get(id); if(n) n.gn.gain.setTargetAtTime(v,n.ctx.currentTime,.015); }
+  setWave(id,w){ const n=this.nodes.get(id); if(n) try{n.osc.type=w}catch(_){} }
+  setMaster(v){
+    this.vol=v;
+    const all=[...(this.mg?[{ctx:this.ctx,g:this.mg}]:[]),...this.dctx.values()];
+    for(const e of all) e.g.gain.setTargetAtTime(v,e.ctx.currentTime,.015);
+  }
+  stopAll(){ for(const id of [...this.nodes.keys()]) this.stop(id); }
+}
+
+// ── APP STATE ───────────────────────────────────────────────
+const ENG = new Engine();
+const DEFAULT_DEV = {deviceId:'default',label:'Default Output',kind:'audiooutput'};
+let tones=[], devs=[DEFAULT_DEV], srchQ='', nid=1, globalOn=false;
+
+// ── PERSISTENCE (per-browser; never required) ───────────────
+const STORE_KEY='shepherd.freq.v1';
+function save(){
+  try{
+    localStorage.setItem(STORE_KEY,JSON.stringify({
+      vol:ENG.vol,
+      tones:tones.map(({id,hz,name,cat,desc,channel,waveform,volume,deviceId})=>({id,hz,name,cat,desc,channel,waveform,volume,deviceId}))
+    }));
+  }catch(_){}
+}
+function load(){
+  try{
+    const d=JSON.parse(localStorage.getItem(STORE_KEY)||'null'); if(!d) return;
+    if(typeof d.vol==='number'){ ENG.vol=Math.min(1,Math.max(0,d.vol)); document.getElementById('mvol').value=ENG.vol; }
+    if(Array.isArray(d.tones)) tones=d.tones
+      .filter(t=>t&&isFinite(t.hz)&&t.hz>0&&t.hz<=22000)
+      .map(t=>({...t,name:String(t.name||'custom'),cat:String(t.cat||'reference'),desc:String(t.desc||''),
+        channel:['left','both','right'].includes(t.channel)?t.channel:'both',
+        waveform:['sine','triangle','square','sawtooth'].includes(t.waveform)?t.waveform:'sine',
+        volume:isFinite(t.volume)?Math.min(1,Math.max(0,+t.volume)):.5,
+        deviceId:String(t.deviceId||'default'),playing:false}));
+    nid=tones.reduce((m,t)=>Math.max(m,+t.id||0),0)+1;
+    tones.forEach(t=>{ t.id=Number.isInteger(+t.id)&&+t.id>0?+t.id:nid++; });
+  }catch(_){}
+}
+
+// ── HELPERS ─────────────────────────────────────────────────
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+function fHz(hz){
+  if(hz<1) return hz.toFixed(3).replace(/0+$/,'').replace(/\.$/,'');
+  if(hz<100) return hz%1===0?String(hz):hz.toFixed(2);
+  return hz%1===0?String(hz):String(+hz.toFixed(2));
+}
+function isBT(l){ return /bluetooth|airpod|buds|headset|wireless|bose|jbl|jabra|beats|soundcore|sony.*wh|galaxy.*bud/i.test(l||'') }
+
+// ── HEADER WAVE CANVAS — cool atmospheric palette ────────────
+const cvs = document.getElementById('waveCanvas');
+const cctx = cvs.getContext('2d');
+let wt=0, wraf=null;
+function sizeCanvas(){
+  const r=cvs.getBoundingClientRect();
+  cvs.width=Math.max(1,Math.round(r.width*devicePixelRatio)); cvs.height=Math.max(1,Math.round(r.height*devicePixelRatio));
+}
+function drawWave(){
+  const w=cvs.width, h=cvs.height;
+  cctx.clearRect(0,0,w,h);
+  const on=globalOn;
+  const amp = on ? h*.26 : h*.055;
+  const spd = on ? .055 : .012;
+
+  // primary atmospheric wave
+  cctx.beginPath();
+  for(let x=0;x<=w;x++){
+    const y=h/2+amp*Math.sin(.020*x+wt);
+    x===0?cctx.moveTo(x,y):cctx.lineTo(x,y);
+  }
+  cctx.strokeStyle=on?'rgba(74,168,152,0.82)':'rgba(76,128,168,0.22)';
+  cctx.lineWidth=(on?1.7:0.9)*devicePixelRatio;
+  cctx.stroke();
+
+  if(on){
+    // secondary — slow drift, wider
+    cctx.beginPath();
+    for(let x=0;x<=w;x++){
+      const y=h/2+amp*.58*Math.sin(.013*x+wt*.50+1.0);
+      x===0?cctx.moveTo(x,y):cctx.lineTo(x,y);
+    }
+    cctx.strokeStyle='rgba(56,122,106,0.34)';
+    cctx.lineWidth=1.2*devicePixelRatio;
+    cctx.stroke();
+
+    // tertiary — fast shimmer
+    cctx.beginPath();
+    for(let x=0;x<=w;x++){
+      const y=h/2+amp*.28*Math.sin(.040*x+wt*1.52+0.6);
+      x===0?cctx.moveTo(x,y):cctx.lineTo(x,y);
+    }
+    cctx.strokeStyle='rgba(120,195,225,0.18)';
+    cctx.lineWidth=0.75*devicePixelRatio;
+    cctx.stroke();
+  }
+
+  wt+=spd;
+  wraf=requestAnimationFrame(drawWave);
+}
+
+// ── ATMOSPHERIC CANVAS — planetary vista in center panel ─────
+const atm = document.getElementById('atmCanvas');
+let actx2 = null, at=0, araf=null;
+
+// Band definitions: y (0-1 of canvas height), h (0-1), color rgb, alpha, drift, waveFreq, waveAmp
+const BANDS = [
+  {y:0.04, h:0.10, r:172,g:205,b:235, a:0.07, d:0.006, wf:0.0030, wa:0.040},
+  {y:0.13, h:0.09, r:140,g:175,b:210, a:0.09, d:0.011, wf:0.0040, wa:0.048},
+  {y:0.21, h:0.13, r:110,g:148,b:182, a:0.08, d:0.007, wf:0.0025, wa:0.055},
+  {y:0.33, h:0.08, r: 80,g:118,b:158, a:0.07, d:0.014, wf:0.0050, wa:0.042},
+  {y:0.40, h:0.14, r: 56,g: 92,b:132, a:0.09, d:0.008, wf:0.0032, wa:0.060},
+  {y:0.53, h:0.10, r: 40,g: 70,b:106, a:0.08, d:0.012, wf:0.0042, wa:0.048},
+  {y:0.62, h:0.14, r: 30,g: 55,b: 88, a:0.08, d:0.006, wf:0.0028, wa:0.055},
+  {y:0.75, h:0.09, r: 22,g: 44,b: 68, a:0.07, d:0.010, wf:0.0038, wa:0.042},
+  {y:0.83, h:0.13, r: 18,g: 40,b: 38, a:0.07, d:0.008, wf:0.0030, wa:0.050}, // slight green tint near floor
+];
+const BAND_PHASE = [0.0, 0.9, 1.8, 2.5, 3.4, 4.1, 5.0, 5.8, 1.3];
+
+function sizeAtm(){
+  if(!atm) return;
+  const r=atm.getBoundingClientRect();
+  if(r.width<10||r.height<10) return;
+  atm.width=r.width*devicePixelRatio;
+  atm.height=r.height*devicePixelRatio;
+  if(!actx2) actx2=atm.getContext('2d');
+}
+
+function drawAtm(){
+  if(!actx2||!atm.width||!atm.height){ at+=0.005; araf=requestAnimationFrame(drawAtm); return; }
+  const w=atm.width, h=atm.height;
+
+  // base atmosphere gradient — orbital dark to dusty blue-black
+  const bg=actx2.createLinearGradient(0,0,0,h);
+  bg.addColorStop(0,   'rgba(6,10,20,1)');
+  bg.addColorStop(0.10,'rgba(10,18,32,1)');
+  bg.addColorStop(0.35,'rgba(16,26,44,1)');
+  bg.addColorStop(0.65,'rgba(14,22,36,1)');
+  bg.addColorStop(0.85,'rgba(10,18,28,1)');
+  bg.addColorStop(1,   'rgba(8,14,20,1)');
+  actx2.fillStyle=bg;
+  actx2.fillRect(0,0,w,h);
+
+  // atmospheric band swirls
+  for(let i=0;i<BANDS.length;i++){
+    const b=BANDS[i], ph=BAND_PHASE[i];
+    const cy=b.y*h, bh=b.h*h;
+
+    actx2.beginPath();
+    // top wavy edge
+    for(let x=0;x<=w;x+=4){
+      const wy = cy
+        + Math.sin(b.wf*x + at*b.d*10 + ph) * b.wa*h
+        + Math.sin(b.wf*1.6*x - at*b.d*7 + ph*1.4) * b.wa*0.38*h;
+      x===0 ? actx2.moveTo(x,wy) : actx2.lineTo(x,wy);
+    }
+    // bottom wavy edge (reverse)
+    for(let x=w;x>=0;x-=4){
+      const wy = cy + bh
+        + Math.sin(b.wf*x - at*b.d*9 + ph+1.6) * b.wa*0.55*h
+        + Math.sin(b.wf*2.0*x + at*b.d*5 + ph*0.7) * b.wa*0.28*h;
+      actx2.lineTo(x,wy);
+    }
+    actx2.closePath();
+    actx2.fillStyle=`rgba(${b.r},${b.g},${b.b},${b.a})`;
+    actx2.fill();
+  }
+
+  // brilliant horizon glow — top center (the star / atmospheric horizon)
+  const hg=actx2.createRadialGradient(w/2, -h*0.04, 0, w/2, -h*0.04, w*0.65);
+  hg.addColorStop(0,   'rgba(210,232,255,0.20)');
+  hg.addColorStop(0.22,'rgba(178,210,242,0.10)');
+  hg.addColorStop(0.50,'rgba(130,180,225,0.04)');
+  hg.addColorStop(1,   'rgba(80,130,180,0)');
+  actx2.fillStyle=hg;
+  actx2.fillRect(0,0,w,h*0.55);
+
+  // the brilliant white horizon line at very top
+  actx2.beginPath();
+  actx2.moveTo(w*0.08, 0.5);
+  actx2.lineTo(w*0.92, 0.5);
+  const hl=actx2.createLinearGradient(w*0.08,0,w*0.92,0);
+  hl.addColorStop(0,   'rgba(210,232,255,0)');
+  hl.addColorStop(0.35,'rgba(210,232,255,0.42)');
+  hl.addColorStop(0.50,'rgba(230,245,255,0.78)');
+  hl.addColorStop(0.65,'rgba(210,232,255,0.42)');
+  hl.addColorStop(1,   'rgba(210,232,255,0)');
+  actx2.strokeStyle=hl;
+  actx2.lineWidth=1.4*devicePixelRatio;
+  actx2.stroke();
+
+  at+=0.005;
+  araf=requestAnimationFrame(drawAtm);
+}
+
+// ── DEVICES ─────────────────────────────────────────────────
+// withLabels: briefly request mic access so the browser reveals device names,
+// then release it immediately. Only done on an explicit "scan" click.
+async function scanDevs(withLabels){
+  const btn=document.getElementById('scanbtn');
+  try{
+    const md=navigator.mediaDevices;
+    if(!md?.enumerateDevices) throw 0;
+    if(withLabels===true && md.getUserMedia){
+      btn.textContent='… scanning';
+      try{
+        const s=await md.getUserMedia({audio:true});
+        s.getTracks().forEach(tr=>tr.stop());
+      }catch(_){}
+    }
+    const all=await md.enumerateDevices();
+    devs=all.filter(d=>d.kind==='audiooutput' && d.deviceId);
+  }catch(_){ devs=[]; }
+  // Firefox/Safari often hide output devices — always offer the system default
+  if(!devs.some(d=>d.deviceId==='default')) devs.unshift(DEFAULT_DEV);
+  // re-home tones whose device disappeared
+  for(const t of tones) if(!devs.some(d=>d.deviceId===t.deviceId)) t.deviceId='default';
+  btn.textContent='↻ scan devices';
+  renderDevs(); renderTones(); updateStatus();
+}
+function renderDevs(){
+  document.getElementById('spk-big').textContent=devs.length||'—';
+  document.getElementById('sinknote').style.display=(AC&&AC.prototype.setSinkId)?'none':'';
+  const el=document.getElementById('devlist');
+  if(!devs.length){ el.innerHTML='<div style="color:var(--tx3);font-size:10.5px">no devices found. click scan.</div>'; return; }
+  el.innerHTML=devs.map(d=>{
+    const bt=isBT(d.label), def=d.deviceId==='default';
+    const lbl=d.label||(def?'Default Output':'Audio Device');
+    const badge=bt?'<span class="badge b-bt">BT</span>':def?'<span class="badge b-def">DEFAULT</span>':'<span class="badge b-sys">SYS</span>';
+    const icon=bt?'🎧':def?'🔊':'🖥️';
+    const idStr=d.deviceId.length>18?d.deviceId.slice(0,18)+'…':d.deviceId;
+    return `<div class="dcard"><div class="dcard-top"><span class="dicon">${icon}</span><span class="dname">${esc(lbl)}</span>${badge}</div><div class="did">${esc(idStr)}</div></div>`;
+  }).join('');
+}
+
+// ── LIBRARY ─────────────────────────────────────────────────
+function renderLib(){
+  const q=srchQ.toLowerCase();
+  const fil=q?FREQ.filter(f=>f.name.toLowerCase().includes(q)||String(f.hz).includes(q)||f.cat.includes(q)||(f.desc||'').toLowerCase().includes(q)):FREQ;
+  const grp={}; for(const c of CATS) grp[c]=[];
+  for(const f of fil){ if(grp[f.cat]) grp[f.cat].push(f); else grp['reference'].push(f); }
+  const usedKey=new Set(tones.map(t=>t.hz+'|'+t.cat));
+  document.getElementById('flib').innerHTML=CATS.filter(c=>grp[c]?.length).map(cat=>`
+    <div class="catg">
+      <div class="catg-hd"><div class="cdot" style="background:${CAT_COLOR[cat]||'#607878'}"></div>${esc(CAT_LABEL[cat]||cat)}</div>
+      ${grp[cat].map(f=>{
+        const idx=FREQ.indexOf(f);
+        const star=f.name.includes('★');
+        const used=usedKey.has(f.hz+'|'+f.cat);
+        return `<div class="frow${used?' used':''}" data-idx="${idx}" title="${esc(f.desc||'')}">
+          <span class="fhz">${fHz(f.hz)}</span>
+          <span class="fname">${esc(f.name.replace('★','').trim())}</span>
+          ${star?'<span class="fstar">★</span>':''}
+          <button class="fadd" data-idx="${idx}" aria-label="add">+</button>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+// delegated clicks on library
+document.addEventListener('click',e=>{
+  const ab=e.target.closest('.fadd'), fr=e.target.closest('.frow');
+  if(ab){ e.stopPropagation(); addByIdx(+ab.dataset.idx); return; }
+  if(fr&&fr.dataset.idx!=null) addByIdx(+fr.dataset.idx);
+});
+
+function addByIdx(idx){
+  const f=FREQ[idx]; if(!f) return;
+  tones.push({id:nid++,hz:f.hz,name:f.name.replace('★','').trim(),cat:f.cat,desc:f.desc||'',
+    channel:'both',waveform:'sine',volume:.5,deviceId:devs[0]?.deviceId||'default',playing:false});
+  renderTones(); renderLib(); updateStatus();
+  if(window.innerWidth<=900) switchTab('main');
+}
+function removeTone(id){
+  ENG.stop(id); tones=tones.filter(t=>t.id!==id);
+  renderTones(); renderLib(); updateStatus();
+}
+
+// ── ACTIVE TONES ─────────────────────────────────────────────
+function renderTones(){
+  save();
+  const grid=document.getElementById('tgrid');
+  const empty=document.getElementById('empty');
+  document.getElementById('pct').textContent=tones.length;
+  if(!tones.length){ empty.style.display=''; grid.innerHTML=''; return; }
+  empty.style.display='none';
+  grid.innerHTML=tones.map(t=>{
+    const devOpts=devs.map(d=>`<option value="${esc(d.deviceId)}"${t.deviceId===d.deviceId?' selected':''}>${esc((d.label||'Device').slice(0,28))}${isBT(d.label)?' 🎧':''}</option>`).join('');
+    const catShort=CAT_LABEL[t.cat]||t.cat;
+    return `<div class="tcard${t.playing?' on':''}" id="tc${t.id}">
+      <div class="tc-top">
+        <button class="tc-play${t.playing?' on':''}" data-a="toggle" data-id="${t.id}" aria-label="${t.playing?'stop':'play'} ${esc(fHz(t.hz))} Hz">${t.playing?'■':'▶'}</button>
+        <div class="tc-info">
+          <div class="tc-hz">${fHz(t.hz)}<span class="tc-hz-u">Hz</span></div>
+          <div class="tc-name" title="${esc(t.desc)}">${esc(t.name)}</div>
+          <div class="tc-cat">${esc(catShort)}</div>
+        </div>
+        <button class="tc-rm" data-a="remove" data-id="${t.id}" aria-label="remove">✕</button>
+      </div>
+      <div class="tc-divider"></div>
+      <div class="tc-ctrls">
+        <div class="ctrl">
+          <span class="clbl">channel</span>
+          <div class="seg">
+            <button class="sbtn${t.channel==='left'?' on':''}" data-a="ch" data-id="${t.id}" data-ch="left">L</button>
+            <button class="sbtn${t.channel==='both'?' on':''}" data-a="ch" data-id="${t.id}" data-ch="both">L+R</button>
+            <button class="sbtn${t.channel==='right'?' on':''}" data-a="ch" data-id="${t.id}" data-ch="right">R</button>
+          </div>
+        </div>
+        <div class="ctrl">
+          <span class="clbl">wave</span>
+          <select class="csel" data-a="wave" data-id="${t.id}">
+            <option value="sine"${t.waveform==='sine'?' selected':''}>sine</option>
+            <option value="triangle"${t.waveform==='triangle'?' selected':''}>triangle</option>
+            <option value="square"${t.waveform==='square'?' selected':''}>square</option>
+            <option value="sawtooth"${t.waveform==='sawtooth'?' selected':''}>sawtooth</option>
+          </select>
+        </div>
+        <div class="ctrl">
+          <span class="clbl">volume</span>
+          <div class="volrow">
+            <input type="range" class="volr" min="0" max="1" step="0.01" value="${t.volume}" data-a="vol" data-id="${t.id}">
+            <span class="vpct" id="vp${t.id}">${Math.round(t.volume*100)}%</span>
+          </div>
+        </div>
+        ${devs.length>1?`<div class="ctrl">
+          <span class="clbl">output</span>
+          <select class="dsel" data-a="dev" data-id="${t.id}">${devOpts}</select>
+        </div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// event delegation on main panel
+document.getElementById('panel-main').addEventListener('click',e=>{
+  const el=e.target.closest('[data-a]'); if(!el) return;
+  if(el.dataset.a==='toggle'){ toggleTone(+el.dataset.id); return; }
+  if(el.dataset.a==='remove'){ removeTone(+el.dataset.id); return; }
+  if(el.dataset.a==='ch'){
+    const t=tones.find(x=>x.id===+el.dataset.id); if(!t) return;
+    t.channel=el.dataset.ch; ENG.setPan(t.id,t.channel); renderTones();
+  }
+});
+document.getElementById('panel-main').addEventListener('change',e=>{
+  const el=e.target; if(!el.dataset.a) return;
+  const t=tones.find(x=>x.id===+el.dataset.id); if(!t) return;
+  if(el.dataset.a==='wave'){ t.waveform=el.value; ENG.setWave(t.id,el.value); save(); }
+  if(el.dataset.a==='dev'){
+    const was=t.playing; ENG.stop(t.id); t.deviceId=el.value; save();
+    if(was) ENG.play(t).catch(err=>audioErr(err));
+  }
+});
+document.getElementById('panel-main').addEventListener('input',e=>{
+  const el=e.target; if(el.dataset.a!=='vol') return;
+  const t=tones.find(x=>x.id===+el.dataset.id); if(!t) return;
+  t.volume=+el.value; ENG.setVol(t.id,t.volume);
+  const vp=document.getElementById('vp'+t.id); if(vp) vp.textContent=Math.round(t.volume*100)+'%';
+});
+document.getElementById('panel-main').addEventListener('change',e=>{ if(e.target.dataset.a==='vol') save(); });
+
+function audioErr(err){
+  console.error(err);
+  updateStatus('audio unavailable: '+(err?.message||'unknown error'));
+}
+
+async function toggleTone(id){
+  const t=tones.find(x=>x.id===id); if(!t) return;
+  if(t.playing){ ENG.stop(id); t.playing=false; }
+  else {
+    try{ ENG.init(); await ENG.play(t); t.playing=true; }
+    catch(err){ audioErr(err); return; }
+  }
+  const card=document.getElementById('tc'+id);
+  if(card){
+    card.className='tcard'+(t.playing?' on':'');
+    const btn=card.querySelector('[data-a="toggle"]');
+    if(btn){
+      btn.className='tc-play'+(t.playing?' on':''); btn.textContent=t.playing?'■':'▶';
+      btn.setAttribute('aria-label',(t.playing?'stop ':'play ')+fHz(t.hz)+' Hz');
+    }
+  }
+  updateGlobalBtn(); updateStatus();
+}
+
+// ── GLOBAL PLAY ──────────────────────────────────────────────
+async function toggleAll(){
+  if(globalOn){
+    ENG.stopAll(); tones.forEach(t=>t.playing=false); globalOn=false;
+  } else {
+    if(!tones.length){ updateStatus('add frequencies first'); return; }
+    try{
+      ENG.init();
+      for(const t of tones){ await ENG.play(t); t.playing=true; }
+      globalOn=true;
+    }catch(err){ ENG.stopAll(); tones.forEach(t=>t.playing=false); audioErr(err); }
+  }
+  renderTones(); updateGlobalBtn(); updateStatus();
+}
+function stopAll(){
+  ENG.stopAll(); tones.forEach(t=>t.playing=false); globalOn=false;
+  renderTones(); updateGlobalBtn(); updateStatus();
+}
+function updateGlobalBtn(){
+  const any=tones.some(t=>t.playing); globalOn=any;
+  const b=document.getElementById('gbtn');
+  b.textContent=any?'■':'▶'; b.className='gbtn'+(any?' on':'');
+}
+function updateStatus(msg){
+  const el=document.getElementById('hd-status');
+  if(msg){ el.textContent=msg; return; }
+  const p=tones.filter(t=>t.playing).length, bt=devs.filter(d=>isBT(d.label)).length;
+  if(!tones.length) el.textContent='select frequencies → play';
+  else if(!p) el.textContent=`${tones.length} tone${tones.length>1?'s':''} loaded`;
+  else el.textContent=`${p}/${tones.length} playing · ${devs.length} device${devs.length>1?'s':''}${bt?' · '+bt+' BT':''}`;
+}
+
+// ── TABS ─────────────────────────────────────────────────────
+function switchTab(name){
+  document.querySelectorAll('.mobt').forEach(t=>t.classList.toggle('on',t.dataset.tab===name));
+  ['lib','main','spk'].forEach(p=>{
+    const el=document.getElementById('panel-'+p);
+    el.classList.toggle('tab-shown',p===name);
+  });
+  if(name==='main') sizeAtm();
+}
+
+// ── DOWNLOAD ─────────────────────────────────────────────────
+async function doDownload(){
+  try{
+    let html=null;
+    // prefer the original source file (the live DOM contains rendered state)
+    if(location.protocol.startsWith('http')){
+      try{ const r=await fetch(location.pathname,{cache:'no-store'}); if(r.ok) html=await r.text(); }catch(_){}
+    }
+    if(!html) html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+    const blob=new Blob([html],{type:'text/html'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='shepherd.freq.html';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1000);
+  }catch(e){ console.error('download failed',e); updateStatus('download failed'); }
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+function init(){
+  sizeCanvas(); drawWave();
+  sizeAtm(); drawAtm();
+
+  window.addEventListener('resize',()=>{
+    sizeCanvas();
+    sizeAtm();
+  });
+
+  load(); renderLib(); renderDevs(); renderTones();
+  document.getElementById('srch').addEventListener('input',e=>{ srchQ=e.target.value; renderLib(); });
+  document.getElementById('gbtn').addEventListener('click',toggleAll);
+  document.getElementById('stopallbtn').addEventListener('click',stopAll);
+  document.getElementById('scanbtn').addEventListener('click',()=>scanDevs(true));
+  document.getElementById('dlbtn').addEventListener('click',doDownload);
+  document.getElementById('mvol').addEventListener('input',e=>ENG.setMaster(+e.target.value));
+  document.getElementById('mvol').addEventListener('change',save);
+  document.getElementById('caddbtn').addEventListener('click',()=>{
+    const hz=parseFloat(document.getElementById('chz').value);
+    if(!isFinite(hz)||hz<=0||hz>22000){ updateStatus('enter a frequency between 0.01 and 22000 Hz'); return; }
+    const name=document.getElementById('cname').value.trim()||'custom';
+    tones.push({id:nid++,hz,name,cat:'reference',desc:'custom '+hz+' Hz',channel:'both',
+      waveform:'sine',volume:.5,deviceId:devs[0]?.deviceId||'default',playing:false});
+    renderTones(); renderLib(); updateStatus();
+    document.getElementById('chz').value='';
+    document.getElementById('cname').value='';
+    if(window.innerWidth<=900) switchTab('main');
+  });
+  document.getElementById('chz').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('caddbtn').click(); });
+  document.getElementById('cname').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('caddbtn').click(); });
+  document.querySelectorAll('.mobt').forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.tab)));
+  if(navigator.mediaDevices?.addEventListener) navigator.mediaDevices.addEventListener('devicechange',()=>scanDevs(false));
+  scanDevs(false); updateStatus();
+}
+
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
