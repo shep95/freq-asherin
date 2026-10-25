@@ -6,7 +6,7 @@
 // (no cache poisoning via arbitrary URLs or query strings), redirects and
 // non-OK / non-basic responses are never stored, and cross-origin requests
 // are not intercepted at all.
-const VERSION = 'shepherd-v9';
+const VERSION = 'shepherd-v10';
 const ASSETS = [
   './',
   'manifest.webmanifest',
@@ -45,8 +45,10 @@ self.addEventListener('fetch', e => {
 
   // pages: network first (so updates arrive), cached shell when offline
   if (req.mode === 'navigate') {
+    // a weak connection ("lie-fi") must not hang the app: after 3 s, use the cached shell
+    const timeout = new Promise((_, no) => setTimeout(() => no(new Error('slow')), 3000));
     e.respondWith(
-      fetch(req)
+      Promise.race([fetch(req), timeout])
         .then(res => {
           if (storable(res) && url.pathname === scopeURL.pathname) {
             const copy = res.clone();
@@ -54,7 +56,7 @@ self.addEventListener('fetch', e => {
           }
           return res;
         })
-        .catch(() => caches.match('./'))
+        .catch(() => caches.match('./').then(hit => hit || fetch(req)))
     );
     return;
   }

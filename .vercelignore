@@ -6,3 +6,4 @@ tools/
 *.mjs
 SECURITY.md
 tests/
+docs/

@@ -373,7 +373,7 @@ try {
     await p.setInputFiles('#combofile', evilFile); await wait(400);
     const ci = await ev(p, () => ({ n: combos.length, pol: ({}).polluted ?? null, t: combos.find(c => c.name.startsWith('<img'))?.tones, imgs: document.querySelectorAll('#combolist img,#combolist svg[onload]').length }));
     check('combos', 'hostile import: capped at 50, no pollution, inert names, bad tones dropped', ci.n === 50 && ci.pol === null && ci.imgs === 0 && ci.t?.length === 1 && ci.t[0].hz === 1000 && ci.t[0].volume === 1 && ci.t[0].cat === 'reference', JSON.stringify(ci));
-    const big = path.join(tmp, 'big.json'); fs.writeFileSync(big, 'x'.repeat(300 * 1024));
+    const big = path.join(tmp, 'big.json'); fs.writeFileSync(big, 'x'.repeat(3 * 1024 * 1024));   // import limit is 2 MB
     await p.setInputFiles('#combofile', big); await wait(200);
     check('combos', 'oversized import refused', (await p.textContent('#toastmsg')).includes('too large'));
     const bad = path.join(tmp, 'bad.json'); fs.writeFileSync(bad, '{not json');
@@ -589,6 +589,143 @@ try {
     const ep = await ev(p, () => { const x = playlists.find(q => q.name.startsWith('<img')); return x && { loop: x.loop, items: x.items.length, min: x.items[0].minutes, tones: x.items[0].tones.length, imgs: document.querySelectorAll('#pllist img').length, fake: playlists.filter(q => q.name === 'asherin.playlist').length }; });
     check('playlists', 'hostile import: inert, clamped, no fake preset', ep && ep.loop === false && ep.items === 1 && ep.min === 180 && ep.tones === 1 && ep.imgs === 0 && ep.fake === 0, JSON.stringify(ep));
     check('playlists', 'no page errors / dialogs', p.errors.length === 0 && p.dialogs.length === 0, p.errors.join(' | '));
+    await ctx.close();
+  }
+
+  // ── 8f · REGRESSIONS FOR THE AUDIT FIXES ──────────────────
+  {
+    // #1 storage blocked entirely
+    const blocked = () => { for (const k of ['localStorage', 'sessionStorage']) Object.defineProperty(window, k, { configurable: true, get() { throw new DOMException('blocked', 'SecurityError'); } }); };
+    const { ctx: c1, p: p1 } = await page({ ack: false, init: blocked });
+    await p1.goto(U); await wait(1200);
+    await addLib(p1, 'Verdi A (432 Hz)');
+    await p1.click('.tc >> nth=0 >> [data-a=toggle]'); await wait(250); await p1.click('#ackyes'); await wait(400);
+    check('fixes', '#1 storage blocked: can still acknowledge and play', await ev(p1, () => tones[0]?.playing && ENG.nodes.size === 1) && p1.errors.length === 0, p1.errors.join(' | '));
+    await c1.close();
+
+    // slow bluetooth device (setSinkId 600 ms) for the race fixes
+    const slowBt = () => {
+      localStorage.setItem('shepherd.freq.out', 'bt');
+      window.__outs = [{ kind: 'audiooutput', deviceId: 'default', label: 'Default' }, { kind: 'audiooutput', deviceId: 'bt', label: 'JBL Flip (Bluetooth)' }];
+      navigator.mediaDevices.enumerateDevices = async () => window.__outs.map(d => ({ ...d }));
+      AudioContext.prototype.setSinkId = function () { return new Promise(r => setTimeout(r, 600)); };
+    };
+    const { ctx: c2, p: p2 } = await page({ init: slowBt });
+    await p2.goto(U); await wait(1300);
+    await addLib(p2, 'Verdi A (432 Hz)');
+    check('fixes', 'new tone goes to the remembered bluetooth device', await ev(p2, () => tones[0].deviceId === 'bt'));
+    await p2.click('.tc >> nth=0 >> [data-a=toggle]'); await wait(80);
+    await p2.click('.tc >> nth=0 >> [data-a=remove]'); await wait(1200);
+    check('fixes', '#2 remove while a tone is still connecting → nothing left sounding', await ev(p2, () => ENG.nodes.size === 0 && ENG.pending.size === 0 && tones.length === 0));
+    await addLib(p2, 'Verdi A (432 Hz)');
+    await ev(p2, () => { toggleTone(tones[0].id); toggleTone(tones[0].id); toggleTone(tones[0].id); }); await wait(1400);
+    check('fixes', '#2 rapid play/stop/play → exactly one oscillator, state agrees', await ev(p2, () => ENG.nodes.size === (tones[0].playing ? 1 : 0) && ENG.nodes.size <= 1));
+    await ev(p2, () => { ENG.stopAll(); tones.forEach(t => t.playing = false); for (const h of [528, 639]) newTone({ hz: h, name: 'x', cat: 'reference' }); tones.forEach(t => t.deviceId = 'default'); });
+    await ev(p2, async () => { for (const t of tones) { if (await ENG.play(t)) t.playing = true; } });
+    await ev(p2, () => routeAll('bt')); await wait(1500);
+    const ctxs = await ev(p2, () => ({ dctx: ENG.dctx.size, shared: new Set([...ENG.nodes.values()].map(n => n.ctx)).size, nodes: ENG.nodes.size }));
+    check('fixes', '#3 moving 3 playing tones to a device → one shared context', ctxs.dctx === 1 && ctxs.shared === 1 && ctxs.nodes === 3, JSON.stringify(ctxs));
+    await ev(p2, () => routeAll('default')); await wait(400);
+    check('fixes', '#5 device context closed when nothing plays through it', await ev(p2, () => ENG.dctx.size === 0));
+    check('fixes', 'no page errors (race scenarios)', p2.errors.length === 0, p2.errors.join(' | '));
+    await c2.close();
+
+    const { ctx: c3, p: p3 } = await page();
+    await p3.goto(U); await wait(1200);
+    // #4 edit the playing playlist
+    await p3.click('.ctab[data-sub=combos]'); await p3.click('.pl.builtin button[data-a=dup]'); await wait(200);
+    await ev(p3, () => { playlists[0].items = playlists[0].items.slice(0, 2); savePlaylists(); renderPlaylists(); });
+    await p3.click('.pl:not(.builtin) button[data-a=play]'); await wait(700);
+    await ev(p3, () => stepPlaylist(1)); await wait(600);
+    const before = await ev(p3, () => plState.endsAt);
+    await p3.fill('.pl:not(.builtin) .pl-item >> nth=1 >> input[data-a=min]', String(26)); await p3.press('.pl:not(.builtin) .pl-item >> nth=1 >> input[data-a=min]', 'Tab'); await wait(150);
+    check('fixes', '#4 changing the playing stage\'s minutes moves its end time', await ev(p3, (b) => Math.round((plState.endsAt - b) / 60000) === 1, before));
+    await p3.click('.pl:not(.builtin) .pl-item >> nth=1 >> [data-a=rm]'); await wait(200);
+    await addLib(p3, 'solfeggio 528 Hz');
+    check('fixes', '#4 removing the playing stage stops the playlist cleanly', await ev(p3, () => plState === null && tones.some(t => t.hz === 528)) && p3.errors.length === 0, p3.errors.join(' | '));
+    // #6 a combo takes over from a playlist
+    await ev(p3, () => { combos.unshift({ id: 'c1', name: 'mine', created: Date.now(), tones: [{ hz: 300, name: 'x', cat: 'reference', channel: 'both', waveform: 'sine', volume: .3 }] }); saveCombos(); renderCombos(); });
+    await p3.click('.pl.builtin button[data-a=play]'); await wait(300); if (await p3.isVisible('#dgyes')) await p3.click('#dgyes'); await wait(600);
+    await ev(p3, () => useCombo('c1', 'play')); await wait(500);
+    check('fixes', '#6 playing a combo ends the playlist (no later wipe)', await ev(p3, () => plState === null && tones.length === 1 && tones[0].playing));
+    // #8 reset undo keeps what was added since
+    await p3.click('#resetbtn'); await wait(300);
+    await addLib(p3, 'gamma 40 Hz'); await wait(100);
+    await p3.click('#toastact'); await wait(300);
+    check('fixes', '#8 reset → add → undo restores both', await ev(p3, () => tones.length === 2 && tones.some(t => t.hz === 300) && tones.some(t => t.hz === 40)));
+    // #10 hidden caution note
+    await p3.click('.ctab[data-sub=int]'); await p3.selectOption('#ipulse', '40'); await wait(50); await p3.selectOption('#ipulse', '0'); await wait(50);
+    check('fixes', '#10 pulse caution note hides again on "steady"', await p3.isHidden('#ipulserisk'));
+    // #11 export with playlists only
+    await ev(p3, () => { combos.length = 0; saveCombos(); renderCombos(); }); await wait(100);
+    check('fixes', '#11 export enabled with playlists but no combos', await ev(p3, () => playlists.length > 0 && !document.getElementById('comboexp').disabled));
+    // #14 a custom 440 isn't mistaken for the library's 440
+    await ev(p3, () => { tones = []; renderTones(); newTone({ hz: 440, name: 'my 440', cat: 'reference' }); }); await wait(100);
+    await p3.click('.ctab[data-sub=lib]'); await p3.fill('#srch', 'concert A 440'); await wait(100);
+    check('fixes', '#14 custom 440 Hz doesn\'t mark the library row as added', (await p3.$$('.frow.used')).length === 0);
+    await p3.click('.frow >> nth=0'); await wait(100);
+    check('fixes', '#14 clicking the library row adds instead of deleting yours', await ev(p3, () => tones.length === 2));
+    // #16 focus trap + restore, inert background
+    await p3.focus('#cmdbtn'); await p3.keyboard.press('Enter'); await wait(250);
+    check('fixes', '#16 background is inert while a dialog is open', await ev(p3, () => document.querySelector('header').hasAttribute('inert')));
+    for (let i = 0; i < 6; i++) await p3.keyboard.press('Tab');
+    check('fixes', '#16 Tab stays inside the dialog', await ev(p3, () => document.getElementById('cmd').contains(document.activeElement)));
+    await p3.keyboard.press('Escape'); await wait(350);
+    check('fixes', '#16 Escape returns focus to the button that opened it', await ev(p3, () => document.activeElement?.id === 'cmdbtn' && !document.querySelector('header').hasAttribute('inert')));
+    // #17 segmented controls announce state
+    check('fixes', '#17 segmented buttons expose aria-pressed', await ev(p3, () => [...document.querySelectorAll('#imode .sbtn')].map(b => b.getAttribute('aria-pressed')).join() === 'true,false,false,false'));
+    check('fixes', 'no page errors', p3.errors.length === 0, p3.errors.join(' | '));
+    await c3.close();
+
+    // #13 no "connected" toast on load
+    const outs = () => { navigator.mediaDevices.enumerateDevices = async () => [{ kind: 'audiooutput', deviceId: 'default', label: 'Default' }, { kind: 'audiooutput', deviceId: 'spk', label: 'Speakers' }]; };
+    const { ctx: c4, p: p4 } = await page({ init: outs });
+    await p4.goto(U); await wait(1500);
+    check('fixes', '#13 no false "connected" toast on page load', await p4.isHidden('#toast'));
+    await c4.close();
+  }
+
+  // ── 8g · PREMIUM LAYER & NEW FEATURES ─────────────────────
+  {
+    const { ctx, p } = await page();
+    await p.goto(U); await wait(1300);
+    check('premium', 'champagne wordmark, orb ring, cursor sheen present', await ev(p, () => getComputedStyle(document.querySelector('.logo i')).backgroundClip.includes('text') && !!document.querySelector('.orb-ring') && document.querySelectorAll('.column>.sheen').length === 2));
+    await wait(1500);
+    check('premium', 'frame loop sleeps when nothing moves', await ev(p, () => looping === false));
+    await addLib(p, 'solfeggio 528 Hz'); await wait(900);
+    check('premium', 'hero rolls to the exact value', (await p.textContent('#heroHz')) === '528');
+    await p.click('#gbtn'); await wait(1400);
+    check('premium', 'master swell: tone fades in (not a cut)', await ev(p, () => { const n = [...ENG.nodes.values()][0]; return !!n; }));
+    check('premium', 'session time appears while sounding', await p.isVisible('#sess') && /\d+:\d\d/.test(await p.textContent('#sesst')));
+    check('premium', 'media session metadata (lock screen / media keys)', await ev(p, () => !navigator.mediaSession || (navigator.mediaSession.metadata?.title || '').includes('528')));
+    check('premium', 'loop runs while sounding', await ev(p, () => looping === true));
+    // sleep timer
+    await p.click('#sleepbtn'); await wait(150);
+    check('premium', 'sleep timer: 15 min, shown in the header', await ev(p, () => sleepMin === 15) && /1[45]:\d\d/.test(await p.textContent('#sleeplbl')));
+    await p.keyboard.press('t'); await wait(100);
+    check('premium', 'T cycles to 30 min', await ev(p, () => sleepMin === 30));
+    await ev(p, () => { sleepEnd = Date.now() - 1; }); await wait(1300);
+    check('premium', 'sleep timer fires → everything fades out, timer off', await ev(p, () => !tones.some(t => t.playing) && sleepEnd === 0) && (await p.textContent('#toastmsg')).includes('fading out'));
+    // command bar
+    await p.keyboard.press('Control+k'); await p.keyboard.type('639'); await wait(150);   // typing immediately must land
+    check('premium', '⌘K / Ctrl+K opens the command bar, focus in search, typing lands at once', await p.isVisible('#cmd') && await ev(p, () => document.activeElement.id === 'cmdq' && document.getElementById('cmdq').value === '639'));
+    check('premium', 'search finds frequencies', (await p.textContent('#cmdlist')).includes('639 Hz'));
+    await p.keyboard.press('Enter'); await wait(400);
+    check('premium', 'Enter runs the top result (adds 639)', await ev(p, () => tones.some(t => t.hz === 639)) && await p.isHidden('#cmd'));
+    await p.keyboard.press('/'); await wait(200); await p.keyboard.type('sleep'); await wait(100);
+    check('premium', 'actions searchable ("sleep" → sleep timer)', (await p.textContent('#cmdlist .cmd-it[aria-selected=true]')).includes('sleep timer'));
+    await p.keyboard.press('Escape'); await wait(300);
+    // shortcuts & settings
+    await p.keyboard.press('?'); await wait(250);
+    check('premium', '? opens shortcuts & settings', await p.isVisible('#keys'));
+    await p.click('#qualseg .sbtn[data-v=lite]'); await wait(100);
+    check('premium', 'quality: lite removes live glass', await ev(p, () => ROOT.classList.contains('lite') && getComputedStyle(document.querySelector('#panel-lib')).backdropFilter === 'none'));
+    await p.click('#qualseg .sbtn[data-v=full]'); await wait(100);
+    check('premium', 'quality: full restores it', await ev(p, () => !ROOT.classList.contains('lite') && localStorage.getItem('shepherd.freq.quality') === 'full'));
+    await p.click('#hapseg .sbtn[data-v=off]');
+    check('premium', 'haptics setting saved', await ev(p, () => localStorage.getItem('shepherd.freq.haptics') === 'off'));
+    await p.click('#keysclose'); await wait(300);
+    check('premium', 'no page errors', p.errors.length === 0, p.errors.join(' | '));
     await ctx.close();
   }
 

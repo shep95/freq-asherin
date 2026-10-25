@@ -71,6 +71,14 @@ vercel.json            headers (security, service worker, manifest)
   under ~20 Hz (delta, theta, alpha, beta, gamma, Schumann) are built as
   binaural beats — use headphones. Each stage shows its intent and a short
   "what's known" note.
+- **Command bar** (⌘K / Ctrl K or `/`) — find and run any frequency, preset,
+  saved combo, playlist or action from the keyboard. **?** opens shortcuts &
+  settings (visual quality auto / full / lite, haptics).
+- **Sleep timer** (moon icon or **T**) — 15 / 30 / 45 / 60 / 90 min, then a
+  20 s fade-out. Session time shows in the header while sound plays.
+- **Lock-screen / media keys** (where the browser supports Media Session),
+  light haptics on phones, and **adaptive quality**: slower devices switch to
+  solid glass and a still scene automatically.
 - A one-time safety notice appears before the first sound.
 - **Colour filters** under the search box narrow the library by evidence
   colour; combine several. The **skull** filter shows extreme-caution tones
@@ -95,10 +103,16 @@ command and output directory empty. Or with the CLI: `vercel --prod`.
 When you change a file that the service worker caches, bump `VERSION` in
 `sw.js` so installed copies pick up the update.
 
+## Design & audit
+
+- `docs/design-system.md` — component relationship map, visual hierarchy,
+  motion system and the performance contract.
+- `docs/audit-2026-10.md` — the October 2026 audit: every bug found and fixed.
+
 ## Tests
 
 `tests/run.mjs` drives a real Chromium through every feature, safety gate and
-a set of attacks (256 checks), served with the production headers:
+a set of attacks (296 checks), served with the production headers:
 
 ```sh
 npm i --no-save playwright && npx playwright install chromium
