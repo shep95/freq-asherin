@@ -12,7 +12,7 @@ when the two disagree, the code is wrong.
 |---|---|---|
 | **scene** | wallpaper (blurred), stage image, horizon glow, floor glow, hero frequency, horizon wave | the world. it *responds*; it is never a control |
 | **header** (ceiling band) | champagne wordmark, status line, session time, sleep timer, command bar, master volume, play orb | identity + the one global instrument |
-| **left glass column** | library · colour filters · custom Hz / intervals / mute charge | where sound is *chosen* |
+| **left glass column** | library · colour filters · custom Hz / modes (sleep · focus · calm · learn) + your hearing / intervals / mute charge | where sound is *chosen* — by frequency or by task |
 | **tone band** (on the land) | active-tone cards, save · reset · stop all | what is *sounding* |
 | **right glass column** | insight / playlists & combos / connect (output, radios, devices, offline) | what it *means* and where it *goes* |
 | **overlays** | first-listen notice, extreme caution, spectrum map, command bar, shortcuts & settings, toast | interruptions — always dismissible, always return focus |
@@ -80,6 +80,8 @@ flowchart LR
 | **change playlist stage** | 3 s crossfade between stages → now-playing card and header status update → hero rolls |
 | **a speaker connects** | "connected · use it" → one tap routes everything there → the connect status and device list update → bluetooth lights on the spectrum |
 | **sleep timer ends** | everything fades over 20 s → timer clears |
+| **start a mode** | the mode card turns champagne → the mix soft-starts over 8 s → sleep dims the world / calm draws a breathing ring around the hero / focus chimes at each block → any other play ends the mode's effects |
+| **listening** | every second the dose meter adds the estimated A-weighted level against WHO's 80 dB(A) · 40 h a week; 80 % and 100 % each warn once |
 
 the principle: **nothing changes without the world acknowledging it**, and the
 acknowledgement always comes from the part that is *causally* connected — sound

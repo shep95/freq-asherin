@@ -729,6 +729,103 @@ try {
     await ctx.close();
   }
 
+  // ── 8h · MODES & HEARING PROTECTION ───────────────────────
+  {
+    const { ctx, p } = await page();
+    await p.goto(U); await wait(1300);
+    await p.click('.ctab[data-sub=modes]'); await wait(150);
+    check('modes', 'modes tab lists sleep, focus, calm, learn', (await p.$$eval('.tmode', els => els.map(e => e.dataset.mode).join())) === 'sleep,focus,calm,learn');
+    check('modes', 'each mode shows evidence tags', (await p.$$eval('.tmode', els => els.every(e => e.querySelector('.ev')))));
+    // sleep: options, dim, cap, glide
+    await p.click('.tmode[data-mode=sleep] [data-v="20"]'); await wait(50);
+    await p.click('[data-ms=sleep]'); await wait(700);
+    let st = await ev(p, () => ({ dim: document.documentElement.classList.contains('dim'), mode: modeOn?.id, n: tones.length, play: tones.every(t => t.playing),
+      glide: tones.some(t => t.glideTo === 112), vol: ENG.vol, min: plState && Math.round(plState.total / 60000), status: $('status').textContent }));
+    check('modes', 'sleep starts: 2 tones sounding, beat glides 6→2', st.mode === 'sleep' && st.n === 2 && st.play && st.glide, JSON.stringify(st));
+    check('modes', 'sleep dims the scene and holds the master at 50 %', st.dim && st.vol <= .5 + 1e-9);
+    check('modes', 'chosen length used (20 min)', st.min === 20, st.min);
+    check('modes', 'status names the mode', /sleep mode/.test(st.status), st.status);
+    await p.click('.ctab[data-sub=modes]'); await wait(1200);
+    check('modes', 'running card shows time left', /left/.test(await p.textContent('#mlleft')));
+    await p.click('[data-mstop]'); await wait(1300);
+    st = await ev(p, () => ({ dim: document.documentElement.classList.contains('dim'), mode: modeOn, vol: ENG.vol, any: tones.some(t => t.playing) }));
+    check('modes', 'stop ends sound, undims, restores master', !st.dim && !st.mode && !st.any && Math.abs(st.vol - .7) < 1e-6, JSON.stringify(st));
+    // calm: breathing ring + cue
+    await p.click('[data-ms=calm]'); await wait(600);
+    st = await ev(p, () => ({ ring: !$('breath').hidden, cap: $('heroCap').textContent, vol: ENG.vol }));
+    check('modes', 'calm shows the breathing ring and cue', st.ring && /breathe (in|out) · [1-4]/.test(st.cap) && st.vol <= .6 + 1e-9, JSON.stringify(st));
+    // a manual play takes over → mode effects end
+    await p.click('#gbtn'); await wait(1300);
+    check('modes', 'stopping by hand ends the mode', await ev(p, () => !modeOn && $('breath').hidden));
+    // focus: alternating stages with chime
+    await p.click('.ctab[data-sub=modes]'); await p.click('.tmode[data-mode=focus] [data-k=b][data-v="2"]'); await wait(50);
+    await p.click('[data-ms=focus]'); await wait(600);
+    st = await ev(p, () => ({ items: modeOn.pl.items.map(i => i.name + ':' + i.minutes).join(), chime: modeOn.pl.chime }));
+    check('modes', 'focus builds work / break blocks', st.items === 'focus 1 of 2:25,break 1:5,focus 2 of 2:25' && st.chime, st.items);
+    await ev(p, () => { plState.endsAt = Date.now() - 1; }); await wait(2200);
+    check('modes', 'focus advances to the break', await ev(p, () => plState?.i === 1 && /break/.test($('status').textContent)));
+    await ev(p, () => stopAll()); await wait(1200);
+    check('modes', 'options persist', await ev(p, () => JSON.parse(localStorage.getItem('shepherd.freq.modes')).focus.b === 2));
+    // command bar
+    await p.keyboard.press('Control+k'); await p.keyboard.type('calm'); await wait(100);
+    check('modes', 'command bar finds modes', /calm · breathe/.test(await p.textContent('#cmdlist')));
+    await p.keyboard.press('Escape'); await wait(300);
+    // learn
+    await p.keyboard.press('l'); await wait(300);
+    check('learn', 'L opens the archive', await p.isVisible('#learn'));
+    const all = (await p.$$('.lc')).length;
+    await p.click('#learnf [data-v=pat]'); await wait(50);
+    const pats = (await p.$$('.lc')).length;
+    check('learn', 'archive filters by topic', all >= 20 && pats >= 3 && pats < all, `${all}/${pats}`);
+    check('learn', 'every card carries a status tag', await p.$$eval('.lc', els => els.every(e => e.querySelector('.ev'))));
+    await p.click('[data-try=beat]'); await wait(800);
+    check('learn', 'hear-a-beat adds a 4 Hz monaural pair', await ev(p, () => tones.filter(t => t.playing).map(t => t.hz).sort().join() === '200,204'));
+    await ev(p, () => stopAll());
+    check('modes', 'no page errors', p.errors.length === 0, p.errors.join(' | '));
+    await ctx.close();
+  }
+  {
+    // cap, soft start, dose, kids & pets, hearing range
+    const { ctx, p } = await page();
+    await p.goto(U); await wait(1300);
+    await p.keyboard.press('?'); await wait(250);
+    await p.click('#capseg [data-v="0.6"]'); await wait(50);
+    check('hearing', 'volume cap pulls the master down', await ev(p, () => +$('mvol').value <= .6 && ENG.vol <= .6));
+    await ev(p, () => { $('mvol').value = 1; $('mvol').dispatchEvent(new Event('input', { bubbles: true })); }); await wait(50);
+    check('hearing', 'the slider cannot pass the cap', await ev(p, () => +$('mvol').value === .6));
+    await p.click('#loudseg [data-v="88"]'); await p.click('#keysclose'); await wait(300);
+    await addLib(p, 'Verdi A (432 Hz)'); await p.click('#gbtn'); await wait(300);
+    const g = await ev(p, () => ENG.mg.gain.value);
+    check('hearing', 'soft start: master rises from silence', g < .3, g);
+    await wait(3500);
+    const d = await ev(p, () => { const k = dayKey(); return { t: dose[k]?.t || 0, e: dose[k]?.e || 0, L: levelDb() }; });
+    check('hearing', 'dose meter counts listening time and level', d.t >= 3 && d.e > 0 && Number.isFinite(d.L), JSON.stringify(d));
+    await p.click('.ctab[data-sub=modes]'); await wait(1200);
+    check('hearing', 'dose shows in the modes tab', /dB\(A\)/.test(await p.textContent('#dosenote')));
+    await ev(p, () => stopAll()); await wait(200);
+    // pets: a 17.4 kHz tone carries a mark and a notice
+    await p.click('.ctab[data-sub=lib]'); await p.fill('#chz', '17400'); await p.click('#caddbtn'); await wait(200);
+    check('hearing', 'high tone carries the kids & pets mark', await p.isVisible('.tc .pet'));
+    await p.click('.tc:last-child [data-a=toggle]'); await wait(300);
+    check('hearing', '17.4 kHz still asks for the extreme-caution check first', await p.isVisible('#danger'));
+    await p.click('#dgyes'); await wait(400);
+    check('hearing', 'kids & pets notice on play', /children/.test(await p.textContent('#toastmsg')));
+    await ev(p, () => stopAll());
+    // hearing range check
+    await p.click('.ctab[data-sub=modes]'); await p.click('#hearbox [data-h=range]'); await wait(300);
+    check('hearing', 'range check opens', await p.isVisible('#hear') && await p.isVisible('#heargo'));
+    await p.click('#heargo'); await wait(2500);
+    const hz = +(await p.textContent('#hearhz'));
+    check('hearing', 'sweep rises', hz > 8000 && hz < 20000, hz);
+    await p.click('#heargone'); await wait(200);
+    const r = await ev(p, () => loadRange());
+    check('hearing', 'result saved and shown', r && r.hz > 8000 && /kHz/.test(await p.textContent('#heartxt')), JSON.stringify(r));
+    await p.click('#hearok'); await wait(300);
+    check('hearing', 'range shows in the hearing box', /you heard up to/.test(await p.textContent('#hearbox')));
+    check('hearing', 'no page errors', p.errors.length === 0, p.errors.join(' | '));
+    await ctx.close();
+  }
+
   // ── 9 · RESPONSIVE ───────────────────────────────────────
   for (const [w, h, mobile] of [[1920, 947, 0], [1440, 900, 0], [1100, 640, 0], [820, 1180, 1], [390, 844, 1], [844, 390, 1], [360, 640, 1]]) {
     const { ctx, p } = await page({ vp: { width: w, height: h }, mobile: !!mobile });
@@ -737,12 +834,12 @@ try {
     check('responsive', `${w}×${h}: no horizontal overflow`, !over);
     const compact = await ev(p, () => isCompact());
     if (compact) {
-      for (const tab of ['lib', 'int', 'main', 'ins', 'spk']) {
+      for (const tab of ['lib', 'modes', 'main', 'ins', 'spk']) {
         await p.click(`.mobt[data-tab=${tab}]`); await wait(350);
-        const vis = await ev(p, t => { const id = t === 'main' ? 'panel-main' : (t === 'lib' || t === 'int') ? 'panel-lib' : 'panel-spk'; const r = document.getElementById(id).getBoundingClientRect(); return r.height > 80 && r.bottom <= innerHeight + 1; }, tab);
+        const vis = await ev(p, t => { const id = t === 'main' ? 'panel-main' : (t === 'lib' || t === 'modes') ? 'panel-lib' : 'panel-spk'; const r = document.getElementById(id).getBoundingClientRect(); return r.height > 80 && r.bottom <= innerHeight + 1; }, tab);
         check('responsive', `${w}×${h}: tab "${tab}" visible`, vis);
       }
-      await p.click('.mobt[data-tab=int]'); await p.click('#panel-lib .ctab[data-sub=mute]'); await wait(200);
+      await p.click('.mobt[data-tab=modes]'); await p.click('#panel-lib .ctab[data-sub=mute]'); await wait(200);
       check('responsive', `${w}×${h}: mute charge reachable`, await p.isVisible('.charge'));
       await p.click('.mobt[data-tab=ins]'); await p.click('#panel-spk .ctab[data-sub=combos]'); await wait(200);
       check('responsive', `${w}×${h}: combos reachable`, await p.isVisible('#combosave'));
