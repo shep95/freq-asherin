@@ -8,8 +8,8 @@
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "any",
-  "background_color": "#020304",
-  "theme_color": "#020304",
+  "background_color": "#0a0f1c",
+  "theme_color": "#0a0f1c",
   "categories": ["music", "utilities", "health"],
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },

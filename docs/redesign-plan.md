@@ -1,5 +1,7 @@
 # redesign — the colonnade at sunset
 
+**status: built** (october 2026). measured anchors live in the header comment of `index.html`; the stage covers every screen from 320 × 568 to 3840 × 2160, and the suite checks at 12 sizes that the figure stays in view and uncovered on desktop.
+
 the new world: a lone figure on a dark hillside, watching a vast white colonnade arc
 through a valley of cloud toward two impossibly tall towers, with the sun setting over
 the sea on the left. it replaces the portrait "window" image. the image *is* the
@@ -23,12 +25,14 @@ background — full screen, not blurred, not framed.
   holds the figure and the towers in view; on phones it pans so the figure, the near
   colonnade and one tower stay visible (measured per breakpoint, not guessed).
 - **header** above the horizon line, on the sky.
-- **hero frequency**: in the haze between the towers' bases and the far colonnade
-  (≈ 52–70 % x, 20–28 % y): the calmest bright region, and where the figure is looking.
+- **hero frequency**: inside the colonnade's embrace (≈ 41–75 % x, 33.5–44.5 % y), where the
+  figure is looking. (first tried between the towers' feet; the caption collided with the
+  far colonnade, so it moved down.) on phones it shows in the "active" view, where the sheet
+  is low.
 - **left glass column** (library · modes · intervals · mute) over the sea, and the
   **right glass column** (insight · playlists · connect) over the city. both narrower and
   warmer than now, so the colonnade's arc reads between them.
-- **tone band** low on the dark hill, split around the figure: cards never cover the
+- **tone band** low on the dark hill, stopping short of the figure: cards never cover the
   person.
 - **phones**: the image on top, the sheet below, with the figure kept visible above the
   sheet edge.
@@ -48,17 +52,19 @@ background — full screen, not blurred, not framed.
 - the wave is drawn **along the colonnade's top edge**, not a straight line.
 - energy lights the **colonnade's face** (a screen-blended warm glow masked to the arc)
   and swells the **sun**.
-- calm mode's breathing ring centres on the hero between the towers.
-- sleep mode dims the world toward night (blue shift, not just black).
+- calm mode's breathing ring centres on the hero.
+- sleep mode dims the world toward night.
 
 ## 5. the image file
 
-- converted to webp at two widths (1672 and 960) for phones.
+- converted to one webp (1672 × 941, 167 kb). one file keeps the offline single-file
+  download simple.
 - **all metadata removed**: EXIF, XMP, ICC and any C2PA / provenance chunks. verified by
   reading the RIFF chunk list after conversion: only `VP8 ` / `VP8L` / `VP8X` (no `EXIF`,
   `XMP `, `ICCP`) may remain.
-- the old `assets/vista.webp` and the blurred backdrop copy are removed; the service
-  worker's cache version is bumped so installed copies update.
+- the old `assets/vista.webp` is removed; the service worker's cache version is bumped so
+  installed copies update. a blurred copy of the same image stays as the wallpaper beneath
+  the phone sheet, where the stage fades out.
 
 ## 6. order of work
 

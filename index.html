@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-5Uoyf9bUB88hFA1VtED8qrtTDPhcfCmh6ezwU6D2xDI='; style-src 'sha256-bm7K9QV2YNsPFloQ/Vb5HDWmChAQEFLT/Xr1V7XBWS0='; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types default">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-l/ROF0Y/erAZ/pR8H6DXWEjsOy8iiAA5zv1cFc6d4gw='; style-src 'sha256-XGh/VwPTHJ5uMU7I3KnsgE3UleJzLBkkBvbCTCa/6Gw='; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types default">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>shepherd.freq</title>
 <meta name="description" content="Multi-tone frequency generator. Layer tones, route each to left, right or both channels and to separate output devices. Works fully offline.">
-<meta name="theme-color" content="#020304">
+<meta name="theme-color" content="#0a0f1c">
 <meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -16,23 +16,23 @@
 <link rel="icon" href="icons/favicon-32.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <!--pwa--><link rel="manifest" href="manifest.webmanifest"><!--/pwa-->
-<link rel="preload" href="assets/vista.webp" as="image" fetchpriority="high">
+<link rel="preload" href="assets/colonnade.webp" as="image" fetchpriority="high">
 <link rel="preload" href="assets/inter-var.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 /* ══════════════════════════════════════════════════════════════
-   shepherd.freq — observation chamber
+   shepherd.freq — the colonnade at sunset
    ──────────────────────────────────────────────────────────────
-   Every scene-anchored element is placed from measured luminance
-   profiles of assets/vista.webp (736 × 983):
-     ceiling ends ......... y  88  →  8.9 %
-     orbital horizon ...... y 150  → 15.3 %
-     haze band ............ y 380–500 → 38.7 – 50.9 %
-     land horizon ......... y 505  → 51.4 %
-     floor ledge .......... y 865  → 88.0 %
-     window opening ....... x 141–645 → 19.2 – 87.6 %  (centre 53.4 %)
-   The stage is sized to the image aspect (736/983) at full viewport
-   height and anchored on the window centre, so these percentages
-   stay true at every screen size.
+   Every scene-anchored element is placed from points measured on
+   assets/colonnade.webp (1672 × 941):
+     the sun .............. 75, 127   →  4.5 %, 13.5 %
+     sea horizon .......... y 165–180 → 17.5 – 19.1 %
+     towers ............... x 935 / 1090, base y 160 → 56 % / 65 %, 17 %
+     colonnade road ....... (615,465) → (660,440) → (1060,545) → (1530,604)
+     lit colonnade face ... x 600–1520, y 440–700 → 36–91 %, 47–74 %
+     the figure ........... 1050, 785–840 → 62.8 %, 83–89 %
+   The stage keeps the image's aspect and covers the viewport, held
+   on a focal point (--fx, --fy), so these percentages stay true at
+   every screen size. Overlays live in stage percentages.
    ══════════════════════════════════════════════════════════════ */
 
 @font-face{
@@ -46,10 +46,10 @@
   color-scheme:dark;
 
   /* colour — OKLCH, sampled from the image */
-  --void:     oklch(0.09 0.004 250);   /* ceiling */
-  --glass:    oklch(0.15 0.014 165);   /* column glass, dark green */
-  --glass-2:  oklch(0.19 0.018 165);
-  --mullion:  oklch(0.62 0.05 165 / 0.055);
+  --void:     oklch(0.11 0.022 262);   /* night sky, upper right */
+  --glass:    oklch(0.15 0.026 258);   /* column glass, dusk navy (upper-right sky) */
+  --glass-2:  oklch(0.19 0.03 258);
+  --mullion:  oklch(0.86 0.03 85 / 0.045);   /* vertical only: the colonnade's columns */
   --haze:     oklch(0.58 0.025 240);   /* rgb(109,127,142) */
   --horizon:  oklch(0.96 0.008 230);   /* rgb(237,242,243) */
   --amber:    oklch(0.74 0.05 80);     /* rgb(191,168,131) */
@@ -60,14 +60,15 @@
   --tx-3:     oklch(0.56 0.012 230);
   --tx-4:     oklch(0.42 0.010 230);
 
-  --light:    oklch(0.90 0.045 215);   /* active = horizon light */
+  --light:    oklch(0.88 0.05 245);   /* active = horizon light */
   /* prestige — champagne metal, used only for identity (never for state) */
   --champ:    oklch(0.88 0.055 85);
   --champ-2:  oklch(0.72 0.065 72);
   --champ-a:  oklch(0.88 0.055 85 / .14);
   --metal:    linear-gradient(105deg, oklch(0.76 0.05 72) 0%, oklch(0.96 0.035 92) 38%, oklch(0.80 0.06 75) 58%, oklch(0.93 0.045 88) 82%, oklch(0.74 0.055 70) 100%);
-  --light-a:  oklch(0.90 0.045 215 / 0.14);
-  --light-b:  oklch(0.90 0.045 215 / 0.28);
+  --light-a:  oklch(0.88 0.05 245 / 0.14);
+  --light-b:  oklch(0.88 0.05 245 / 0.28);
+  --ember:    oklch(0.64 0.17 36);       /* the figure's jacket — used once: the sounding orb */
   --rose:     oklch(0.72 0.09 15);
   --rose-a:   oklch(0.72 0.09 15 / 0.12);
 
@@ -100,12 +101,16 @@
   --ease-in:  cubic-bezier(.7,0,.84,0);
   --t-fast:160ms; --t-std:240ms; --t-big:480ms; --t-spring:750ms;
 
-  /* scene geometry */
+  /* scene geometry — the stage covers the viewport at the image's aspect (1672 / 941) */
   --H:  100vh;
-  --gap: 14px;                            /* frame inset — everything floats, nothing touches an edge */
-  --SH: calc(var(--H) - var(--gap) * 2);  /* stage height */
-  --sw: calc(var(--SH) * 0.74874);        /* 736 / 983 */
-  --hd: max(56px, calc(var(--gap) + var(--SH) * 0.089)); /* header = ceiling band */
+  --gap: 14px;                            /* ui inset — glass floats, nothing touches an edge */
+  --IA: 1.77683;
+  --SW: max(100vw, calc(var(--H) * var(--IA)));
+  --SH: calc(var(--SW) / var(--IA));
+  --fx: .55; --fy: .55;                   /* focal point: between the towers, over the figure */
+  --SL: clamp(calc(100vw - var(--SW)), calc(50vw - var(--SW) * var(--fx)), 0px);
+  --ST: clamp(calc(var(--H) - var(--SH)), calc(var(--H) * .5 - var(--SH) * var(--fy)), 0px);
+  --hd: max(60px, calc(var(--H) * 0.075)); /* header = the sky band */
   --r-frame: 28px; --r-col: 24px;
   --energy: 0;                            /* 0‥1, driven by playing tones */
   --px: 0; --py: 0;                       /* pointer parallax, spring-smoothed */
@@ -142,22 +147,21 @@ svg{display:block;flex-shrink:0}
 .scene{position:fixed;inset:0;overflow:hidden;z-index:0}
 .backdrop{ /* wallpaper: the same scene, zoomed to fill, blurred and dimmed */
   position:absolute;inset:-96px;
-  background:url(assets/vista.webp) 53.4% 40%/cover no-repeat;
+  background:url(assets/colonnade.webp) 58% 40%/cover no-repeat;
   filter:blur(38px) brightness(.46) saturate(.9);
   transform:translate3d(calc(var(--px) * -14px), calc(var(--py) * -8px), 0) scale(1.12);
 }
 .scene::after{ /* quiet vignette keeps the edges calm */
   content:'';position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(ellipse 75% 70% at 50% 42%, transparent 40%, oklch(0.06 0.006 220 / .62) 100%);
+  background:radial-gradient(ellipse 80% 75% at 55% 45%, transparent 45%, oklch(0.07 0.02 258 / .5) 100%);
 }
 .stage{
-  position:absolute;top:var(--gap);height:var(--SH);width:var(--sw);
-  left:calc(50% - var(--sw) * 0.534);     /* window centre on viewport centre */
-  border-radius:var(--r-frame);overflow:hidden;isolation:isolate;z-index:1;
-  box-shadow:0 0 0 1px oklch(1 0 0 / .08), 0 40px 120px -24px oklch(0 0 0 / .85), 0 0 80px oklch(0.85 0.04 220 / .06);
+  position:absolute;left:var(--SL);top:var(--ST);width:var(--SW);height:var(--SH);
+  overflow:hidden;isolation:isolate;z-index:1;
 }
-.par{position:absolute;inset:0;will-change:transform;transform:translate3d(calc(var(--px) * -8px), calc(var(--py) * -5px), 0)}
-.drift{position:absolute;inset:0;will-change:transform;animation:drift 56s ease-in-out infinite alternate;transform-origin:53.4% 51.4%}
+/* 2 % overscan so parallax never shows an edge */
+.par{position:absolute;inset:0;will-change:transform;transform:translate3d(calc(var(--px) * -8px), calc(var(--py) * -5px), 0) scale(1.02)}
+.drift{position:absolute;inset:0;will-change:transform;animation:drift 56s ease-in-out infinite alternate;transform-origin:62.8% 60%}
 @keyframes drift{from{transform:scale(1)}to{transform:scale(1.022)}}
 .vista{
   position:absolute;inset:0;width:100%;height:100%;display:block;
@@ -165,38 +169,36 @@ svg{display:block;flex-shrink:0}
   transition:opacity 1.6s var(--ease-out), transform 3.2s var(--ease-out), filter 3.2s var(--ease-out);
 }
 body.lit .vista{opacity:1;transform:scale(1);filter:brightness(1)}
-/* floor shade + top specular edge */
+/* sky shade for the header + a little night at the foot of the hill */
 .stage::after{
   content:'';position:absolute;inset:0;pointer-events:none;
-  background:
-    linear-gradient(180deg, transparent 92%, oklch(0.06 0.004 150 / .7) 100%);
-  border-radius:inherit;box-shadow:inset 0 1px 0 oklch(1 0 0 / .10);
+  background:linear-gradient(180deg, oklch(0.10 0.03 258 / .62) 0%, oklch(0.10 0.03 258 / .18) 9%, transparent 16%, transparent 86%, oklch(0.06 0.015 250 / .55) 100%);
 }
 
-/* light responding to sound */
+/* light responding to sound: the sun swells, the colonnade's face warms */
 .horizon-glow,.floor-glow{position:absolute;pointer-events:none;mix-blend-mode:screen;opacity:var(--energy);will-change:opacity,transform;transition:opacity 1.2s var(--ease-out)}
-.horizon-glow{
-  left:19.2%;width:68.4%;top:6.3%;height:18%;
-  background:radial-gradient(ellipse 62% 46% at 50% 50%, oklch(0.98 0.03 220 / .42), oklch(0.9 0.05 220 / .10) 55%, transparent 72%);
+.horizon-glow{ /* the sun and its path on the sea */
+  left:-6%;width:36%;top:-4%;height:52%;
+  background:radial-gradient(ellipse 34% 26% at 29% 34%, oklch(0.94 0.10 80 / .55), oklch(0.85 0.12 65 / .16) 50%, transparent 75%);
   animation:breathe 8s ease-in-out infinite;  /* 7.5 breaths/min — slow, never flicker */
 }
-.floor-glow{
-  left:19.2%;width:68.4%;top:80%;height:14%;
-  background:radial-gradient(ellipse 58% 40% at 50% 60%, oklch(0.92 0.04 215 / .16), transparent 70%);
+.floor-glow{ /* the lit face of the colonnade */
+  left:34%;width:60%;top:42%;height:36%;
+  background:radial-gradient(ellipse 62% 58% at 34% 52%, oklch(0.93 0.08 78 / .30), oklch(0.86 0.10 70 / .08) 55%, transparent 76%);
   animation:breathe 8s ease-in-out infinite;animation-delay:-2s;
 }
 @keyframes breathe{0%,100%{transform:scale(1);opacity:.78}50%{transform:scale(1.06);opacity:1}}
 
-/* hero — in the haze band, the image's calmest region */
+/* hero — inside the colonnade's embrace, where the figure is looking */
 .hero{
-  position:absolute;left:19.2%;width:68.4%;top:38.7%;height:12.2%;
+  position:absolute;left:41%;width:34%;top:33.5%;height:11%;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   text-align:center;pointer-events:none;
   transform:translate3d(calc(var(--px) * 4px), calc(var(--py) * 2px), 0);
 }
 .hero::before{ /* low-frequency scrim: lifts contrast without reading as a shape */
-  content:'';position:absolute;inset:-40% -6%;z-index:-1;
-  background:radial-gradient(ellipse 50% 50% at 50% 50%, oklch(0.16 0.02 240 / .42), transparent 70%);
+  content:'';position:absolute;inset:-45% -4%;z-index:-1;
+  background:radial-gradient(ellipse 50% 50% at 50% 50%, oklch(0.13 0.03 258 / .62), oklch(0.13 0.03 258 / .2) 55%, transparent 74%);
 }
 .hero-hz{
   display:flex;align-items:baseline;gap:var(--s2);
@@ -212,8 +214,8 @@ body.lit .vista{opacity:1;transform:scale(1);filter:brightness(1)}
 #heroHz{display:inline-block;min-width:1ch}
 @keyframes heroIn{from{opacity:0;filter:blur(6px);transform:translateY(4px)}}
 
-/* the land horizon becomes the signal */
-#wave{position:absolute;left:19.2%;width:68.4%;top:48.4%;height:6%;pointer-events:none}
+/* the colonnade's road becomes the signal */
+#wave{position:absolute;left:35%;width:58%;top:41%;height:26%;pointer-events:none}
 
 /* ══ CHROME ══════════════════════════════════════════════════ */
 .ui{opacity:0;transition:opacity 1.2s var(--ease-out)}
@@ -222,16 +224,26 @@ body.lit .ui.d1{transition-delay:.5s} body.lit .ui.d2{transition-delay:.8s} body
 
 header{
   position:fixed;top:0;left:0;right:0;z-index:20;height:var(--hd);
+  text-shadow:0 1px 14px oklch(0.10 0.03 258 / .9), 0 0 2px oklch(0.10 0.03 258 / .6);
+  isolation:isolate;
   padding:env(safe-area-inset-top) max(calc(var(--gap) + var(--s5)), env(safe-area-inset-right)) 0 max(calc(var(--gap) + var(--s5)), env(safe-area-inset-left));
   display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:var(--s4);
 }
 .logo{display:flex;align-items:baseline;font-size:var(--fs-md);letter-spacing:.22em;line-height:1}
-.logo b{font-weight:250;color:var(--tx-2)}
+.logo b{font-weight:300;color:var(--tx-1)}
 .logo i{font-style:normal;font-weight:500;letter-spacing:.06em;margin-left:1px;
   background:var(--metal);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
-  animation:sheenOnce 2.4s var(--ease-out) 1.2s both}
+  animation:sheenOnce 2.4s var(--ease-out) 1.2s both;text-shadow:none;filter:drop-shadow(0 1px 8px oklch(0.10 0.03 258 / .85))}
 @keyframes sheenOnce{from{background-position:100% 0}to{background-position:0 0}}
-#status{text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw;color:var(--tx-3)}
+header::before{ /* dusk scrim: the header reads over sun, sea or towers */
+  content:'';position:absolute;inset:0 0 -36px;z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg, oklch(0.10 0.03 258 / .74), oklch(0.10 0.03 258 / .3) 60%, transparent)}
+.logo{position:relative}
+.logo::before{ /* local dusk halo: the sun can sit right behind the logo */
+  content:'';position:absolute;inset:-16px -26px;z-index:-1;pointer-events:none;
+  background:radial-gradient(closest-side, oklch(0.10 0.03 258 / .72), oklch(0.10 0.03 258 / .35) 60%, transparent)}
+#status{text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw;color:var(--tx-2);padding:8px 24px;
+  background:radial-gradient(closest-side, oklch(0.10 0.03 258 / .6), oklch(0.10 0.03 258 / .25) 65%, transparent)}
 .hd-r{display:flex;align-items:center;justify-content:flex-end;gap:var(--s4)}
 .hbtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 var(--s3);border-radius:var(--r-pill);
   font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;font-weight:500;color:var(--tx-3);
@@ -253,12 +265,12 @@ kbd{font-family:var(--font);font-size:10px;font-weight:600;letter-spacing:.04em;
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   transition:box-shadow var(--t-big) var(--ease-out), background var(--t-std), transform var(--t-spring) var(--spring);
 }
-.orb:hover{box-shadow:var(--pane-edge), 0 0 24px oklch(0.9 0.045 215 / .18)}
+.orb:hover{box-shadow:var(--pane-edge), 0 0 24px oklch(0.88 0.05 245 / .18)}
 .orb:active{transform:scale(.92)}
 .orb.on{
   color:var(--void);
   background:radial-gradient(circle at 50% 30%, oklch(1 0 0 / .9), var(--light) 70%);
-  box-shadow:0 0 0 1px oklch(1 0 0 / .4), 0 0 36px oklch(0.9 0.045 215 / .45), 0 0 96px oklch(0.9 0.045 215 / .18);
+  box-shadow:0 0 0 1px oklch(1 0 0 / .4), 0 0 36px oklch(0.88 0.05 245 / .45), 0 0 96px oklch(0.88 0.05 245 / .18);
 }
 
 /* the glow lives on a pseudo-element and only its opacity animates (compositor, no repaint) */
@@ -268,10 +280,11 @@ kbd{font-family:var(--font);font-size:10px;font-weight:600;letter-spacing:.04em;
   -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 1.5px), #000 calc(100% - 1px));
   mask:radial-gradient(farthest-side, transparent calc(100% - 1.5px), #000 calc(100% - 1px));
   transition:opacity var(--t-big) var(--ease-out)}
-.orb.on .orb-ring{opacity:1;animation:ringTurn 14s linear infinite}
+.orb.on .orb-ring{opacity:1;animation:ringTurn 14s linear infinite;
+  background:conic-gradient(from 0deg, transparent 0 8%, var(--ember) 18%, transparent 30% 58%, var(--champ) 70%, transparent 82%)}
 @keyframes ringTurn{to{transform:rotate(1turn)}}
 .orb::after{content:'';position:absolute;inset:0;border-radius:50%;pointer-events:none;opacity:0;
-  box-shadow:0 0 0 1px oklch(1 0 0 / .5), 0 0 48px oklch(0.9 0.045 215 / .55), 0 0 120px oklch(0.9 0.045 215 / .22);
+  box-shadow:0 0 0 1px oklch(1 0 0 / .5), 0 0 48px oklch(0.88 0.05 245 / .55), 0 0 120px oklch(0.88 0.05 245 / .22);
   transition:opacity var(--t-big) var(--ease-out)}
 .orb.on::after{animation:glowBreath 8s ease-in-out infinite;animation-delay:var(--ph,0ms)}
 @keyframes glowBreath{0%,100%{opacity:.55}50%{opacity:1}}
@@ -284,8 +297,8 @@ input[type=range]{
 input[type=range]::-webkit-slider-runnable-track{height:2px;border-radius:1px;background:linear-gradient(90deg,var(--light) var(--p),var(--line-2) var(--p))}
 input[type=range]::-moz-range-track{height:2px;border-radius:1px;background:var(--line-2)}
 input[type=range]::-moz-range-progress{height:2px;background:var(--light)}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;margin-top:-5px;border-radius:50%;background:var(--tx-1);box-shadow:0 0 0 3px oklch(0.9 0.045 215 / .14),0 0 12px oklch(0.9 0.045 215 / .35)}
-input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radius:50%;background:var(--tx-1);box-shadow:0 0 0 3px oklch(0.9 0.045 215 / .14)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;margin-top:-5px;border-radius:50%;background:var(--tx-1);box-shadow:0 0 0 3px oklch(0.88 0.05 245 / .14),0 0 12px oklch(0.88 0.05 245 / .35)}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radius:50%;background:var(--tx-1);box-shadow:0 0 0 3px oklch(0.88 0.05 245 / .14)}
 #mvol{width:96px}
 
 /* ── GLASS COLUMNS (library / outputs) — tiled glass as in the image ── */
@@ -295,15 +308,14 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
   border-radius:var(--r-col);overflow:hidden;
   box-shadow:inset 0 1px 0 oklch(1 0 0 / .10), inset 0 0 0 1px oklch(1 0 0 / .07), 0 30px 80px -20px oklch(0 0 0 / .7);
   background:
-    repeating-linear-gradient(90deg, var(--mullion) 0 1px, transparent 1px 14px),
-    repeating-linear-gradient(0deg,  var(--mullion) 0 1px, transparent 1px 18px),
-    linear-gradient(90deg, oklch(0 0 0 / .55), oklch(0 0 0 / .08) 22%, oklch(1 0 0 / .025) 50%, oklch(0 0 0 / .08) 78%, oklch(0 0 0 / .55)),
-    oklch(0.13 0.014 165 / .66);
+    repeating-linear-gradient(90deg, var(--mullion) 0 1px, transparent 1px 16px),
+    linear-gradient(90deg, oklch(0 0 0 / .42), oklch(0 0 0 / .06) 22%, oklch(1 0 0 / .025) 50%, oklch(0 0 0 / .06) 78%, oklch(0 0 0 / .42)),
+    oklch(0.14 0.026 258 / .62);
   backdrop-filter:blur(24px) saturate(1.15);-webkit-backdrop-filter:blur(20px) saturate(1.1);
 }
 .column::before{ /* specular edge: light from the window side */
   content:'';position:absolute;top:var(--r-col);bottom:var(--r-col);width:1px;pointer-events:none;
-  background:linear-gradient(180deg, oklch(0.95 0.02 220 / .30), oklch(0.95 0.02 220 / .05) 45%, transparent);
+  background:linear-gradient(180deg, oklch(0.94 0.06 80 / .34), oklch(0.94 0.06 80 / .05) 45%, transparent);
 }
 .column::after{content:'';position:absolute;inset:0;pointer-events:none}
 #panel-lib{left:var(--gap);width:308px}
@@ -365,9 +377,10 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
 /* ── ACTIVE TONES — resting on the land, beneath the horizon ── */
 #panel-main{
   position:fixed;z-index:10;
-  left:calc(50% - var(--sw) * 0.342 + var(--s4));
-  width:calc(var(--sw) * 0.684 - var(--s6));
-  top:calc(var(--gap) + var(--SH) * 0.545);height:calc(var(--SH) * 0.27);
+  --band-l:calc(var(--gap) + 308px + var(--s5));
+  left:var(--band-l);
+  width:max(260px, calc(var(--SL) + var(--SW) * 0.628 - 72px - var(--band-l)));   /* stops short of the figure */
+  top:max(calc(var(--H) * 0.5), calc(var(--ST) + var(--SH) * 0.71));bottom:var(--gap);
   display:flex;flex-direction:column;
 }
 .band-hd{display:flex;align-items:center;justify-content:space-between;height:28px;margin-bottom:var(--s2)}
@@ -402,9 +415,9 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
 /* playing cards breathe with the horizon: same 8 s cycle, phase-locked via --ph */
 .tc{position:relative}
 .tc::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;
-  box-shadow:inset 0 1px 0 oklch(1 0 0 / .18),inset 0 0 0 1px oklch(0.9 0.045 215 / .36),inset 0 0 34px oklch(0.9 0.045 215 / .10);
+  box-shadow:inset 0 1px 0 oklch(1 0 0 / .18),inset 0 0 0 1px oklch(0.88 0.05 245 / .36),inset 0 0 34px oklch(0.88 0.05 245 / .10);
   transition:opacity var(--t-big) var(--ease-out)}
-.tc.on{box-shadow:inset 0 1px 0 oklch(1 0 0 / .14),inset 0 0 0 1px oklch(0.9 0.045 215 / .22),var(--pane-drop),0 0 32px oklch(0.9 0.045 215 / .09)}
+.tc.on{box-shadow:inset 0 1px 0 oklch(1 0 0 / .14),inset 0 0 0 1px oklch(0.88 0.05 245 / .22),var(--pane-drop),0 0 32px oklch(0.88 0.05 245 / .09)}
 .tc.on::after{animation:glowBreath 8s ease-in-out infinite;animation-delay:var(--ph)}
 
 .tc.enter{animation:cardIn var(--t-spring) var(--spring) both;animation-delay:var(--d,0ms)}
@@ -418,9 +431,9 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
   background:oklch(1 0 0 / .07);box-shadow:inset 0 0 0 1px var(--line-2);
   transition:background var(--t-std),box-shadow var(--t-big) var(--ease-out),color var(--t-std),transform var(--t-spring) var(--spring);
 }
-.tc-play:hover{box-shadow:inset 0 0 0 1px var(--line-3),0 0 16px oklch(0.9 0.045 215 / .16)}
+.tc-play:hover{box-shadow:inset 0 0 0 1px var(--line-3),0 0 16px oklch(0.88 0.05 245 / .16)}
 .tc-play:active{transform:scale(.88)}
-.tc-play.on{background:var(--light);color:var(--void);box-shadow:0 0 20px oklch(0.9 0.045 215 / .45)}
+.tc-play.on{background:var(--light);color:var(--void);box-shadow:0 0 20px oklch(0.88 0.05 245 / .45)}
 .tc-id{min-width:0}
 .tc-hz{font-size:21px;font-weight:300;letter-spacing:-0.025em;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tc-hz.sw{font-size:17px}
@@ -449,7 +462,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
 .tc .sel{height:26px}
 .sel:hover{color:var(--tx-1)}
 .sel:focus-visible{box-shadow:inset 0 0 0 1px var(--line-3)}
-.sel.pulsing{color:var(--light);box-shadow:inset 0 0 0 1px oklch(0.9 0.045 215 / .3)}
+.sel.pulsing{color:var(--light);box-shadow:inset 0 0 0 1px oklch(0.88 0.05 245 / .3)}
 .sel option{background:#10161a;color:var(--tx-1)}
 .vol{flex:1;min-width:0}
 .vpct{width:24px;text-align:right;color:var(--tx-3);font-size:var(--fs-xs)}
@@ -513,7 +526,7 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radiu
 .chip small{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-3)}
 .chip:hover{box-shadow:inset 0 0 0 1px var(--line-3)}
 .chip:active{transform:scale(.94)}
-.chip.on{background:var(--light-a);box-shadow:inset 0 0 0 1px oklch(0.9 0.045 215 / .35)}
+.chip.on{background:var(--light-a);box-shadow:inset 0 0 0 1px oklch(0.88 0.05 245 / .35)}
 .chip.on small{color:var(--light)}
 .preview{display:flex;flex-wrap:wrap;gap:var(--s2);padding:var(--s4);border-radius:18px;min-height:64px;margin-bottom:var(--s3);background:oklch(0 0 0 / .22);box-shadow:inset 0 0 0 1px var(--line-1)}
 .pv{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 var(--s3);border-radius:var(--r-pill);background:oklch(1 0 0 / .07);color:var(--tx-1)}
@@ -704,7 +717,7 @@ a.btn{text-decoration:none;cursor:pointer}
 .dev-hd .caps b{color:var(--light);font-weight:500;margin-left:4px}
 .dev-hd .txtbtn{display:inline-flex;align-items:center;gap:6px}
 .dev-hd .txtbtn i{display:inline-flex}
-.dev.using{box-shadow:inset 0 0 0 1px oklch(0.9 0.045 215 / .3);background:var(--light-a)}
+.dev.using{box-shadow:inset 0 0 0 1px oklch(0.88 0.05 245 / .3);background:var(--light-a)}
 .dev.using>svg{color:var(--light)}
 .dev-id{display:flex;gap:4px;margin-top:3px}
 .dev-id:empty{display:none}
@@ -719,7 +732,7 @@ a.btn{text-decoration:none;cursor:pointer}
 .column.lit>.sheen{opacity:1}
 /* cause → effect: the row you touched answers with a light sweep */
 .frow.echo{animation:rowEcho 900ms var(--ease-out)}
-@keyframes rowEcho{0%{background:oklch(0.9 0.045 215 / .28);box-shadow:inset 0 0 0 1px oklch(0.9 0.045 215 / .5)}100%{background:var(--light-a);box-shadow:inset 0 0 0 1px transparent}}
+@keyframes rowEcho{0%{background:oklch(0.88 0.05 245 / .28);box-shadow:inset 0 0 0 1px oklch(0.88 0.05 245 / .5)}100%{background:var(--light-a);box-shadow:inset 0 0 0 1px transparent}}
 /* ── COMMAND BAR ────────────────────────────────────────────── */
 .cmd-modal{place-items:start center;padding-top:min(14vh,120px)}
 .cmd-card{width:min(620px,100%);padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:min(70vh,560px)}
@@ -749,7 +762,7 @@ a.btn{text-decoration:none;cursor:pointer}
 .modal-actions.single{grid-template-columns:1fr;margin-top:var(--s4)}
 /* ── LITE QUALITY — solid glass, still scene (slower devices) ─ */
 .lite .column,.lite .tc,.lite .band-acts .txtbtn,.lite .band-hd>div,.lite .mobtabs,.lite .orb,.lite .toast,.lite .modal,.lite .modal-card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-.lite .column{background:oklch(0.14 0.014 165 / .96)}
+.lite .column{background:oklch(0.14 0.026 258 / .96)}
 .lite .tc{background:oklch(0.17 0.012 230 / .92)}
 .lite .modal-card{background:oklch(0.17 0.012 200 / .98)}
 .lite .drift,.lite .horizon-glow,.lite .floor-glow,.lite .orb-ring{animation:none!important}
@@ -758,7 +771,7 @@ a.btn{text-decoration:none;cursor:pointer}
 /* ── PLAYLISTS ──────────────────────────────────────────────── */
 .ins-sec .sec-act{margin-left:auto;display:inline-flex;align-items:center;gap:4px;color:var(--light);letter-spacing:.1em}
 .ins-sec .sec-act:hover{background:var(--light-a);color:var(--light)}
-.pl-now{padding:var(--s4);border-radius:20px;margin:var(--s1) 0 var(--s2);background:var(--light-a);box-shadow:inset 0 0 0 1px oklch(0.9 0.045 215 / .3);animation:subIn 360ms var(--ease-out)}
+.pl-now{padding:var(--s4);border-radius:20px;margin:var(--s1) 0 var(--s2);background:var(--light-a);box-shadow:inset 0 0 0 1px oklch(0.88 0.05 245 / .3);animation:subIn 360ms var(--ease-out)}
 .pl-now-top{display:flex;justify-content:space-between;align-items:center}
 .pl-now-top .caps{color:var(--light)} .pl-now-top .num{font-size:12px;color:var(--tx-1)}
 .pl-now b{display:block;font-weight:500;font-size:var(--fs-md);color:var(--tx-1);margin-top:var(--s2)}
@@ -769,17 +782,17 @@ a.btn{text-decoration:none;cursor:pointer}
 .pl-ctl .btn{height:34px;font-size:12px}
 .pl{padding:var(--s3) var(--s4) var(--s4);border-radius:20px;margin-bottom:var(--s3);background:oklch(0 0 0 / .24);box-shadow:inset 0 0 0 1px var(--line-1);transition:box-shadow var(--t-big) var(--ease-out)}
 .pl.builtin{background:linear-gradient(160deg, oklch(0.80 0.10 70 / .07), transparent 60%), oklch(0 0 0 / .24)}
-.pl.active{box-shadow:inset 0 0 0 1px oklch(0.9 0.045 215 / .35)}
+.pl.active{box-shadow:inset 0 0 0 1px oklch(0.88 0.05 245 / .35)}
 .pl-hd{display:flex;align-items:center;gap:var(--s2);min-height:32px}
 .pl-hd b.pl-name{font-weight:500;font-size:var(--fs-md);color:var(--tx-1);letter-spacing:.01em}
 .pl.builtin .pl-hd .tag{color:oklch(0.86 0.08 75);background:oklch(0.80 0.10 70 / .14)}
 .pl-meta{font-size:var(--fs-xs);color:var(--tx-3);margin:2px 0 var(--s3)}
 .pl-act{display:flex;flex-wrap:wrap;gap:6px}
 .pl-act .btn{height:34px;padding:0 var(--s3);font-size:12px}
-.pl-act .btn.on{background:var(--light-a);color:var(--light);box-shadow:inset 0 0 0 1px oklch(0.9 0.045 215 / .35)}
+.pl-act .btn.on{background:var(--light-a);color:var(--light);box-shadow:inset 0 0 0 1px oklch(0.88 0.05 245 / .35)}
 .pl-items{list-style:none;display:flex;flex-direction:column;gap:6px;margin-top:var(--s3)}
 .pl-item{padding:var(--s3);border-radius:14px;background:oklch(1 0 0 / .03);box-shadow:inset 0 0 0 1px var(--line-1);transition:background var(--t-std),box-shadow var(--t-std)}
-.pl-item.on{background:var(--light-a);box-shadow:inset 0 0 0 1px oklch(0.9 0.045 215 / .35)}
+.pl-item.on{background:var(--light-a);box-shadow:inset 0 0 0 1px oklch(0.88 0.05 245 / .35)}
 .pl-item.sk{box-shadow:inset 0 0 0 1px oklch(0.68 0.16 22 / .25)}
 .pl-item-hd{display:grid;grid-template-columns:22px 1fr auto;gap:var(--s2);align-items:center}
 .pl-n{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:600;background:oklch(1 0 0 / .08);color:var(--tx-2)}
@@ -849,7 +862,7 @@ a.btn{text-decoration:none;cursor:pointer}
 .sp-band:hover .sp-bar,.sp-band:focus-visible .sp-bar{fill:oklch(0.78 0.02 230 / .55)}
 .sp-band:focus-visible .sp-hit{stroke:var(--light);stroke-width:1.5}
 .sp-band.sel .sp-hit{fill:oklch(1 0 0 / .05);stroke:oklch(1 0 0 / .14);stroke-width:1}
-.sp-band.on .sp-bar{fill:var(--light);filter:drop-shadow(0 0 6px oklch(0.9 0.045 215 / .7))}
+.sp-band.on .sp-bar{fill:var(--light);filter:drop-shadow(0 0 6px oklch(0.88 0.05 245 / .7))}
 .sp-band.on .sp-lbl.in{fill:var(--void)}
 .sp-band.on .sp-lbl{fill:var(--light)}
 .spec-table{overflow:auto;max-height:46vh}
@@ -965,9 +978,10 @@ a.btn{text-decoration:none;cursor:pointer}
    the orbital horizon; "active" lowers it to the land horizon so
    the hero frequency stays in view.                             */
 @media (max-width:1099px), (max-height:559px), (max-aspect-ratio:5/4){
-  :root{--sheet:calc(var(--H) * 0.24);--gap:0px;--tabh:64px}
-  .stage{border-radius:0;box-shadow:none}
-  .stage::after{border-radius:0;box-shadow:none}
+  :root{--sheet:calc(var(--H) * 0.24);--gap:0px;--tabh:64px;
+    --SW:max(100vw, calc(var(--H) * 0.62 * var(--IA)));--fx:.6;--ST:0px}
+  /* the stage holds the scene above the sheet; its foot fades into the wallpaper */
+  .stage{-webkit-mask-image:linear-gradient(180deg,#000 80%,transparent);mask-image:linear-gradient(180deg,#000 80%,transparent)}
   body[data-tab=main]{--sheet:calc(var(--H) * 0.555)}
   header{padding-left:max(var(--s5), env(safe-area-inset-left));padding-right:max(var(--s5), env(safe-area-inset-right));grid-template-columns:1fr auto}
   #status,.master,.sess,.hbtn kbd,#sleeplbl:not(.on){display:none}
@@ -980,7 +994,7 @@ a.btn{text-decoration:none;cursor:pointer}
     position:fixed;z-index:12;top:var(--sheet);height:var(--tabh);
     display:flex;align-items:flex-end;padding:0 var(--s2);gap:0;
     border-radius:28px 28px 0 0;
-    background:oklch(0.13 0.014 165 / .78);
+    background:oklch(0.13 0.026 258 / .8);
     box-shadow:inset 0 1px 0 oklch(1 0 0 / .10), 0 -24px 48px -12px oklch(0 0 0 / .5);
     backdrop-filter:blur(24px) saturate(1.1);-webkit-backdrop-filter:blur(24px) saturate(1.1);
     transition:top var(--t-spring) var(--spring);
@@ -997,7 +1011,7 @@ a.btn{text-decoration:none;cursor:pointer}
     position:fixed;top:calc(var(--sheet) + var(--tabh) - 1px);bottom:0;height:auto;
     border-radius:0;box-shadow:none;
     width:min(100%, 720px);left:50%;transform:translateX(-50%);
-    background:oklch(0.13 0.014 165 / .78);
+    background:oklch(0.13 0.026 258 / .8);
     backdrop-filter:blur(24px) saturate(1.1);-webkit-backdrop-filter:blur(24px) saturate(1.1);
     transition:top var(--t-spring) var(--spring);
     display:none;
@@ -1018,11 +1032,14 @@ a.btn{text-decoration:none;cursor:pointer}
   #panel-main{padding:var(--s3) var(--s4) 0}
   .band-hd>div,.band-hd .txtbtn{background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:0 var(--s1)}
   #tgrid{
-    display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));align-content:start;
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));grid-auto-rows:max-content;align-content:start;
     overflow-y:auto;overflow-x:hidden;scroll-snap-type:none;mask-image:none;
     padding-bottom:max(var(--s5), env(safe-area-inset-bottom));
   }
-  .tc{flex:none;align-self:stretch}
+  .tc{flex:none;align-self:stretch;max-height:none}
+  /* the hero belongs to the "active" view; elsewhere the sheet would cut it in half */
+  .hero{transition:opacity var(--t-big) var(--ease-out)}
+  body:not([data-tab=main]) .hero{opacity:0}
   .spk-scroll,.int-scroll,.ins-scroll{padding-top:var(--s4)}
   .frm .sel{font-size:var(--fs-md)}
 }
@@ -1030,7 +1047,11 @@ a.btn{text-decoration:none;cursor:pointer}
    column, the window keeps the left half */
 @media (max-height:559px) and (min-aspect-ratio:5/4){
   :root,body[data-tab=main]{--sheet:var(--hd);--side:min(52%, 440px);--tabh:56px}
-  .stage{left:calc((100% - var(--side)) / 2 - var(--sw) * 0.534)}
+  .stage{-webkit-mask-image:none;mask-image:none}
+  body:not([data-tab=main]) .hero{opacity:1}   /* the sheet sits beside the scene here, never over it */
+  :root{--SW:max(100vw, calc(var(--H) * var(--IA)));--ST:clamp(calc(var(--H) - var(--SH)), calc(var(--H) * .5 - var(--SH) * .5), 0px)}
+  /* the hero centres in the uncovered half, wherever that falls on the image */
+  .hero{left:calc((100vw - var(--side)) / 2 - var(--SL) - 170px);width:340px;top:calc(var(--hd) + var(--s4) - var(--ST))}
   .sheet-w,.column,#panel-main,#panel-lib,#panel-spk{left:auto;right:0;transform:none;width:var(--side)}
   .mobtabs{border-radius:24px 0 0 0}
   .mobtabs::before{display:none}
@@ -1058,7 +1079,7 @@ a.btn{text-decoration:none;cursor:pointer}
   <div class="stage">
     <div class="par">
       <div class="drift">
-        <img class="vista" src="assets/vista.webp" alt="" decoding="async" width="736" height="983">
+        <img class="vista" src="assets/colonnade.webp" alt="" decoding="async" width="1672" height="941">
         <div class="horizon-glow"></div>
         <div class="floor-glow"></div>
       </div>
@@ -2210,43 +2231,55 @@ const pitch01 = hz => Math.min(1,Math.max(0,(Math.log10(hz)+1)/(Math.log10(20000
 const isCompact = () => matchMedia('(max-width:1099px), (max-height:559px), (max-aspect-ratio:5/4)').matches;
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
-// ── WAVE — drawn on the image's land horizon ───────────────
+// ── WAVE — drawn along the colonnade's road ────────────────
 // low pitch → long, tall, slow; high pitch → short, small, bright (cross-modal)
+// the road, measured on the image (px of 1672 × 941); the canvas covers x 35–93 %, y 41–67 %
+const ROAD=[[615,465],[660,440],[760,480],[860,508],[1060,545],[1260,574],[1460,598],[1530,604]];
+const WBOX={x:.35,y:.41,w:.58,h:.26};
 const cvs=$('wave'), cctx=cvs.getContext('2d');
-let wt=0, energy=0, energyTarget=0;
+let wt=0, energy=0, energyTarget=0, roadPts=[];
 function sizeCanvas(){
   waveGrad=null;
   const r=cvs.getBoundingClientRect(), d=Math.min(2,devicePixelRatio||1);
   cvs.width=Math.max(1,Math.round(r.width*d)); cvs.height=Math.max(1,Math.round(r.height*d));
+  // road → canvas pixels, smoothed (Catmull-Rom), with unit normals for the displacement
+  const P=ROAD.map(([x,y])=>[(x/1672-WBOX.x)/WBOX.w*cvs.width,(y/941-WBOX.y)/WBOX.h*cvs.height]);
+  const pts=[], seg=24;
+  for(let i=0;i<P.length-1;i++){
+    const p0=P[Math.max(0,i-1)], p1=P[i], p2=P[i+1], p3=P[Math.min(P.length-1,i+2)];
+    for(let k=0;k<seg;k++){ const t=k/seg, t2=t*t, t3=t2*t;
+      pts.push([0,1].map(j=>.5*(2*p1[j]+(-p0[j]+p2[j])*t+(2*p0[j]-5*p1[j]+4*p2[j]-p3[j])*t2+(-p0[j]+3*p1[j]-3*p2[j]+p3[j])*t3))); }
+  }
+  pts.push(P[P.length-1]);
+  let len=0; roadPts=pts.map((p,i)=>{ if(i) len+=Math.hypot(p[0]-pts[i-1][0],p[1]-pts[i-1][1]); return {x:p[0],y:p[1],s:len}; });
+  roadPts.forEach((p,i)=>{ const a=roadPts[Math.max(0,i-1)], b=roadPts[Math.min(roadPts.length-1,i+1)];
+    const dx=b.x-a.x, dy=b.y-a.y, m=Math.hypot(dx,dy)||1; p.nx=dy/m; p.ny=-dx/m; p.u=len?p.s/len:0; });
 }
 let waveGrad=null;
 function drawWave(){
-  const w=cvs.width, h=cvs.height, mid=h/2, d=Math.min(2,devicePixelRatio||1);
+  const w=cvs.width, h=cvs.height, d=Math.min(2,devicePixelRatio||1);
   cctx.clearRect(0,0,w,h);
+  if(!roadPts.length) return;
   if(!waveGrad){
-    waveGrad=cctx.createLinearGradient(0,0,w,0);
-    waveGrad.addColorStop(0,'rgba(220,236,245,0)'); waveGrad.addColorStop(.18,'rgba(220,236,245,1)');
-    waveGrad.addColorStop(.82,'rgba(220,236,245,1)'); waveGrad.addColorStop(1,'rgba(220,236,245,0)');
+    waveGrad=cctx.createLinearGradient(roadPts[0].x,0,roadPts[roadPts.length-1].x,0);
+    waveGrad.addColorStop(0,'rgba(255,232,196,0)'); waveGrad.addColorStop(.12,'rgba(255,232,196,1)');
+    waveGrad.addColorStop(.85,'rgba(255,232,196,1)'); waveGrad.addColorStop(1,'rgba(255,232,196,0)');
   }
   cctx.strokeStyle=waveGrad;
-  // horizon hairline — always present, brightens with energy
-  cctx.globalAlpha=.10+energy*.10; cctx.lineWidth=.75*d;
-  cctx.beginPath(); cctx.moveTo(0,mid); cctx.lineTo(w,mid); cctx.stroke();
+  const trace=f=>{ cctx.beginPath(); roadPts.forEach((p,i)=>{ const o=f(p); const x=p.x+p.nx*o, y=p.y+p.ny*o; i?cctx.lineTo(x,y):cctx.moveTo(x,y); }); };
+  // the road's own hairline — always there, brightens with energy
+  cctx.globalAlpha=.05+energy*.12; cctx.lineWidth=.75*d;
+  trace(()=>0); cctx.stroke();
   const playing=energy>.01?tones.filter(t=>t.playing):[];
   if(playing.length){
+    const L=roadPts[roadPts.length-1].s||1;
     const comps=playing.slice(0,16).map(t=>{
       const p=pitch01(t.hz);
-      return {k:(1.2+p*26)*Math.PI*2/w, a:(1-p*.7)*Math.max(.25,t.volume), s:.25+p*1.2};
+      return {k:(1.2+p*26)*Math.PI*2/L, a:(1-p*.7)*Math.max(.25,t.volume), s:.25+p*1.2};
     });
-    const norm=1/Math.max(1,comps.reduce((s,c)=>s+c.a,0)), step=Math.max(2,Math.round(w/420));
+    const norm=1/Math.max(1,comps.reduce((s,c)=>s+c.a,0)), amp=h*.16*energy*norm;
     // one path, stroked three times: wide soft halo → mid glow → bright core (no shadowBlur: far cheaper)
-    cctx.beginPath();
-    for(let x=0;x<=w;x+=step){
-      const env=Math.sin(Math.PI*x/w);
-      let y=0; for(const c of comps) y+=c.a*Math.sin(c.k*x - wt*c.s);
-      y=mid + y*norm*env*h*.40*energy;
-      x?cctx.lineTo(x,y):cctx.moveTo(x,y);
-    }
+    trace(p=>{ let y=0; for(const c of comps) y+=c.a*Math.sin(c.k*p.s - wt*c.s); return y*Math.sin(Math.PI*p.u)*amp; });
     for(const [alpha,lw] of [[.08,7],[.18,3.2],[.85,1.1]]){ cctx.globalAlpha=alpha*energy; cctx.lineWidth=lw*d; cctx.stroke(); }
   }
   cctx.globalAlpha=1;
@@ -2751,7 +2784,7 @@ async function doDownload(){
     }
     if(!html) html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
     // inline every asset so the file runs with no network at all
-    for(const p of ['assets/vista.webp','assets/inter-var.woff2','icons/favicon-32.png','icons/apple-touch-icon.png']){
+    for(const p of ['assets/colonnade.webp','assets/inter-var.woff2','icons/favicon-32.png','icons/apple-touch-icon.png']){
       if(!html.includes(p)) continue;
       try{
         const r=await fetch(p); if(!r.ok) continue;

@@ -48,13 +48,17 @@ try {
       lit: document.body.classList.contains('lit'), rows: document.querySelectorAll('.frow').length,
       v: window.__v || [], tt: !!window.trustedTypes?.defaultPolicy, coi: self.crossOriginIsolated,
     }));
-    check('load', 'font, image and reveal', st.font && st.img === 736 && st.lit);
+    check('load', 'font, image and reveal', st.font && st.img === 1672 && st.lit);
     check('load', 'library renders all entries (114 + 12 spectrum)', st.rows === 126, st.rows);
     check('load', 'no CSP violations', st.v.length === 0, st.v.join());
     check('load', 'Trusted Types policy + cross-origin isolation', st.tt && st.coi);
     check('load', 'service worker active', await ev(p, async () => !!(await navigator.serviceWorker.ready).active));
     await ctx.setOffline(true); await p.reload(); await wait(1500);
-    check('load', 'reloads fully offline', await ev(p, () => document.querySelector('.vista').naturalWidth === 736 && document.querySelectorAll('.frow').length > 100));
+    check('load', 'reloads fully offline', await ev(p, () => document.querySelector('.vista').naturalWidth === 1672 && document.querySelectorAll('.frow').length > 100));
+    // the background carries no metadata: only image data chunks in the RIFF container
+    const chunks = await ev(p, async () => { const b = new Uint8Array(await (await fetch('/assets/colonnade.webp')).arrayBuffer()); const out = [];
+      for (let i = 12; i + 8 <= b.length;) { const t = String.fromCharCode(...b.slice(i, i + 4)), n = b[i + 4] | b[i + 5] << 8 | b[i + 6] << 16 | b[i + 7] << 24; out.push(t); i += 8 + n + (n & 1); } return out; });
+    check('load', 'background image has no EXIF / XMP / ICC metadata', chunks.length && chunks.every(c => ['VP8 ', 'VP8L', 'VP8X', 'ALPH'].includes(c)), chunks.join());
     check('load', 'no page errors', p.errors.length === 0, p.errors.join(' | '));
     await ctx.close();
   }
@@ -284,7 +288,7 @@ try {
 
     const { ctx: c5, p: p5 } = await page();
     await p5.goto(U); await wait(1500);
-    await ev(p5, async () => { await fetch('/assets/vista.webp?poison=1'); await fetch('/README.md').catch(() => 0); });
+    await ev(p5, async () => { await fetch('/assets/colonnade.webp?poison=1'); await fetch('/README.md').catch(() => 0); });
     const keys = await ev(p5, async () => { const k = []; for (const n of await caches.keys()) for (const r of await (await caches.open(n)).keys()) k.push(new URL(r.url).pathname + new URL(r.url).search); return k; });
     check('security', 'service-worker cache holds allow-list only', keys.length === 8 && keys.every(k => !k.includes('?') && !k.includes('README')), keys.join(' '));
     await c5.close();
@@ -293,7 +297,7 @@ try {
     await c6.route('**/*', r => /^(file|data|blob):/.test(r.request().url()) ? r.continue() : r.abort());
     const p6 = await c6.newPage(); await p6.goto('file://' + single); await wait(2200);
     const s6 = await ev(p6, () => ({ font: document.fonts.check('300 20px Inter'), img: document.querySelector('.vista').naturalWidth, v: window.__v || [], rows: document.querySelectorAll('.frow').length }));
-    check('security', 'single file: offline, CSP intact, fully styled', s6.font && s6.img === 736 && s6.v.length === 0 && s6.rows === 126, JSON.stringify(s6));
+    check('security', 'single file: offline, CSP intact, fully styled', s6.font && s6.img === 1672 && s6.v.length === 0 && s6.rows === 126, JSON.stringify(s6));
     await c6.close();
   }
 
@@ -827,7 +831,7 @@ try {
   }
 
   // ── 9 · RESPONSIVE ───────────────────────────────────────
-  for (const [w, h, mobile] of [[1920, 947, 0], [1440, 900, 0], [1100, 640, 0], [820, 1180, 1], [390, 844, 1], [844, 390, 1], [360, 640, 1]]) {
+  for (const [w, h, mobile] of [[3840, 2160, 0], [2560, 1080, 0], [1920, 947, 0], [1440, 900, 0], [1280, 1024, 0], [1100, 640, 0], [1024, 768, 0], [820, 1180, 1], [390, 844, 1], [844, 390, 1], [360, 640, 1], [320, 568, 1]]) {
     const { ctx, p } = await page({ vp: { width: w, height: h }, mobile: !!mobile });
     await p.goto(U); await wait(1300);
     const over = await ev(p, () => document.documentElement.scrollWidth > innerWidth || document.body.scrollWidth > innerWidth);
@@ -844,6 +848,9 @@ try {
       await p.click('.mobt[data-tab=ins]'); await p.click('#panel-spk .ctab[data-sub=combos]'); await wait(200);
       check('responsive', `${w}×${h}: combos reachable`, await p.isVisible('#combosave'));
     } else {
+      const fig = await ev(p, () => { const st = document.querySelector('.stage').getBoundingClientRect(); const x = st.left + st.width * 0.628, y = st.top + st.height * 0.86;
+        const hit = document.elementsFromPoint(x, y).some(e => e.closest('#panel-main,.column,header')); return { x, y, hit, inView: x > 0 && x < innerWidth && y > 0 && y < innerHeight }; });
+      check('responsive', `${w}×${h}: the figure is in view and never covered`, fig.inView && !fig.hit, JSON.stringify(fig));
       check('responsive', `${w}×${h}: both columns + stage visible`, await p.isVisible('#panel-lib') && await p.isVisible('#panel-spk') && await p.isVisible('.vista'));
     }
     check('responsive', `${w}×${h}: no page errors`, p.errors.length === 0, p.errors.join(' | '));

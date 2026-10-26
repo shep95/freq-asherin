@@ -10,7 +10,7 @@ when the two disagree, the code is wrong.
 
 | region | components | role |
 |---|---|---|
-| **scene** | wallpaper (blurred), stage image, horizon glow, floor glow, hero frequency, horizon wave | the world. it *responds*; it is never a control |
+| **scene** | the colonnade at sunset (full screen), sun glow, colonnade glow, hero frequency, wave along the colonnade's road, the figure | the world. it *responds*; it is never a control |
 | **header** (ceiling band) | champagne wordmark, status line, session time, sleep timer, command bar, master volume, play orb | identity + the one global instrument |
 | **left glass column** | library · colour filters · custom Hz / modes (sleep · focus · calm · learn) + your hearing / intervals / mute charge | where sound is *chosen* — by frequency or by task |
 | **tone band** (on the land) | active-tone cards, save · reset · stop all | what is *sounding* |
@@ -22,10 +22,10 @@ when the two disagree, the code is wrong.
 
 attention is earned in this order, and nothing may outrank the item above it:
 
-1. **the vista** — the image is the largest, calmest, highest-contrast thing on screen
-2. **the hero frequency** — one number, in the haze band, the only large type
+1. **the vista** — the colonnade at sunset, full screen; the lone figure on the hill is never covered
+2. **the hero frequency** — one number, inside the colonnade's embrace where the figure is looking, the only large type
 3. **the play orb** — the single global control; champagne ring when sounding
-4. **active cards** — glass on the land, above the diners (who stay visible for scale)
+4. **active cards** — glass on the dark hill, stopping short of the figure (who stays visible for scale)
 5. **the columns** — dark tiled glass, lit only where the cursor is
 6. **overlays** — appear above everything, dim and blur the world behind
 
@@ -33,9 +33,11 @@ attention is earned in this order, and nothing may outrank the item above it:
 
 | colour | meaning | never used for |
 |---|---|---|
-| horizon light (icy) | **sound / active state** — playing cards, live bands, selection | branding |
-| champagne metal | **identity / prestige** — wordmark, orb ring, session time, presets | state |
-| amber | the image's own column light; shepherd's audio tier on the spectrum | — |
+| dusk-sky ice | **sound / active state** in the ui — playing cards, live bands, selection | branding |
+| sunlight on marble | **sound in the scene** — the wave on the colonnade's road, the colonnade and sun glows | ui state |
+| ember (the figure's jacket) | the sounding orb's ring — "you" — used once | anything else |
+| champagne metal | **identity / prestige** — wordmark, orb ring, session time, presets, mode cards | state |
+| amber | the sunset's warm edge light on the glass; shepherd's audio tier on the spectrum | — |
 | caution scale (green → yellow → amber → rose) | beat-rate risk | anything else |
 | rose + skull | extreme caution | decoration |
 | evidence tags | how solid a claim is | — |
@@ -61,8 +63,8 @@ flowchart LR
   STORE --> ROW[library row echo + ✓]
   STORE --> CARDS[tone cards enter / leave]
   STORE --> HERO[hero rolls to the new Hz]
-  STORE --> WAVE[horizon wave reshapes]
-  STORE --> GLOW[horizon + floor glow swell]
+  STORE --> WAVE[wave runs along the colonnade]
+  STORE --> GLOW[sun + colonnade glow swell]
   STORE --> ORBV[orb ignites · ring turns]
   STORE --> INS[insight: pairs, notes, categories]
   STORE --> STAT[header status · session time]
@@ -75,7 +77,7 @@ flowchart LR
 | you do | the world answers, in this order |
 |---|---|
 | **add a tone** | the row flashes light (0 ms) → card springs in (0–750 ms) → hero rolls to the Hz (620 ms) → insight re-reads the mix (next frame, if visible) |
-| **press play** | the orb ignites and its champagne ring begins to turn → tones swell in over 1.2 s → horizon and floor light rise with the energy → the wave draws itself on the land horizon → session time appears in the header |
+| **press play** | the orb ignites and its champagne ring begins to turn → tones swell in over 1.2 s → the sun and the colonnade's face warm with the energy → the wave draws itself along the colonnade's road → session time appears in the header |
 | **stop** | tones swell out over 0.6 s → light settles → wave returns to a hairline → the render loop goes to sleep |
 | **change playlist stage** | 3 s crossfade between stages → now-playing card and header status update → hero rolls |
 | **a speaker connects** | "connected · use it" → one tap routes everything there → the connect status and device list update → bluetooth lights on the spectrum |

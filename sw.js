@@ -6,11 +6,11 @@
 // (no cache poisoning via arbitrary URLs or query strings), redirects and
 // non-OK / non-basic responses are never stored, and cross-origin requests
 // are not intercepted at all.
-const VERSION = 'shepherd-v11';
+const VERSION = 'shepherd-v12';
 const ASSETS = [
   './',
   'manifest.webmanifest',
-  'assets/vista.webp',
+  'assets/colonnade.webp',
   'assets/inter-var.woff2',
   'icons/favicon-32.png',
   'icons/apple-touch-icon.png',
